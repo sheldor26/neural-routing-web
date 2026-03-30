@@ -28,7 +28,7 @@ export default function LandingPage() {
       {/* --- HERO SECTION --- */}
       <header className="py-24 px-6 text-center max-w-5xl mx-auto mb-16">
         <div className="inline-block px-4 py-1.5 mb-8 border border-blue-500/30 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-black tracking-[0.2em] uppercase animate-pulse">
-          Now in Private Beta: Virasoro Node Online
+          Now in Private Beta: Neural Node Online
         </div>
         
         <h1 className="text-6xl md:text-8xl font-black tracking-tight mb-8 leading-[0.9] bg-gradient-to-b from-white to-zinc-600 bg-clip-text text-transparent italic uppercase">
@@ -70,7 +70,7 @@ export default function LandingPage() {
           © 2026 NeuralRouting.io — Built for the Intelligent Enterprise.
         </div>
         <p className="text-zinc-800 text-[9px] uppercase font-black tracking-[0.3em]">
-          Powered by Gobernador Virasoro Infrastructure Strategy
+          Powered by Neural Infrastructure Strategy
         </p>
       </footer>
     </div>
