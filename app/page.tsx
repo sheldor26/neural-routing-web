@@ -1,6 +1,7 @@
 "use client";
 import { useState } from 'react';
-import { Zap, Shield, BarChart3, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
+import { Zap, Shield, BarChart3, ArrowRight, Loader2, CheckCircle2, UserCircle } from 'lucide-react';
+import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs"; // <-- Importamos Clerk
 
 export default function LandingPage() {
   const [prompt, setPrompt] = useState("");
@@ -38,9 +39,23 @@ export default function LandingPage() {
           <a href="#playground" className="hover:text-white transition">Playground</a>
           <a href="#pricing" className="hover:text-white transition">Pricing</a>
         </div>
-        <button className="bg-white text-black px-6 py-2.5 rounded-full text-sm font-bold hover:bg-zinc-200 transition">
-          Get Started
-        </button>
+        
+        {/* Lógica de Auth en el Nav */}
+        <div className="flex items-center gap-4">
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button className="bg-white text-black px-6 py-2.5 rounded-full text-sm font-bold hover:bg-zinc-200 transition">
+                Get Started
+              </button>
+            </SignInButton>
+          </SignedOut>
+          <SignedIn>
+            <div className="flex items-center gap-4 bg-zinc-900/50 p-1 pl-4 rounded-full border border-zinc-800">
+              <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Dashboard</span>
+              <UserButton afterSignOutUrl="/" />
+            </div>
+          </SignedIn>
+        </div>
       </nav>
 
       {/* --- HERO SECTION --- */}
@@ -54,10 +69,21 @@ export default function LandingPage() {
         <p className="text-zinc-400 text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed">
           Intelligent prompt routing in milliseconds. Save up to 85% on token costs by automatically switching between Economy and Premium models.
         </p>
+        
         <div className="flex flex-col md:flex-row gap-6 justify-center">
-          <a href="#playground" className="bg-blue-600 hover:bg-blue-500 px-10 py-5 rounded-2xl font-bold text-lg transition shadow-2xl shadow-blue-900/40 flex items-center justify-center gap-2">
-            Try Live Demo <ArrowRight size={20} />
-          </a>
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button className="bg-blue-600 hover:bg-blue-500 px-10 py-5 rounded-2xl font-bold text-lg transition shadow-2xl shadow-blue-900/40 flex items-center justify-center gap-2">
+                Try Live Demo <ArrowRight size={20} />
+              </button>
+            </SignInButton>
+          </SignedOut>
+          <SignedIn>
+            <a href="#playground" className="bg-blue-600 hover:bg-blue-500 px-10 py-5 rounded-2xl font-bold text-lg transition shadow-2xl shadow-blue-900/40 flex items-center justify-center gap-2">
+              Launch Simulator <ArrowRight size={20} />
+            </a>
+          </SignedIn>
+          
           <button className="bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 px-10 py-5 rounded-2xl font-bold text-lg transition">
             Book a Demo
           </button>
@@ -149,9 +175,9 @@ export default function LandingPage() {
           <PriceCard 
             tier="Pro"
             price="199"
-            highlight={true}
             desc="For growing businesses scaling their AI infrastructure."
             features={["Up to 50M Routed Tokens", "10 Client IDs", "Priority Support", "Advanced ROI Insights", "PII Redaction"]}
+            highlight={true}
           />
           <PriceCard 
             tier="Enterprise"
@@ -203,9 +229,20 @@ function PriceCard({ tier, price, desc, features, highlight = false }: { tier: s
           </li>
         ))}
       </ul>
-      <button className={`w-full py-4 rounded-2xl font-bold transition ${highlight ? 'bg-blue-600 hover:bg-blue-500' : 'bg-zinc-800 hover:bg-zinc-700'}`}>
-        Choose {tier}
-      </button>
+      
+      {/* Integración de Auth en los botones de Pricing */}
+      <SignedOut>
+        <SignInButton mode="modal">
+          <button className={`w-full py-4 rounded-2xl font-bold transition ${highlight ? 'bg-blue-600 hover:bg-blue-500' : 'bg-zinc-800 hover:bg-zinc-700'}`}>
+            Get Started with {tier}
+          </button>
+        </SignInButton>
+      </SignedOut>
+      <SignedIn>
+        <button className={`w-full py-4 rounded-2xl font-bold transition ${highlight ? 'bg-blue-600 hover:bg-blue-500' : 'bg-zinc-800 hover:bg-zinc-700'}`}>
+          Upgrade to {tier}
+        </button>
+      </SignedIn>
     </div>
   );
 }
