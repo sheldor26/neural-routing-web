@@ -29,8 +29,8 @@ export default function Playground() {
     setResult(null);
 
     try {
-      // Usamos una URL limpia. Railway maneja HTTPS automáticamente.
-      const response = await fetch("https://web-production-4f439.app.railway.app/v1/dispatch", {
+      // Agregamos timestamp (?t=) para evitar que el navegador use una respuesta cacheada
+      const response = await fetch(`https://web-production-4f439.app.railway.app/v1/dispatch?t=${Date.now()}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -44,16 +44,15 @@ export default function Playground() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || `Error ${response.status}: No se pudo conectar con el motor.`);
+        throw new Error(errorData.detail || `Error ${response.status}: No se pudo conectar con el motor neuronal.`);
       }
       
       const data = await response.json();
       setResult(data);
     } catch (err: any) {
-      console.error("❌ Error de red:", err);
-      // Si el error es "Failed to fetch", suele ser CORS o el servidor caído
+      console.error("❌ Error en el despacho:", err);
       const msg = err.message === "Failed to fetch" 
-        ? "Error de conexión (CORS). Verifica que el backend esté activo." 
+        ? "Error de conexión (CORS). Asegúrate de que el backend en Railway esté activo y actualizado." 
         : err.message;
       setError(msg);
     } finally {
@@ -67,7 +66,7 @@ export default function Playground() {
         <div className="text-center mb-10">
           <h2 className="text-3xl font-bold mb-4 italic tracking-tight uppercase">Live Routing Simulator</h2>
           <p className="text-zinc-500 max-w-md mx-auto italic">
-            El motor inteligente seleccionará el modelo óptimo para tu prompt.
+            El motor inteligente seleccionará el modelo óptimo para tu consulta.
           </p>
         </div>
         
@@ -86,7 +85,7 @@ export default function Playground() {
               testRoute();
             }}
             disabled={loading || !prompt || !isLoaded}
-            className="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 disabled:opacity-30 py-5 rounded-2xl font-black text-xl transition-all flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(37,99,235,0.3)]"
+            className="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 disabled:opacity-30 py-5 rounded-2xl font-black text-xl transition-all flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(37,99,235,0.3)] cursor-pointer"
           >
             {loading ? (
               <>
