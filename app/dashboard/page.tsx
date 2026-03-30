@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { UserButton, useUser } from "@clerk/nextjs";
-import { Zap, TrendingUp, Key, Loader2 } from 'lucide-react';
-import { supabase } from '@/lib/supabase'; // Importamos tu conexión
+import { TrendingUp, Loader2 } from 'lucide-react'; // Quitamos Zap y Key
+import { supabase } from '@/lib/supabase';
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -13,7 +13,6 @@ export default function DashboardPage() {
     async function fetchSavings() {
       if (!user) return;
       
-      // Consultamos la suma de la columna cost_saved para este usuario
       const { data, error } = await supabase
         .from('routing_logs')
         .select('cost_saved')
@@ -49,16 +48,22 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Card de Ahorros Totales */}
           <div className="bg-zinc-900/30 border border-zinc-800 p-8 rounded-3xl">
             <div className="p-2 bg-black w-fit rounded-xl border border-zinc-800 mb-4">
                <TrendingUp className="text-green-500" />
             </div>
-            <h3 className="text-zinc-500 text-sm font-medium">Total Savings</h3>
+            <h3 className="text-zinc-500 text-sm font-medium italic">Total Savings</h3>
             <div className="text-4xl font-black mt-1 text-green-400">
-              {loading ? <Loader2 className="animate-spin" /> : `$${totalSaved.toFixed(2)}`}
+              {loading ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                `$${totalSaved.toFixed(2)}`
+              )}
             </div>
           </div>
-          {/* ... Las otras StatCards pueden seguir igual por ahora ... */}
+
+          {/* Puedes agregar más cards aquí luego */}
         </div>
       </main>
     </div>
