@@ -18,7 +18,7 @@ export default function LandingPage() {
         </div>
         
         <div className="flex items-center gap-8">
-          <Link href="/pricing" className="hidden md:block text-zinc-500 hover:text-white text-xs font-black uppercase tracking-widest transition-colors">
+          <Link href="/pricing" className="hidden md:block text-zinc-500 hover:text-white text-[10px] font-black uppercase tracking-[0.2em] transition-colors">
             Pricing
           </Link>
           <NavAuth />
@@ -26,8 +26,8 @@ export default function LandingPage() {
       </nav>
 
       {/* --- HERO SECTION --- */}
-      <header className="py-24 px-6 text-center max-w-5xl mx-auto">
-        <div className="inline-block px-4 py-1.5 mb-6 border border-blue-500/30 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-black tracking-[0.2em] uppercase">
+      <header className="py-24 px-6 text-center max-w-5xl mx-auto mb-16">
+        <div className="inline-block px-4 py-1.5 mb-8 border border-blue-500/30 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-black tracking-[0.2em] uppercase animate-pulse">
           Now in Private Beta: Virasoro Node Online
         </div>
         
@@ -45,40 +45,32 @@ export default function LandingPage() {
           
           <Link 
             href="/pricing" 
-            className="group flex items-center gap-2 px-8 py-4 bg-zinc-900 border border-zinc-800 text-zinc-400 font-black uppercase tracking-tighter rounded-2xl hover:bg-zinc-800 hover:text-white transition-all active:scale-95 italic"
+            className="group flex items-center gap-3 px-8 py-4 bg-zinc-900 border border-zinc-800 text-zinc-400 font-black uppercase tracking-tighter rounded-2xl hover:bg-zinc-800 hover:text-white transition-all active:scale-95 italic shadow-xl"
           >
             View Pricing
             <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
-
-        {/* --- TRUST BADGE --- */}
-        <div className="mt-20 flex flex-col items-center gap-6 opacity-30 grayscale">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Optimizing traffic for</p>
-          <div className="flex gap-12 text-2xl font-black italic tracking-tighter">
-            <span>CobrAR</span>
-            <span>FixReviews</span>
-            <span>UsaToyDeals</span>
-          </div>
-        </div>
       </header>
 
-      {/* --- SIMULADOR --- */}
-      <div className="max-w-7xl mx-auto px-6 pb-24">
-        <div className="text-center mb-12">
-          <h2 className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2">Live Demo</h2>
-          <p className="text-2xl font-bold italic uppercase tracking-tight">Test the Routing Engine</p>
+      {/* --- PLAYGROUND SECTION (SIMULADOR) --- */}
+      <div className="max-w-7xl mx-auto px-6 pb-32">
+        <div className="text-center mb-10">
+          <h2 className="text-zinc-600 text-[10px] font-black uppercase tracking-[0.4em] mb-2">Live Infrastructure</h2>
+          <p className="text-3xl font-black italic uppercase tracking-tighter">Test the Neural Router</p>
         </div>
-        <Playground />
+        <div className="bg-zinc-900/20 p-4 md:p-8 rounded-[3rem] border border-zinc-800/50 backdrop-blur-sm shadow-2xl hover:border-zinc-700/50 transition-all">
+          <Playground />
+        </div>
       </div>
 
       {/* --- FOOTER --- */}
       <footer className="py-20 border-t border-zinc-900 text-center">
-        <div className="text-zinc-600 text-xs font-bold uppercase tracking-widest italic mb-2">
+        <div className="text-zinc-600 text-[10px] font-black uppercase tracking-widest italic mb-2">
           © 2026 NeuralRouting.io — Built for the Intelligent Enterprise.
         </div>
-        <p className="text-zinc-800 text-[10px] uppercase font-black tracking-tighter">
-          Powered by Gobernador Virasoro Infrastructure
+        <p className="text-zinc-800 text-[9px] uppercase font-black tracking-[0.3em]">
+          Powered by Gobernador Virasoro Infrastructure Strategy
         </p>
       </footer>
     </div>
