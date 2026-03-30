@@ -1,16 +1,32 @@
 "use client";
 import { useState } from 'react';
-import { Zap, Shield, BarChart3, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
+import { Zap, Shield, BarChart3, Loader2, CheckCircle2 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 
-// IMPORTACIÓN POR NAMESPACE: Esto ignora el error de "export not found"
-import * as Clerk from "@clerk/nextjs";
+// Cargamos los componentes de Auth solo en el cliente, saltando el error de build
+const NavAuth = dynamic(() => import('@/components/AuthInterface').then(mod => mod.NavAuth), { ssr: false });
+const HeroAuth = dynamic(() => import('@/components/AuthInterface').then(mod => mod.HeroAuth), { ssr: false });
 
 export default function LandingPage() {
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  // ... (tu función testRoute igual) ...
+  const testRoute = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("https://web-production-4f439.app.railway.app/v1/dispatch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-API-KEY": "key_demo_user" },
+        body: JSON.stringify({ prompt })
+      });
+      const data = await response.json();
+      setResult(data);
+    } catch (error) {
+      console.error("Routing error:", error);
+    }
+    setLoading(false);
+  };
 
   return (
     <div className="min-h-screen bg-[#09090b] text-white font-sans">
@@ -18,44 +34,17 @@ export default function LandingPage() {
         <div className="text-2xl font-black tracking-tighter">
           NEURAL<span className="text-blue-600">ROUTING</span>
         </div>
-        
-        <div className="flex items-center gap-4">
-          {/* Usamos Clerk.Componente en lugar del componente directo */}
-          <Clerk.SignedOut>
-            <Clerk.SignInButton mode="modal">
-              <button className="bg-white text-black px-6 py-2.5 rounded-full text-sm font-bold hover:bg-zinc-200 transition">
-                Get Started
-              </button>
-            </Clerk.SignInButton>
-          </Clerk.SignedOut>
-          
-          <Clerk.SignedIn>
-            <div className="flex items-center gap-4 bg-zinc-900/50 p-1 pl-4 rounded-full border border-zinc-800">
-              <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Dashboard</span>
-              <Clerk.UserButton afterSignOutUrl="/" />
-            </div>
-          </Clerk.SignedIn>
-        </div>
+        <NavAuth />
       </nav>
 
-      {/* --- IMPORTANTE: También cambiar en el HERO y PRICING --- */}
-      {/* Hero Section Buttons */}
-      <div className="flex flex-col md:flex-row gap-6 justify-center">
-        <Clerk.SignedOut>
-          <Clerk.SignInButton mode="modal">
-            <button className="bg-blue-600 hover:bg-blue-500 px-10 py-5 rounded-2xl font-bold text-lg transition flex items-center justify-center gap-2">
-              Try Live Demo <ArrowRight size={20} />
-            </button>
-          </Clerk.SignInButton>
-        </Clerk.SignedOut>
-        <Clerk.SignedIn>
-          <a href="#playground" className="bg-blue-600 hover:bg-blue-500 px-10 py-5 rounded-2xl font-bold text-lg transition flex items-center justify-center gap-2">
-            Launch Simulator <ArrowRight size={20} />
-          </a>
-        </Clerk.SignedIn>
-      </div>
+      <header className="py-24 px-6 text-center max-w-5xl mx-auto">
+        <h1 className="text-6xl md:text-8xl font-black tracking-tight mb-8 leading-[0.9] bg-gradient-to-b from-white to-zinc-500 bg-clip-text text-transparent">
+          Stop Overpaying for <br/>AI Infrastructure.
+        </h1>
+        <HeroAuth />
+      </header>
 
-      {/* ... el resto del simulador queda igual ... */}
+      {/* Tu simulador y resto de secciones aquí abajo igual... */}
     </div>
   );
 }
