@@ -1,6 +1,14 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-export default clerkMiddleware();
+// 1. Definimos cuáles son las rutas que requieren que el usuario esté logueado
+const isDashboardRoute = createRouteMatcher(['/dashboard(.*)']);
+
+export default clerkMiddleware(async (auth, req) => {
+  // 2. Si el usuario intenta entrar al dashboard, verificamos su sesión
+  if (isDashboardRoute(req)) {
+    await auth.protect();
+  }
+});
 
 export const config = {
   matcher: [
