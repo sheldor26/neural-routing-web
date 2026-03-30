@@ -29,8 +29,8 @@ export default function Playground() {
     setResult(null);
 
     try {
-      // Calling your Railway Backend
-      const response = await fetch("https://web-production-4f439.app.railway.app/v1/dispatch", {
+      // Adding a timestamp ?t= to bypass potential browser/CDN caching of old CORS errors
+      const response = await fetch(`https://web-production-4f439.app.railway.app/v1/dispatch?t=${Date.now()}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -51,8 +51,9 @@ export default function Playground() {
       setResult(data);
     } catch (err: any) {
       console.error("❌ Dispatch Error:", err);
+      // More descriptive error for the user
       setError(err.message === "Failed to fetch" 
-        ? "Connection Error (CORS). Verify backend is live on Railway." 
+        ? "Network Error: Could not connect to the neural engine. Please check if the backend is live." 
         : err.message);
     } finally {
       setLoading(false);
