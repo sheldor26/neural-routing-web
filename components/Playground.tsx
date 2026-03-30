@@ -29,8 +29,8 @@ export default function Playground() {
     setResult(null);
 
     try {
-      // Adding a timestamp ?t= to bypass potential browser/CDN caching of old CORS errors
-      const response = await fetch(`https://web-production-4f439.app.railway.app/v1/dispatch?t=${Date.now()}`, {
+      // UPDATED URL: Now using the verified .up.railway.app domain
+      const response = await fetch(`https://web-production-4f439.up.railway.app/v1/dispatch?t=${Date.now()}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -51,9 +51,8 @@ export default function Playground() {
       setResult(data);
     } catch (err: any) {
       console.error("❌ Dispatch Error:", err);
-      // More descriptive error for the user
       setError(err.message === "Failed to fetch" 
-        ? "Network Error: Could not connect to the neural engine. Please check if the backend is live." 
+        ? "Connection Error. Please ensure you have accepted the security certificate on the Railway URL." 
         : err.message);
     } finally {
       setLoading(false);
@@ -65,8 +64,8 @@ export default function Playground() {
       <div className="bg-zinc-900/50 border border-zinc-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl backdrop-blur-md">
         <div className="text-center mb-10">
           <h2 className="text-3xl font-bold mb-4 italic tracking-tight uppercase">Live Routing Simulator</h2>
-          <p className="text-zinc-500 max-w-md mx-auto italic">
-            Experience how our neural engine selects the best model for your prompt.
+          <p className="text-zinc-500 max-w-md mx-auto italic text-sm">
+            Experience how our neural engine selects the best model for your prompt in real-time.
           </p>
         </div>
         
@@ -116,9 +115,12 @@ export default function Playground() {
                </div>
              </div>
              <div className="space-y-4">
-               <p className="text-blue-400 font-mono bg-blue-500/5 w-fit px-3 py-1 rounded-md text-[11px] border border-blue-500/20 mx-auto">
-                 {result.routing.model_used}
-               </p>
+               <div className="flex flex-col items-center gap-2">
+                  <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em]">Model Deployed</p>
+                  <p className="text-blue-400 font-mono bg-blue-500/5 w-fit px-3 py-1 rounded-md text-[11px] border border-blue-500/20">
+                    {result.routing.model_used}
+                  </p>
+               </div>
                <div className="p-6 bg-zinc-900/30 rounded-2xl text-zinc-300 text-sm leading-relaxed border border-zinc-800/50 font-medium italic text-center">
                  "{result.output.ai_answer}"
                </div>
