@@ -1,5 +1,7 @@
 "use client";
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
 
 // Importamos los componentes de forma dinámica para evitar errores de SSR y Build
 const NavAuth = dynamic(() => import('@/components/AuthInterface').then(mod => mod.NavAuth), { ssr: false });
@@ -11,36 +13,73 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-blue-500/30">
       {/* --- NAVIGATION --- */}
       <nav className="flex justify-between items-center p-8 max-w-7xl mx-auto">
-        <div className="text-2xl font-black tracking-tighter">
+        <div className="text-2xl font-black tracking-tighter italic uppercase">
           NEURAL<span className="text-blue-600">ROUTING</span>
         </div>
         
-        {/* Componente de Auth aislado */}
-        <NavAuth />
+        <div className="flex items-center gap-8">
+          <Link href="/pricing" className="hidden md:block text-zinc-500 hover:text-white text-xs font-black uppercase tracking-widest transition-colors">
+            Pricing
+          </Link>
+          <NavAuth />
+        </div>
       </nav>
 
       {/* --- HERO SECTION --- */}
       <header className="py-24 px-6 text-center max-w-5xl mx-auto">
-        <div className="inline-block px-4 py-1.5 mb-6 border border-blue-500/30 rounded-full bg-blue-500/10 text-blue-400 text-xs font-bold tracking-widest uppercase">
-          Now in Private Beta
+        <div className="inline-block px-4 py-1.5 mb-6 border border-blue-500/30 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-black tracking-[0.2em] uppercase">
+          Now in Private Beta: Virasoro Node Online
         </div>
-        <h1 className="text-6xl md:text-8xl font-black tracking-tight mb-8 leading-[0.9] bg-gradient-to-b from-white to-zinc-500 bg-clip-text text-transparent">
-          Stop Overpaying for <br/>AI Infrastructure.
+        
+        <h1 className="text-6xl md:text-8xl font-black tracking-tight mb-8 leading-[0.9] bg-gradient-to-b from-white to-zinc-600 bg-clip-text text-transparent italic uppercase">
+          Stop Overpaying <br/> for AI.
         </h1>
-        <p className="text-zinc-400 text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed">
+        
+        <p className="text-zinc-400 text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed italic font-medium">
           Intelligent prompt routing in milliseconds. Save up to 85% on token costs by automatically switching between Economy and Premium models.
         </p>
         
-        {/* Botones de Auth aislados */}
-        <HeroAuth />
+        {/* --- CTAs --- */}
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+          <HeroAuth />
+          
+          <Link 
+            href="/pricing" 
+            className="group flex items-center gap-2 px-8 py-4 bg-zinc-900 border border-zinc-800 text-zinc-400 font-black uppercase tracking-tighter rounded-2xl hover:bg-zinc-800 hover:text-white transition-all active:scale-95 italic"
+          >
+            View Pricing
+            <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+
+        {/* --- TRUST BADGE --- */}
+        <div className="mt-20 flex flex-col items-center gap-6 opacity-30 grayscale">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Optimizing traffic for</p>
+          <div className="flex gap-12 text-2xl font-black italic tracking-tighter">
+            <span>CobrAR</span>
+            <span>FixReviews</span>
+            <span>UsaToyDeals</span>
+          </div>
+        </div>
       </header>
 
-      {/* --- SIMULADOR (Ahora vive en su propio componente) --- */}
-      <Playground />
+      {/* --- SIMULADOR --- */}
+      <div className="max-w-7xl mx-auto px-6 pb-24">
+        <div className="text-center mb-12">
+          <h2 className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2">Live Demo</h2>
+          <p className="text-2xl font-bold italic uppercase tracking-tight">Test the Routing Engine</p>
+        </div>
+        <Playground />
+      </div>
 
       {/* --- FOOTER --- */}
-      <footer className="py-20 border-t border-zinc-900 text-center text-zinc-600 text-sm">
-        © 2026 NeuralRouting.io — Built for the Intelligent Enterprise.
+      <footer className="py-20 border-t border-zinc-900 text-center">
+        <div className="text-zinc-600 text-xs font-bold uppercase tracking-widest italic mb-2">
+          © 2026 NeuralRouting.io — Built for the Intelligent Enterprise.
+        </div>
+        <p className="text-zinc-800 text-[10px] uppercase font-black tracking-tighter">
+          Powered by Gobernador Virasoro Infrastructure
+        </p>
       </footer>
     </div>
   );
