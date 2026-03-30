@@ -52,7 +52,7 @@ export default function FAQ() {
             Frequently Asked <span className="text-zinc-600 underline decoration-blue-500/30 underline-offset-8">Neural</span> Questions
           </h3>
           <p className="text-zinc-500 text-lg italic max-w-xl mx-auto">
-            Everything you need to know about optimizing your AI infrastructure with the Virasoro Node.
+            Everything you need to know about optimizing your AI infrastructure with the Neural Node.
           </p>
         </div>
 
