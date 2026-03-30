@@ -1,19 +1,31 @@
 "use client";
 import { useState } from 'react';
+import { Loader2, CheckCircle2 } from 'lucide-react';
+
+interface RoutingResult {
+  routing: {
+    selected_tier: string;
+    model_used: string;
+    latency_ms: number;
+  };
+  output: {
+    ai_answer: string;
+  };
+}
 
 export default function Playground() {
   const [prompt, setPrompt] = useState("");
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<RoutingResult | null>(null);
   const [loading, setLoading] = useState(false);
 
   const testRoute = async () => {
     setLoading(true);
     try {
-      const response = await fetch("https://web-production-xxxx.up.railway.app/v1/dispatch", {
+      const response = await fetch("https://web-production-4f439.app.railway.app/v1/dispatch", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-API-KEY": "key_demo_user" // Use the demo key we set in main.py
+          "X-API-KEY": "key_demo_user" 
         },
         body: JSON.stringify({ prompt })
       });
@@ -26,35 +38,50 @@ export default function Playground() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-8 bg-zinc-900/50 border border-zinc-800 rounded-3xl mt-20">
-      <h2 className="text-2xl font-bold mb-6 text-center">Try NeuralRouting Live</h2>
-      <textarea 
-        className="w-full bg-black border border-zinc-700 rounded-xl p-4 text-white focus:border-blue-500 outline-none transition"
-        rows={3}
-        placeholder="Type a complex or simple prompt here..."
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-      />
-      <button 
-        onClick={testRoute}
-        disabled={loading || !prompt}
-        className="w-full mt-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 py-3 rounded-xl font-bold transition"
-      >
-        {loading ? "Routing..." : "Route Prompt"}
-      </button>
-
-      {result && (
-        <div className="mt-6 p-4 bg-black/50 border border-blue-500/30 rounded-xl animate-in fade-in slide-in-from-bottom-2">
-          <div className="flex justify-between mb-2">
-            <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">Decision: {result.routing.selected_tier}</span>
-            <span className="text-xs text-zinc-500">{result.routing.latency_ms}ms</span>
-          </div>
-          <p className="text-sm text-zinc-300 italic">"Model used: {result.routing.model_used}"</p>
-          <div className="mt-4 p-3 bg-zinc-900 rounded-lg text-sm text-zinc-400">
-            {result.output.ai_answer.substring(0, 150)}...
-          </div>
+    <section id="playground" className="max-w-4xl mx-auto px-6 py-10">
+      <div className="bg-zinc-900/50 border border-zinc-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-bold mb-4">Live Routing Simulator</h2>
+          <p className="text-zinc-500">Experience how our neural engine selects the most cost-effective model for your prompt.</p>
         </div>
-      )}
-    </div>
+        
+        <div className="space-y-4">
+          <textarea 
+            className="w-full bg-black border border-zinc-700 rounded-2xl p-6 text-white focus:border-blue-500 outline-none transition placeholder:text-zinc-700 text-lg"
+            rows={3}
+            placeholder="e.g., &quot;Summarize this text&quot; or &quot;Write complex code&quot;..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+          />
+          <button 
+            onClick={testRoute}
+            disabled={loading || !prompt}
+            className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 py-5 rounded-2xl font-black text-xl transition flex items-center justify-center gap-3"
+          >
+            {loading ? <Loader2 className="animate-spin" /> : "DISPATCH PROMPT"}
+          </button>
+        </div>
+
+        {result && (
+          <div className="mt-10 p-8 bg-black border border-blue-500/20 rounded-[2rem] animate-in fade-in zoom-in duration-500">
+             <div className="flex flex-wrap justify-between items-center gap-4 mb-6 pb-6 border-b border-zinc-800">
+               <div className="flex items-center gap-2">
+                 <CheckCircle2 className="text-green-500" size={20} />
+                 <span className="font-bold tracking-tight">Status: <span className="text-green-500">Optimized</span></span>
+               </div>
+               <div className="px-4 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 text-xs font-black uppercase">
+                 Tier: {result.routing.selected_tier}
+               </div>
+             </div>
+             <div className="space-y-4">
+               <p className="text-sm font-medium text-zinc-500">Source: <span className="text-white">{result.routing.model_used}</span></p>
+               <div className="p-5 bg-zinc-900/50 rounded-xl text-zinc-400 text-sm leading-relaxed border border-zinc-800">
+                 {result.output.ai_answer}
+               </div>
+             </div>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
