@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Plus, Send, User, Bot, History, Home, Zap, DollarSign, Loader2, Trash2, Edit3, Check, X, Menu, LayoutDashboard } from 'lucide-react';
 import Link from 'next/link';
-import { useUser, UserButton } from "@clerk/nextjs";
+import { useUser, UserButton, SignInButton } from "@clerk/nextjs";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -67,6 +67,13 @@ export default function FullChatPage() {
 
   useEffect(() => {
     if (isLoaded && user) {
+      // Restore pending message from local storage if exists
+      const pendingMsg = localStorage.getItem('pending_neural_msg');
+      if (pendingMsg) {
+        setInput(pendingMsg);
+        localStorage.removeItem('pending_neural_msg');
+      }
+
       if (!sessionId) {
         const newId = crypto.randomUUID();
         setSessionId(newId);
@@ -160,7 +167,16 @@ export default function FullChatPage() {
   };
 
   const handleSendMessage = async () => {
-    if (!input.trim() || isTyping || !user) return;
+    if (!input.trim() || isTyping) return;
+
+    // LOGIN GUARD: If not logged in, trigger modal and save input
+    if (!user) {
+      localStorage.setItem('pending_neural_msg', input.trim());
+      const trigger = document.getElementById('clerk-auth-trigger');
+      trigger?.click();
+      return;
+    }
+
     const userMsg: ChatMessage = { role: 'user', content: input.trim() };
     const currentContext = [...messages, userMsg];
     setMessages(prev => [...prev, userMsg]);
@@ -206,13 +222,20 @@ export default function FullChatPage() {
         .n-scroll::-webkit-scrollbar-thumb { background: #1f1f23; border-radius: 10px; }
       `}</style>
 
+      {/* HIDDEN CLERK TRIGGER */}
+      <div className="hidden">
+        <SignInButton mode="modal">
+          <button id="clerk-auth-trigger">Auth</button>
+        </SignInButton>
+      </div>
+
       {/* DELETE MODAL */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setIsDeleteModalOpen(false)} />
-          <div className="relative w-full max-sm bg-[#050505] border border-zinc-800 rounded-[2rem] p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 text-center">
+          <div className="relative w-full max-sm bg-[#050505] border border-zinc-800 rounded-[2rem] p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 text-center text-white">
              <Trash2 size={28} className="text-red-500 mx-auto mb-4" />
-             <h3 className="text-lg font-black uppercase italic text-white mb-2">Delete Log</h3>
+             <h3 className="text-lg font-black uppercase italic mb-2">Delete Log</h3>
              <p className="text-xs text-zinc-500 mb-6">Are you sure? This action is irreversible.</p>
              <div className="flex gap-3">
                <button onClick={() => setIsDeleteModalOpen(false)} className="flex-1 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-[10px] font-black uppercase tracking-widest">Cancel</button>
@@ -291,7 +314,6 @@ export default function FullChatPage() {
       </aside>
 
       <main className="flex-1 flex flex-col bg-[#09090b] relative w-full">
-        {/* NEW UPDATED HEADER WITH NAVIGATION PILL */}
         <header className="h-20 border-b border-zinc-800 flex items-center justify-between px-4 md:px-8 bg-[#09090b]/50 backdrop-blur-xl z-10">
            <div className="flex items-center gap-3">
              <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 md:hidden hover:text-white transition-colors"><Menu size={20} /></button>
@@ -299,8 +321,8 @@ export default function FullChatPage() {
                <Bot className="text-blue-500" size={20} />
              </div>
              <div className="hidden sm:block">
-               <h2 className="text-sm font-black uppercase italic text-white tracking-tight leading-none">Neural Assistant v1.0</h2>
-               <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest mt-1 italic italic">{isTyping ? 'Syncing...' : 'Neural Link: Active'}</p>
+               <h2 className="text-sm font-black uppercase italic text-white tracking-tight leading-none text-white">Neural Assistant v1.0</h2>
+               <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest mt-1 italic">{isTyping ? 'Syncing...' : 'Neural Link: Active'}</p>
              </div>
            </div>
 
@@ -309,7 +331,6 @@ export default function FullChatPage() {
                Pricing
              </Link>
              
-             {/* THE NAVIGATION PILL */}
              <div className="flex items-center bg-[#0d0d0f] border border-zinc-800 rounded-full pl-5 pr-2 py-1.5 gap-4 shadow-2xl">
                 <Link href="/dashboard" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-200 hover:text-blue-400 transition-all group">
                   Dashboard
@@ -317,13 +338,19 @@ export default function FullChatPage() {
                 </Link>
                 <div className="w-[1px] h-4 bg-zinc-800" />
                 <div className="scale-90 opacity-90 hover:opacity-100 transition-opacity">
-                  <UserButton afterSignOutUrl="/" />
+                  {user ? (
+                    <UserButton afterSignOutUrl="/" />
+                  ) : (
+                    <SignInButton mode="modal">
+                      <button className="text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors">Sign In</button>
+                    </SignInButton>
+                  )}
                 </div>
              </div>
            </div>
         </header>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 pr-16 md:pr-24 space-y-10 max-w-5xl mx-auto w-full n-scroll pb-44" style={{ scrollbarGutter: 'stable' }}>
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 pr-16 md:pr-24 space-y-10 max-w-5xl mx-auto w-full n-scroll pb-44 text-white" style={{ scrollbarGutter: 'stable' }}>
           {messages.map((m, i) => (
             <div key={i} className={`flex flex-col gap-3 ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2`}>
               <div className={`flex gap-4 max-w-[90%] md:max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -361,10 +388,18 @@ export default function FullChatPage() {
           {isTyping && <div className="ml-12 flex items-center gap-2 text-blue-500/50 italic text-[10px] font-black uppercase tracking-widest"><Loader2 size={12} className="animate-spin" /> Syncing Node...</div>}
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent z-10">
+        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent z-10 text-white">
           <div className="max-w-4xl mx-auto relative group">
-            <textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}} placeholder="Execute neural command..." className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-6 pr-16 md:pr-20 text-xs md:text-sm focus:border-blue-500 outline-none resize-none n-scroll shadow-2xl backdrop-blur-xl transition-all" rows={1} />
-            <button onClick={handleSendMessage} disabled={isTyping || !input.trim()} className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 p-2.5 md:p-3 bg-blue-600 rounded-xl md:rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 transition-all cursor-pointer shadow-lg shadow-blue-500/20"><Send size={18} className="text-white" /></button>
+            <textarea 
+              ref={textareaRef} 
+              value={input} 
+              onChange={(e) => setInput(e.target.value)} 
+              onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}} 
+              placeholder={user ? "Execute neural command..." : "Type command and Sign In to execute..."} 
+              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-6 pr-16 md:pr-20 text-xs md:text-sm focus:border-blue-500 outline-none resize-none n-scroll shadow-2xl backdrop-blur-xl transition-all" 
+              rows={1} 
+            />
+            <button onClick={handleSendMessage} disabled={isTyping || !input.trim()} className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 p-2.5 md:p-3 bg-blue-600 rounded-xl md:rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 transition-all cursor-pointer shadow-lg shadow-blue-500/20 text-white"><Send size={18} /></button>
           </div>
         </div>
       </main>
