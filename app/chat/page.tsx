@@ -18,7 +18,7 @@ interface ChatMessage {
 interface ChatSession {
   session_id: string;
   created_at: string;
-  custom_title?: string; // Nuevo campo
+  custom_title?: string;
 }
 
 export default function FullChatPage() {
@@ -29,7 +29,6 @@ export default function FullChatPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   
-  // Estados para renombrar
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
 
@@ -62,7 +61,7 @@ export default function FullChatPage() {
   };
 
   const loadChatHistory = async (sId: string) => {
-    if (!sId || editingId) return; // No cargar si estamos editando
+    if (!sId || editingId) return;
     setIsTyping(true);
     setMessages([]); 
     try {
@@ -86,11 +85,8 @@ export default function FullChatPage() {
         });
         setMessages(history);
       }
-    } catch (e) {
-      console.error("Sync Error:", e);
-    } finally {
-      setIsTyping(false);
-    }
+    } catch (e) { console.error("Sync Error:", e); }
+    finally { setIsTyping(false); }
   };
 
   const deleteSession = async (sId: string) => {
@@ -128,6 +124,7 @@ export default function FullChatPage() {
     setMessages(prev => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
+
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -138,13 +135,28 @@ export default function FullChatPage() {
           sessionId: sessionId 
         }),
       });
+
       const data = await response.json();
-      if (data.content) {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.content, stats: data.stats }]);
+      
+      // FIX: Verificación robusta de propiedades para evitar error de undefined
+      const aiAnswer = data.output?.ai_answer || data.content;
+      const modelName = data.routing?.model_used || data.stats?.model || "Neural Node";
+      const savingsVal = data.business_metrics?.estimated_savings_usd || data.stats?.savings || 0;
+
+      if (aiAnswer) {
+        setMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: aiAnswer, 
+          stats: {
+            model: modelName,
+            savings: Number(savingsVal).toFixed(4),
+            water: "0.0125L"
+          } 
+        }]);
         fetchSessions(); 
       }
     } catch (e) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "Node failure." }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: "Neural Node timeout. Please check infrastructure." }]);
     } finally { setIsTyping(false); }
   };
 
@@ -154,6 +166,7 @@ export default function FullChatPage() {
         .n-scroll::-webkit-scrollbar { width: 5px; }
         .n-scroll::-webkit-scrollbar-track { background: transparent; }
         .n-scroll::-webkit-scrollbar-thumb { background: #1f1f23; border-radius: 10px; }
+        .n-scroll::-webkit-scrollbar-thumb:hover { background: #27272a; }
       `}</style>
 
       {/* --- SIDEBAR --- */}
@@ -181,7 +194,7 @@ export default function FullChatPage() {
                   <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                     <input 
                       autoFocus
-                      className="bg-black border border-blue-500 rounded px-2 py-1 text-[10px] w-full outline-none"
+                      className="bg-black border border-blue-500 rounded px-2 py-1 text-[10px] w-full outline-none text-white font-bold"
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
                     />
@@ -190,7 +203,7 @@ export default function FullChatPage() {
                   </div>
                 ) : (
                   <>
-                    <div className="text-[10px] font-black uppercase italic truncate pr-8">
+                    <div className="text-[10px] font-black uppercase italic truncate pr-12">
                       {sess.custom_title || `Log: ${sess.session_id.slice(0, 10)}`}
                     </div>
                     <div className="text-[8px] text-zinc-700 mt-1 uppercase font-bold">
@@ -200,9 +213,8 @@ export default function FullChatPage() {
                 )}
               </div>
 
-              {/* ACTION BUTTONS (Hover) */}
               {editingId !== sess.session_id && (
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm p-1 rounded-lg">
                    <button 
                     onClick={(e) => { e.stopPropagation(); setEditingId(sess.session_id); setEditValue(sess.custom_title || ""); }}
                     className="p-1 hover:text-blue-500 text-zinc-600 transition-colors"
@@ -249,7 +261,7 @@ export default function FullChatPage() {
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${m.role === 'assistant' ? 'bg-blue-600/10 border-blue-500/20' : 'bg-zinc-800 border-zinc-700'}`}>
                   {m.role === 'assistant' ? <Zap size={14} className="text-blue-500" /> : <User size={14} className="text-zinc-500" />}
                 </div>
-                <div className={`p-5 rounded-[1.8rem] ${m.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900/50 border border-zinc-800 text-zinc-300 rounded-tl-none backdrop-blur-sm shadow-xl'}`}>
+                <div className={`p-5 rounded-[1.8rem] ${m.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none shadow-blue-900/20' : 'bg-zinc-900/50 border border-zinc-800 text-zinc-300 rounded-tl-none backdrop-blur-sm shadow-xl'}`}>
                   <p className="text-sm italic font-medium whitespace-pre-wrap leading-relaxed">{m.content}</p>
                 </div>
               </div>
@@ -264,7 +276,7 @@ export default function FullChatPage() {
           ))}
           {isTyping && (
             <div className="ml-12 flex items-center gap-2 text-blue-500/50 italic text-[10px] font-black uppercase tracking-widest">
-              <Loader2 size={12} className="animate-spin" /> Retrieving Packets...
+              <Loader2 size={12} className="animate-spin" /> Syncing Node...
             </div>
           )}
         </div>
