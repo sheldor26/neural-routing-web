@@ -48,7 +48,7 @@ export default function PricingPage() {
           Scale Intelligence <br/> <span className="text-zinc-800">Not Your Costs</span>
         </h1>
         <p className="text-zinc-500 text-lg md:text-xl max-w-2xl mx-auto italic font-medium">
-          Choose the neural tier that fits your volume. Save up to <span className="text-white font-bold">90%</span> on API costs via Virasoro-optimized nodes.
+          Choose the neural tier that fits your volume. Save up to <span className="text-white font-bold">90%</span> on API costs via Neural-optimized nodes.
         </p>
       </div>
 
@@ -111,7 +111,7 @@ export default function PricingPage() {
       
       <div className="mt-24 flex flex-col items-center">
         <p className="text-zinc-700 text-[10px] font-black uppercase tracking-[0.5em] mb-6">
-          Enterprise Security // Virasoro Node Redundancy // 2026
+          Enterprise Security // Neural Node Redundancy // 2026
         </p>
         <div className="flex gap-12 opacity-20 grayscale">
           <span className="text-white font-black italic">CLERK</span>

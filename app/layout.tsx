@@ -16,7 +16,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "NeuralRouting | Enterprise AI Infrastructure",
   description: "Intelligent prompt routing to save up to 85% on token costs.",
-  // Vinculamos el favicon minimalista
   icons: {
     icon: "/favicon.svg",
   },
@@ -31,9 +30,13 @@ export default function RootLayout({
     <ClerkProvider>
       <html
         lang="en"
+        suppressHydrationWarning // Cubre atributos en <html>
         className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       >
-        <body className="min-h-full flex flex-col bg-[#09090b] text-zinc-200">
+        <body 
+          className="min-h-full flex flex-col bg-[#09090b] text-zinc-200"
+          suppressHydrationWarning // 👈 AGREGALO ACÁ TAMBIÉN para silenciar extensiones en el body
+        >
           {children}
         </body>
       </html>
