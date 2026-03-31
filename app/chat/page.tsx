@@ -1,8 +1,12 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Send, User, Bot, History, Home, Zap, DollarSign, Droplets, Loader2, Trash2, Edit3, Check, X } from 'lucide-react';
+import { Plus, Send, User, Bot, History, Home, Zap, DollarSign, Loader2, Trash2, Edit3, Check, X } from 'lucide-react';
 import Link from 'next/link';
 import { useUser } from "@clerk/nextjs";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -138,7 +142,6 @@ export default function FullChatPage() {
 
       const data = await response.json();
       
-      // FIX: Verificación robusta de propiedades para evitar error de undefined
       const aiAnswer = data.output?.ai_answer || data.content;
       const modelName = data.routing?.model_used || data.stats?.model || "Neural Node";
       const savingsVal = data.business_metrics?.estimated_savings_usd || data.stats?.savings || 0;
@@ -262,7 +265,38 @@ export default function FullChatPage() {
                   {m.role === 'assistant' ? <Zap size={14} className="text-blue-500" /> : <User size={14} className="text-zinc-500" />}
                 </div>
                 <div className={`p-5 rounded-[1.8rem] ${m.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none shadow-blue-900/20' : 'bg-zinc-900/50 border border-zinc-800 text-zinc-300 rounded-tl-none backdrop-blur-sm shadow-xl'}`}>
-                  <p className="text-sm italic font-medium whitespace-pre-wrap leading-relaxed">{m.content}</p>
+                  {/* --- RENDERIZADO MARKDOWN --- */}
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      code({ node, inline, className, children, ...props }: any) {
+                        const match = /language-(\w+)/.exec(className || '');
+                        return !inline && match ? (
+                          <SyntaxHighlighter
+                            style={vscDarkPlus as any}
+                            language={match[1]}
+                            PreTag="div"
+                            className="rounded-lg my-4 border border-zinc-800"
+                            {...props}
+                          >
+                            {String(children).replace(/\n$/, '')}
+                          </SyntaxHighlighter>
+                        ) : (
+                          <code className="bg-zinc-800 px-1.5 py-0.5 rounded text-blue-400 font-mono" {...props}>
+                            {children}
+                          </code>
+                        );
+                      },
+                      ul: ({children}) => <ul className="list-disc ml-4 space-y-2 my-2">{children}</ul>,
+                      ol: ({children}) => <ol className="list-decimal ml-4 space-y-2 my-2">{children}</ol>,
+                      table: ({children}) => <div className="overflow-x-auto my-4"><table className="border-collapse border border-zinc-700 w-full text-xs">{children}</table></div>,
+                      th: ({children}) => <th className="border border-zinc-700 bg-zinc-800 p-2 text-left">{children}</th>,
+                      td: ({children}) => <td className="border border-zinc-700 p-2">{children}</td>,
+                    }}
+                    className="text-sm font-medium leading-relaxed prose prose-invert max-w-none"
+                  >
+                    {m.content}
+                  </ReactMarkdown>
                 </div>
               </div>
               {m.role === 'assistant' && m.stats && (
