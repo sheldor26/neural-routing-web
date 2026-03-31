@@ -1,8 +1,8 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Send, User, Bot, History, Home, Zap, DollarSign, Loader2, Trash2, Edit3, Check, X, Menu } from 'lucide-react';
+import { Plus, Send, User, Bot, History, Home, Zap, DollarSign, Loader2, Trash2, Edit3, Check, X, Menu, LayoutDashboard } from 'lucide-react';
 import Link from 'next/link';
-import { useUser } from "@clerk/nextjs";
+import { useUser, UserButton } from "@clerk/nextjs";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -25,7 +25,6 @@ interface ChatSession {
   custom_title?: string;
 }
 
-// OPTIMIZED ENGLISH ENTERPRISE PRESETS
 const NEURAL_PRESETS = [
   { 
     label: "Draft Email", 
@@ -60,7 +59,6 @@ export default function FullChatPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
-
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
 
@@ -212,26 +210,14 @@ export default function FullChatPage() {
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setIsDeleteModalOpen(false)} />
-          <div className="relative w-full max-w-sm bg-[#050505] border border-zinc-800 rounded-[2rem] p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex flex-col items-center text-center space-y-6">
-              <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center border border-red-500/20">
-                <Trash2 size={28} className="text-red-500" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-black uppercase italic tracking-tight text-white">Delete Log</h3>
-                <p className="text-xs text-zinc-500 font-medium leading-relaxed">
-                  Are you sure you want to purge this session? This action is irreversible across infrastructure nodes.
-                </p>
-              </div>
-              <div className="flex w-full gap-3">
-                <button onClick={() => setIsDeleteModalOpen(false)} className="flex-1 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all cursor-pointer">
-                  Cancel
-                </button>
-                <button onClick={confirmDelete} className="flex-1 py-3 rounded-xl bg-red-600 text-[10px] font-black uppercase tracking-widest text-white hover:bg-red-500 shadow-[0_0_20px_rgba(220,38,38,0.2)] transition-all cursor-pointer">
-                  Delete
-                </button>
-              </div>
-            </div>
+          <div className="relative w-full max-sm bg-[#050505] border border-zinc-800 rounded-[2rem] p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 text-center">
+             <Trash2 size={28} className="text-red-500 mx-auto mb-4" />
+             <h3 className="text-lg font-black uppercase italic text-white mb-2">Delete Log</h3>
+             <p className="text-xs text-zinc-500 mb-6">Are you sure? This action is irreversible.</p>
+             <div className="flex gap-3">
+               <button onClick={() => setIsDeleteModalOpen(false)} className="flex-1 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-[10px] font-black uppercase tracking-widest">Cancel</button>
+               <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest text-white">Delete</button>
+             </div>
           </div>
         </div>
       )}
@@ -253,7 +239,6 @@ export default function FullChatPage() {
           </button>
         </div>
 
-        {/* NEURAL PRESETS SECTION */}
         <div className="px-6 py-2 space-y-3">
           <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic mb-2">Neural Presets</p>
           <div className="grid grid-cols-1 gap-2">
@@ -267,9 +252,7 @@ export default function FullChatPage() {
                 }}
                 className="flex items-center gap-3 p-3 bg-zinc-900/40 border border-zinc-800/50 rounded-xl text-[10px] font-bold uppercase tracking-tight text-zinc-500 hover:bg-blue-600/10 hover:text-blue-400 hover:border-blue-500/30 transition-all text-left group"
               >
-                <span className="text-zinc-700 group-hover:text-blue-500 transition-colors">
-                  {item.icon}
-                </span>
+                <span className="text-zinc-700 group-hover:text-blue-500 transition-colors">{item.icon}</span>
                 {item.label}
               </button>
             ))}
@@ -298,12 +281,8 @@ export default function FullChatPage() {
               </div>
               {editingId !== sess.session_id && (
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm p-1 rounded-lg">
-                   <button onClick={(e) => { e.stopPropagation(); setEditingId(sess.session_id); setEditValue(sess.custom_title || ""); }} className="p-1 hover:text-blue-500 text-zinc-600 transition-colors">
-                    <Edit3 size={12} />
-                  </button>
-                  <button onClick={(e) => { e.stopPropagation(); openDeleteModal(sess.session_id); }} className="p-1 hover:text-red-500 text-zinc-600 transition-colors">
-                    <Trash2 size={12} />
-                  </button>
+                   <button onClick={(e) => { e.stopPropagation(); setEditingId(sess.session_id); setEditValue(sess.custom_title || ""); }} className="p-1 hover:text-blue-500 text-zinc-600 transition-colors"><Edit3 size={12} /></button>
+                  <button onClick={(e) => { e.stopPropagation(); openDeleteModal(sess.session_id); }} className="p-1 hover:text-red-500 text-zinc-600 transition-colors"><Trash2 size={12} /></button>
                 </div>
               )}
             </div>
@@ -312,15 +291,34 @@ export default function FullChatPage() {
       </aside>
 
       <main className="flex-1 flex flex-col bg-[#09090b] relative w-full">
-        <header className="h-20 border-b border-zinc-800 flex items-center px-4 md:px-8 bg-[#09090b]/50 backdrop-blur-xl z-10">
-           <div className="flex items-center gap-3 w-full">
+        {/* NEW UPDATED HEADER WITH NAVIGATION PILL */}
+        <header className="h-20 border-b border-zinc-800 flex items-center justify-between px-4 md:px-8 bg-[#09090b]/50 backdrop-blur-xl z-10">
+           <div className="flex items-center gap-3">
              <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 md:hidden hover:text-white transition-colors"><Menu size={20} /></button>
              <div className="p-2 bg-blue-600/10 rounded-lg border border-blue-500/20 shadow-[0_0_15px_rgba(37,99,235,0.1)]">
                <Bot className="text-blue-500" size={20} />
              </div>
-             <div className="flex-1">
+             <div className="hidden sm:block">
                <h2 className="text-sm font-black uppercase italic text-white tracking-tight leading-none">Neural Assistant v1.0</h2>
-               <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest mt-1 italic hidden sm:block">{isTyping ? 'Syncing Packets...' : 'Neural Link: Active'}</p>
+               <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest mt-1 italic italic">{isTyping ? 'Syncing...' : 'Neural Link: Active'}</p>
+             </div>
+           </div>
+
+           <div className="flex items-center gap-6">
+             <Link href="/" className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-blue-400 transition-colors hidden md:block">
+               Pricing
+             </Link>
+             
+             {/* THE NAVIGATION PILL */}
+             <div className="flex items-center bg-[#0d0d0f] border border-zinc-800 rounded-full pl-5 pr-2 py-1.5 gap-4 shadow-2xl">
+                <Link href="/dashboard" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-200 hover:text-blue-400 transition-all group">
+                  Dashboard
+                  <LayoutDashboard size={14} className="text-zinc-600 group-hover:text-blue-500 transition-colors" />
+                </Link>
+                <div className="w-[1px] h-4 bg-zinc-800" />
+                <div className="scale-90 opacity-90 hover:opacity-100 transition-opacity">
+                  <UserButton afterSignOutUrl="/" />
+                </div>
              </div>
            </div>
         </header>
@@ -333,9 +331,7 @@ export default function FullChatPage() {
                   {m.role === 'assistant' ? <Zap size={14} className="text-blue-500" /> : <User size={14} className="text-zinc-500" />}
                 </div>
                 <div className={`p-4 md:p-5 rounded-[1.5rem] md:rounded-[1.8rem] ${m.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none shadow-blue-900/20' : 'bg-zinc-900/50 border border-zinc-800 text-zinc-300 rounded-tl-none backdrop-blur-sm shadow-xl'}`}>
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
                       code({ node, inline, className, children, ...props }: any) {
                         const match = /language-(\w+)/.exec(className || '');
                         return !inline && match ? (
@@ -346,11 +342,6 @@ export default function FullChatPage() {
                           <code className="bg-zinc-800 px-1.5 py-0.5 rounded text-blue-400 font-mono" {...props}>{children}</code>
                         );
                       },
-                      ul: ({children}) => <ul className="list-disc ml-4 space-y-2 my-2">{children}</ul>,
-                      ol: ({children}) => <ol className="list-decimal ml-4 space-y-2 my-2">{children}</ol>,
-                      table: ({children}) => <div className="overflow-x-auto my-4"><table className="border-collapse border border-zinc-700 w-full text-xs">{children}</table></div>,
-                      th: ({children}) => <th className="border border-zinc-700 bg-zinc-800 p-2 text-left">{children}</th>,
-                      td: ({children}) => <td className="border border-zinc-700 p-2">{children}</td>,
                     }}
                     className="text-xs md:text-sm font-medium leading-relaxed prose prose-invert max-w-none"
                   >
@@ -367,27 +358,13 @@ export default function FullChatPage() {
               )}
             </div>
           ))}
-          {isTyping && (
-            <div className="ml-12 flex items-center gap-2 text-blue-500/50 italic text-[10px] font-black uppercase tracking-widest">
-              <Loader2 size={12} className="animate-spin" /> Syncing Node...
-            </div>
-          )}
+          {isTyping && <div className="ml-12 flex items-center gap-2 text-blue-500/50 italic text-[10px] font-black uppercase tracking-widest"><Loader2 size={12} className="animate-spin" /> Syncing Node...</div>}
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent z-10">
           <div className="max-w-4xl mx-auto relative group">
-            <textarea 
-              ref={textareaRef}
-              value={input} 
-              onChange={(e) => setInput(e.target.value)} 
-              onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}} 
-              placeholder="Execute neural command..." 
-              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-6 pr-16 md:pr-20 text-xs md:text-sm focus:border-blue-500 outline-none resize-none n-scroll shadow-2xl backdrop-blur-xl transition-all" 
-              rows={1} 
-            />
-            <button onClick={handleSendMessage} disabled={isTyping || !input.trim()} className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 p-2.5 md:p-3 bg-blue-600 rounded-xl md:rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 transition-all cursor-pointer shadow-lg shadow-blue-500/20">
-              <Send size={18} className="text-white" />
-            </button>
+            <textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}} placeholder="Execute neural command..." className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-6 pr-16 md:pr-20 text-xs md:text-sm focus:border-blue-500 outline-none resize-none n-scroll shadow-2xl backdrop-blur-xl transition-all" rows={1} />
+            <button onClick={handleSendMessage} disabled={isTyping || !input.trim()} className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 p-2.5 md:p-3 bg-blue-600 rounded-xl md:rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 transition-all cursor-pointer shadow-lg shadow-blue-500/20"><Send size={18} className="text-white" /></button>
           </div>
         </div>
       </main>
