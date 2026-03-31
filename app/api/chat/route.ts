@@ -4,23 +4,27 @@ export async function POST(req: Request) {
   try {
     const { messages, userId } = await req.json();
     
-    // Extraemos el último mensaje (lo que el usuario acaba de escribir)
-    const lastMessage = messages[messages.length - 1].content;
+    // CONSTRUCCIÓN DEL CONTEXTO:
+    // Tomamos los últimos 4 mensajes para que el modelo tenga memoria
+    // Formato: "User: mensaje \n Assistant: respuesta"
+    const contextLimit = 5;
+    const conversationContext = messages
+      .slice(-contextLimit)
+      .map((m: any) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+      .join('\n');
 
-    // USAMOS LA URL QUE YA SABEMOS QUE FUNCIONA EN EL PLAYGROUND
     const RAILWAY_URL = "https://web-production-4f439.up.railway.app/v1/dispatch";
-    
-    // Agregamos el timestamp para evitar cache (como en tu Playground)
     const FINAL_URL = `${RAILWAY_URL}?t=${Date.now()}`;
 
     const response = await fetch(FINAL_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-KEY': 'key_demo_user', // Tu llave verificada
+        'X-API-KEY': 'key_demo_user',
       },
       body: JSON.stringify({
-        prompt: lastMessage,
+        // Enviamos el bloque de texto con la historia de la charla
+        prompt: conversationContext, 
         user_id: userId || "guest_user" 
       }),
     });
@@ -32,7 +36,6 @@ export async function POST(req: Request) {
 
     const data = await response.json();
 
-    // IMPORTANTE: Mapeamos la respuesta para que el componente de Chat la renderice bien
     return NextResponse.json({
       role: 'assistant',
       content: data.output.ai_answer,
@@ -47,10 +50,9 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error("❌ Neural Link Failure:", error.message);
-    
     return NextResponse.json({ 
       role: 'assistant', 
-      content: "Error: No se pudo establecer conexión segura con el Nodo Neural en Railway." 
+      content: "Error: No se pudo establecer conexión segura con el Nodo Neural." 
     }, { status: 500 });
   }
 }

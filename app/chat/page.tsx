@@ -43,40 +43,37 @@ export default function FullChatPage() {
     const userContent = input.trim();
     const userMessage: ChatMessage = { role: 'user', content: userContent };
     
-    // Actualizamos UI localmente
+    // Capturamos el estado actual para enviarlo como contexto
     const currentMessages = [...messages, userMessage];
+    
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsTyping(true);
 
     try {
-      // Llamada a la API interna de Next.js
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          messages: currentMessages,
+          messages: currentMessages, // Enviamos el historial para tener memoria
           userId: user?.id || "guest_user" 
         }),
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || "Neural Node connection failed");
-      }
+      if (!response.ok) throw new Error("Neural Node connection failed");
 
       const data = await response.json();
       
       setMessages(prev => [...prev, { 
         role: 'assistant', 
         content: data.content,
-        stats: data.stats // Mapeado desde el return de /api/chat
+        stats: data.stats 
       }]);
     } catch (error: any) {
       console.error("Chat Error:", error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: `System Error: Unable to reach Neural Node. Check Railway deployment status.` 
+        content: "System Error: Unable to reach Neural Node. Check Railway deployment status." 
       }]);
     } finally {
       setIsTyping(false);
@@ -85,6 +82,27 @@ export default function FullChatPage() {
 
   return (
     <div className="flex h-screen bg-[#09090b] text-zinc-300 font-sans selection:bg-blue-500/30 overflow-hidden">
+      
+      {/* Estilos Inline para la Scrollbar (Neural Design) */}
+      <style jsx global>{`
+        .neural-scrollbar::-webkit-scrollbar {
+          width: 5px;
+        }
+        .neural-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .neural-scrollbar::-webkit-scrollbar-thumb {
+          background: #18181b;
+          border-radius: 10px;
+        }
+        .neural-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #27272a;
+        }
+        .neural-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #18181b transparent;
+        }
+      `}</style>
       
       {/* --- SIDEBAR --- */}
       <aside className="w-80 border-r border-zinc-800 bg-[#050505] flex flex-col hidden md:flex">
@@ -104,7 +122,7 @@ export default function FullChatPage() {
           </button>
         </div>
         
-        <nav className="flex-1 overflow-y-auto px-4 space-y-2">
+        <nav className="flex-1 overflow-y-auto px-4 space-y-2 neural-scrollbar">
           <div className="flex items-center justify-between px-2 mb-4">
              <p className="text-[9px] font-black uppercase text-zinc-600 tracking-[0.2em]">Infrastructure Logs</p>
              <History size={12} className="text-zinc-800" />
@@ -133,15 +151,16 @@ export default function FullChatPage() {
           </div>
         </header>
 
-        {/* Messages */}
+        {/* Messages - ACTUALIZADO CON PADDING Y SCROLLBAR ESTÉTICA */}
         <div 
           ref={scrollRef}
-          className="flex-1 overflow-y-auto p-8 space-y-10 max-w-4xl mx-auto w-full scroll-smooth pb-40 no-scrollbar"
+          className="flex-1 overflow-y-auto p-8 pr-12 md:pr-20 space-y-10 max-w-5xl mx-auto w-full scroll-smooth pb-44 neural-scrollbar"
+          style={{ scrollbarGutter: 'stable' }}
         >
           {messages.map((m, i) => (
             <div key={i} className={`flex flex-col gap-3 ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
               
-              <div className={`flex gap-4 max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div className={`flex gap-4 max-w-[90%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${
                   m.role === 'assistant' 
                   ? 'bg-blue-600/10 border-blue-500/20' 
@@ -159,7 +178,6 @@ export default function FullChatPage() {
                 </div>
               </div>
 
-              {/* Stats dinámicos corregidos */}
               {m.role === 'assistant' && m.stats && (
                 <div className="flex items-center gap-4 ml-12 px-2 animate-in fade-in slide-in-from-left-2 duration-700 delay-300">
                   <div className="flex items-center gap-1.5">
