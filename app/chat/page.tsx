@@ -1,24 +1,49 @@
 "use client";
-import { useState } from 'react';
-// Added Zap to the imports below to fix the ReferenceError
+import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, Plus, Send, User, Bot, History, Home, Zap } from 'lucide-react';
 import Link from 'next/link';
 
 export default function FullChatPage() {
+  const [input, setInput] = useState(""); // Estado para lo que escribís
   const [messages, setMessages] = useState([
     { 
       role: 'assistant', 
       content: 'Neural Engine Online. How can I optimize your infrastructure today?' 
     }
   ]);
+  
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll al fondo cuando hay mensajes nuevos
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleSendMessage = () => {
+    if (!input.trim()) return; // No enviar mensajes vacíos
+
+    // 1. Agregamos tu mensaje
+    const newMessages = [...messages, { role: 'user', content: input }];
+    setMessages(newMessages);
+    setInput(""); // Limpiamos el input
+
+    // 2. Simulamos respuesta de la IA (Esto después lo conectaremos a tu backend)
+    setTimeout(() => {
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: 'Command received. Analyzing neural weights for optimal routing...' 
+      }]);
+    }, 1000);
+  };
 
   return (
     <div className="flex h-screen bg-[#09090b] text-zinc-300 font-sans">
       
-      {/* --- SIDEBAR (History) --- */}
-      <aside className="w-80 border-r border-zinc-800 bg-[#050505] flex flex-col">
+      {/* --- SIDEBAR --- */}
+      <aside className="w-80 border-r border-zinc-800 bg-[#050505] flex flex-col hidden md:flex">
         <div className="p-6 space-y-4">
-          {/* Back to Home Button */}
           <Link 
             href="/" 
             className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 hover:text-white transition-colors mb-2"
@@ -26,7 +51,10 @@ export default function FullChatPage() {
             <Home size={12} /> Return to Base
           </Link>
 
-          <button className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black italic uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white transition-all shadow-lg active:scale-95">
+          <button 
+            onClick={() => setMessages([{ role: 'assistant', content: 'New session initialized.' }])}
+            className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black italic uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white transition-all shadow-lg active:scale-95"
+          >
             <Plus size={14} /> New Session
           </button>
         </div>
@@ -36,25 +64,10 @@ export default function FullChatPage() {
              <p className="text-[9px] font-black uppercase text-zinc-600 tracking-[0.2em]">Infrastructure Logs</p>
              <History size={12} className="text-zinc-800" />
           </div>
-
-          <div className="group p-4 rounded-xl bg-blue-600/5 border border-blue-500/10 hover:border-blue-500/40 text-zinc-400 hover:text-white text-xs font-bold italic cursor-pointer transition-all">
-            Llama 3 Cost Optimization
-          </div>
-          
-          <div className="group p-4 rounded-xl bg-zinc-900/30 border border-zinc-800 hover:border-zinc-700 text-zinc-500 text-xs font-bold italic cursor-pointer transition-all">
-            Token Redaction Test
+          <div className="group p-4 rounded-xl bg-blue-600/5 border border-blue-500/10 text-zinc-400 text-xs font-bold italic">
+            Current Active Session
           </div>
         </nav>
-
-        <div className="p-6 border-t border-zinc-900">
-           <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-blue-400" />
-              <div>
-                 <p className="text-[10px] font-black text-white uppercase tracking-tighter">Neural Operator</p>
-                 <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">Premium Tier</p>
-              </div>
-           </div>
-        </div>
       </aside>
 
       {/* --- MAIN CHAT AREA --- */}
@@ -69,15 +82,19 @@ export default function FullChatPage() {
               <h2 className="text-sm font-black uppercase italic tracking-tight text-white">Neural Assistant v1.0</h2>
               <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest flex items-center gap-1">
                 <span className="w-1 h-1 bg-green-500 rounded-full animate-pulse" />
-                Active Node: Economy-Route
+                Node Status: Optimal
               </p>
             </div>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8 space-y-8 max-w-4xl mx-auto w-full scrollbar-hide">
+        {/* Mensajes con ScrollRef */}
+        <div 
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto p-8 space-y-8 max-w-4xl mx-auto w-full scroll-smooth"
+        >
           {messages.map((m, i) => (
-            <div key={i} className={`flex gap-4 ${m.role === 'user' ? 'justify-end' : ''}`}>
+            <div key={i} className={`flex gap-4 ${m.role === 'user' ? 'justify-end' : ''} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
               {m.role === 'assistant' && (
                 <div className="w-8 h-8 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center shrink-0">
                   <Zap size={14} className="text-blue-500" />
@@ -101,20 +118,24 @@ export default function FullChatPage() {
           ))}
         </div>
 
+        {/* Input Area - AHORA FUNCIONAL */}
         <div className="p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent z-20">
           <div className="max-w-4xl mx-auto relative group">
             <textarea 
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSendMessage())}
               placeholder="Send a neural command..."
               className="w-full bg-zinc-900/80 border border-zinc-800 rounded-[2rem] p-6 pr-20 text-sm focus:border-blue-500 outline-none transition-all resize-none shadow-2xl backdrop-blur-xl"
               rows={1}
             />
-            <button className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-blue-600 text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_10px_30px_rgba(37,99,235,0.3)]">
+            <button 
+              onClick={handleSendMessage}
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-blue-600 text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_10px_30px_rgba(37,99,235,0.3)]"
+            >
               <Send size={18} />
             </button>
           </div>
-          <p className="text-center mt-4 text-[9px] font-black uppercase text-zinc-700 tracking-[0.3em] italic">
-            NeuralRouting v1.0 // Secured Infrastructure // 2026
-          </p>
         </div>
       </main>
     </div>
