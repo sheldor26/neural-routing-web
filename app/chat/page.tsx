@@ -67,7 +67,6 @@ export default function FullChatPage() {
 
   useEffect(() => {
     if (isLoaded && user) {
-      // Restore pending message from local storage if exists
       const pendingMsg = localStorage.getItem('pending_neural_msg');
       if (pendingMsg) {
         setInput(pendingMsg);
@@ -103,6 +102,7 @@ export default function FullChatPage() {
     setIsTyping(true);
     setMessages([]); 
     setIsSidebarOpen(false);
+    setSessionId(sId); // Ensure state updates to the active session
     try {
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/messages/${sId}`);
       const data = await response.json();
@@ -146,12 +146,12 @@ export default function FullChatPage() {
     }
   };
 
-  const renameSession = async (sId: string) => {
+  const renameSession = async (sId: string, newTitle: string) => {
     try {
       await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${sId}/rename`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ new_title: editValue })
+        body: JSON.stringify({ new_title: newTitle })
       });
       setEditingId(null);
       fetchSessions();
@@ -169,7 +169,6 @@ export default function FullChatPage() {
   const handleSendMessage = async () => {
     if (!input.trim() || isTyping) return;
 
-    // LOGIN GUARD: If not logged in, trigger modal and save input
     if (!user) {
       localStorage.setItem('pending_neural_msg', input.trim());
       const trigger = document.getElementById('clerk-auth-trigger');
@@ -177,11 +176,17 @@ export default function FullChatPage() {
       return;
     }
 
-    const userMsg: ChatMessage = { role: 'user', content: input.trim() };
+    const currentPrompt = input.trim();
+    const userMsg: ChatMessage = { role: 'user', content: currentPrompt };
     const currentContext = [...messages, userMsg];
+    
+    // Capture if this is the first user message (messages has 1 item which is the welcome message)
+    const isFirstMessage = messages.length === 1;
+
     setMessages(prev => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
+
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -207,7 +212,14 @@ export default function FullChatPage() {
             water: "0.0125L"
           } 
         }]);
-        fetchSessions(); 
+
+        // AUTO-RENAME LOGIC: Update title based on the first prompt
+        if (isFirstMessage) {
+            const suggestedTitle = currentPrompt.split(' ').slice(0, 4).join(' ') + (currentPrompt.split(' ').length > 4 ? "..." : "");
+            await renameSession(sessionId, suggestedTitle);
+        } else {
+            fetchSessions();
+        }
       }
     } catch (e) {
       setMessages(prev => [...prev, { role: 'assistant', content: "Neural Node timeout." }]);
@@ -222,14 +234,12 @@ export default function FullChatPage() {
         .n-scroll::-webkit-scrollbar-thumb { background: #1f1f23; border-radius: 10px; }
       `}</style>
 
-      {/* HIDDEN CLERK TRIGGER */}
       <div className="hidden">
         <SignInButton mode="modal">
           <button id="clerk-auth-trigger">Auth</button>
         </SignInButton>
       </div>
 
-      {/* DELETE MODAL */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setIsDeleteModalOpen(false)} />
@@ -292,7 +302,7 @@ export default function FullChatPage() {
                 {editingId === sess.session_id ? (
                   <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                     <input autoFocus className="bg-black border border-blue-500 rounded px-2 py-1 text-[10px] w-full outline-none text-white font-bold" value={editValue} onChange={(e) => setEditValue(e.target.value)} />
-                    <button onClick={() => renameSession(sess.session_id)} className="text-green-500"><Check size={12}/></button>
+                    <button onClick={() => renameSession(sess.session_id, editValue)} className="text-green-500"><Check size={12}/></button>
                     <button onClick={() => setEditingId(null)} className="text-red-500"><X size={12}/></button>
                   </div>
                 ) : (
