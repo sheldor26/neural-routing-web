@@ -1,11 +1,11 @@
 "use client";
 import { useState } from 'react';
-import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, Zap } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 
 interface RoutingResult {
   routing: {
-    selected_tier: string;
+    tier: string;      // Actualizado para coincidir con el backend
     model_used: string;
     latency_ms: number;
   };
@@ -29,7 +29,6 @@ export default function Playground() {
     setResult(null);
 
     try {
-      // UPDATED URL: Now using the verified .up.railway.app domain
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/dispatch?t=${Date.now()}`, {
         method: "POST",
         headers: {
@@ -37,23 +36,29 @@ export default function Playground() {
           "X-API-KEY": "key_demo_user" 
         },
         body: JSON.stringify({ 
-          prompt: prompt,
-          user_id: user?.id || "guest_user" 
+          // CAMBIO CLAVE: Ahora enviamos la estructura de mensajes
+          messages: [
+            { role: "user", content: prompt.trim() }
+          ],
+          user_id: user?.id || "guest_user",
+          session_id: "playground_simulator" // ID fijo para el simulador
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || `Server error: ${response.status}`);
+        // Si el error es una lista (422 validation), mostramos el primer mensaje
+        const detail = Array.isArray(errorData.detail) 
+          ? errorData.detail[0].msg 
+          : errorData.detail;
+        throw new Error(detail || `Neural Node Error: ${response.status}`);
       }
       
       const data = await response.json();
       setResult(data);
     } catch (err: any) {
       console.error("❌ Dispatch Error:", err);
-      setError(err.message === "Failed to fetch" 
-        ? "Connection Error. Please ensure you have accepted the security certificate on the Railway URL." 
-        : err.message);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -73,7 +78,7 @@ export default function Playground() {
           <textarea 
             className="w-full bg-black border border-zinc-700 rounded-2xl p-6 text-white focus:border-blue-500 outline-none transition placeholder:text-zinc-800 text-lg resize-none shadow-inner"
             rows={3}
-            placeholder="Type a complex prompt here..."
+            placeholder="Type a complex command (e.g. Write a React hook for Supabase auth)..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
           />
@@ -86,7 +91,7 @@ export default function Playground() {
             {loading ? (
               <>
                 <Loader2 className="animate-spin" size={24} />
-                <span className="tracking-widest uppercase">Processing...</span>
+                <span className="tracking-widest uppercase text-sm">Routing Architecture...</span>
               </>
             ) : (
               "DISPATCH PROMPT"
@@ -95,9 +100,9 @@ export default function Playground() {
         </div>
 
         {error && (
-          <div className="mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-3 animate-pulse">
-            <AlertCircle size={18} /> 
-            <span className="font-mono">{error}</span>
+          <div className="mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-center gap-3">
+            <AlertCircle size={14} /> 
+            <span className="font-mono uppercase tracking-tighter">{error}</span>
           </div>
         )}
 
@@ -105,25 +110,31 @@ export default function Playground() {
           <div className="mt-10 p-8 bg-black border border-blue-500/20 rounded-[2rem] animate-in fade-in zoom-in duration-500 shadow-2xl">
              <div className="flex flex-wrap justify-between items-center gap-4 mb-6 pb-6 border-b border-zinc-800">
                <div className="flex items-center gap-2">
-                 <CheckCircle2 className="text-green-500" size={20} />
-                 <span className="font-bold tracking-tighter italic text-zinc-300 uppercase text-xs">
-                   Status: <span className="text-green-500">Neural Optimized</span>
+                 <CheckCircle2 className="text-green-500" size={16} />
+                 <span className="font-bold tracking-tighter italic text-zinc-300 uppercase text-[10px]">
+                   Status: <span className="text-green-500">Neural Node Active</span>
                  </span>
                </div>
-               <div className="px-4 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 text-[10px] font-black uppercase">
-                 Tier: {result.routing.selected_tier}
+               <div className="px-4 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 text-[9px] font-black uppercase">
+                 Tier: {result.routing.tier}
                </div>
              </div>
-             <div className="space-y-4">
+             <div className="space-y-6">
                <div className="flex flex-col items-center gap-2">
-                  <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em]">Model Deployed</p>
-                  <p className="text-blue-400 font-mono bg-blue-500/5 w-fit px-3 py-1 rounded-md text-[11px] border border-blue-500/20">
+                  <div className="flex items-center gap-2 text-zinc-600">
+                    <Zap size={10} />
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em]">Model Deployed</p>
+                  </div>
+                  <p className="text-blue-400 font-mono bg-blue-500/5 w-fit px-3 py-1 rounded-md text-[11px] border border-blue-500/20 uppercase">
                     {result.routing.model_used}
                   </p>
                </div>
                <div className="p-6 bg-zinc-900/30 rounded-2xl text-zinc-300 text-sm leading-relaxed border border-zinc-800/50 font-medium italic text-center">
                  "{result.output.ai_answer}"
                </div>
+               <p className="text-center text-[9px] text-zinc-700 font-bold uppercase tracking-[0.3em]">
+                 Latency: {result.routing.latency_ms}ms
+               </p>
              </div>
           </div>
         )}
