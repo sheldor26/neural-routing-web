@@ -1,25 +1,26 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// 1. Definimos las rutas que REQUIEREN protección (Chat y Dashboard)
+// 1. Definimos las rutas que REQUIEREN protección
 const isProtectedRoute = createRouteMatcher([
   '/chat(.*)',
   '/dashboard(.*)',
-  '/api/chat(.*)' // Protegemos también el endpoint de la API
+  '/api/chat(.*)',
+  '/blog/admin(.*)' // <--- Agregamos la nueva ruta del editor
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  // 2. Si la ruta está en la lista de protegidas, aplicamos auth.protect()
+  // 2. Si la ruta es protegida, ejecutamos auth.protect()
   if (isProtectedRoute(req)) {
     await auth.protect();
   }
-  // Cualquier otra ruta (/, /blog, etc.) será pública por defecto
+  // Todo lo demás (/blog, /blog/[slug], /pricing) queda público automáticamente
 });
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files
+    // Ignora archivos estáticos y Next.js internals
     '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Always run for API routes
+    // Siempre corre para rutas de API
     '/(api|trpc)(.*)',
   ],
 };
