@@ -2,8 +2,9 @@
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { Droplets, DollarSign, ArrowRight, Zap, Shield, Info } from 'lucide-react';
+import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import FAQ from '@/components/FAQ'; 
-import SavingsCalculator from '@/components/SavingsCalculator'; // Importamos el nuevo módulo
+import SavingsCalculator from '@/components/SavingsCalculator';
 
 const NavAuth = dynamic(() => import('@/components/AuthInterface').then(mod => mod.NavAuth), { ssr: false });
 const HeroAuth = dynamic(() => import('@/components/AuthInterface').then(mod => mod.HeroAuth), { ssr: false });
@@ -21,10 +22,10 @@ export default function LandingPage() {
         
         <div className="flex items-center gap-8">
           <Link 
-            href="/how-it-works" 
+            href="/blog" 
             className="hidden md:block text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 hover:text-white transition-all duration-300"
           >
-            How it Works
+            Engineering
           </Link>
           <Link 
             href="/pricing" 
@@ -87,9 +88,38 @@ export default function LandingPage() {
         <SavingsCalculator />
       </section>
 
-      {/* --- PLAYGROUND --- */}
-      <section className="relative z-10">
-        <Playground />
+      {/* --- PLAYGROUND SECTION (GATED) --- */}
+      <section className="relative z-10 py-24 px-6">
+        <div className="max-w-6xl mx-auto">
+          <SignedIn>
+            <div className="text-center mb-12">
+              <h2 className="text-blue-500 font-black uppercase tracking-[0.4em] text-[10px] mb-4">Neural Console</h2>
+              <p className="text-3xl font-black italic tracking-tighter uppercase text-white">Interactive <span className="text-blue-600">Playground</span></p>
+            </div>
+            <Playground />
+          </SignedIn>
+
+          <SignedOut>
+            <div className="relative group p-1 bg-gradient-to-b from-blue-600/20 to-transparent rounded-[3rem] overflow-hidden">
+              <div className="bg-[#09090b]/80 backdrop-blur-2xl rounded-[2.9rem] p-16 text-center border border-zinc-800/50 relative z-10">
+                <div className="inline-flex p-5 bg-blue-600/10 rounded-2xl mb-8 border border-blue-500/20">
+                  <Zap className="text-blue-500 animate-pulse" size={32} />
+                </div>
+                <h2 className="text-5xl font-black italic tracking-tighter uppercase mb-6 text-white leading-none">
+                  Unlock <span className="text-blue-500">Neural Access</span>
+                </h2>
+                <p className="text-zinc-500 text-lg mb-12 max-w-md mx-auto italic font-medium leading-relaxed">
+                  Authentication required to prevent token abuse. Join the beta to test our sub-200ms routing engine.
+                </p>
+                <SignInButton mode="modal">
+                  <button className="px-12 py-6 bg-white text-black font-black uppercase italic tracking-tighter rounded-2xl hover:bg-blue-600 hover:text-white transition-all duration-500 shadow-[0_20px_60px_rgba(37,99,235,0.2)] active:scale-95">
+                    Get Instant Access
+                  </button>
+                </SignInButton>
+              </div>
+            </div>
+          </SignedOut>
+        </div>
       </section>
 
       {/* --- FEATURES SECTION --- */}
