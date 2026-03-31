@@ -81,7 +81,7 @@ export default function DashboardPage() {
               <Zap size={20} className="text-blue-500 fill-blue-500/20" />
             </div>
             <span className="text-xl font-black italic uppercase tracking-tighter text-white group-hover:text-blue-400 transition-colors">
-              NeuralDash<span className="text-blue-500">.io</span>
+              Neuralrouting<span className="text-blue-500">.io</span>
             </span>
           </Link>
 
