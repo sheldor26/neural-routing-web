@@ -5,9 +5,10 @@ import { useUser } from '@clerk/nextjs';
 
 interface RoutingResult {
   routing: {
-    tier: string;      // Actualizado para coincidir con el backend
+    tier: string;
     model_used: string;
     latency_ms: number;
+    confidence: number;
   };
   output: {
     ai_answer: string;
@@ -29,25 +30,26 @@ export default function Playground() {
     setResult(null);
 
     try {
-      const response = await fetch(`https://web-production-4f439.up.railway.app/v1/dispatch?t=${Date.now()}`, {
+      // 1. Conexión directa a tu dominio neuralrouting.io
+      const response = await fetch(`https://neuralrouting.io/v1/dispatch`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-API-KEY": "key_demo_user" 
+          "X-API-KEY": "nr-dev-secret-123" // Esta key debe existir en tu tabla api_keys
         },
         body: JSON.stringify({ 
-          // CAMBIO CLAVE: Ahora enviamos la estructura de mensajes
+          // 2. Estructura de mensajes compatible con Message(BaseModel) en main.py
           messages: [
             { role: "user", content: prompt.trim() }
           ],
-          user_id: user?.id || "guest_user",
-          session_id: "playground_simulator" // ID fijo para el simulador
+          user_id: user?.id || "guest_playground",
+          session_id: "playground_live_session" 
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        // Si el error es una lista (422 validation), mostramos el primer mensaje
+        // Manejo de errores de validación (Pydantic) o de red
         const detail = Array.isArray(errorData.detail) 
           ? errorData.detail[0].msg 
           : errorData.detail;
@@ -70,7 +72,7 @@ export default function Playground() {
         <div className="text-center mb-10">
           <h2 className="text-3xl font-bold mb-4 italic tracking-tight uppercase">Live Routing Simulator</h2>
           <p className="text-zinc-500 max-w-md mx-auto italic text-sm">
-            Experience how our neural engine selects the best model for your prompt in real-time.
+            Prueba cómo el motor selecciona el modelo más eficiente para tu consulta.
           </p>
         </div>
         
@@ -78,7 +80,7 @@ export default function Playground() {
           <textarea 
             className="w-full bg-black border border-zinc-700 rounded-2xl p-6 text-white focus:border-blue-500 outline-none transition placeholder:text-zinc-800 text-lg resize-none shadow-inner"
             rows={3}
-            placeholder="Type a complex command (e.g. Write a React hook for Supabase auth)..."
+            placeholder="Escribe algo complejo (ej: Escribe un hook de React para auth con Supabase)..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
           />
@@ -91,7 +93,7 @@ export default function Playground() {
             {loading ? (
               <>
                 <Loader2 className="animate-spin" size={24} />
-                <span className="tracking-widest uppercase text-sm">Routing Architecture...</span>
+                <span className="tracking-widest uppercase text-sm">Neural Routing...</span>
               </>
             ) : (
               "DISPATCH PROMPT"
@@ -119,22 +121,30 @@ export default function Playground() {
                  Tier: {result.routing.tier}
                </div>
              </div>
+
              <div className="space-y-6">
                <div className="flex flex-col items-center gap-2">
                   <div className="flex items-center gap-2 text-zinc-600">
-                    <Zap size={10} />
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em]">Model Deployed</p>
+                    <Zap size={10} className="fill-blue-500 text-blue-500" />
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em]">Model Selected</p>
                   </div>
                   <p className="text-blue-400 font-mono bg-blue-500/5 w-fit px-3 py-1 rounded-md text-[11px] border border-blue-500/20 uppercase">
                     {result.routing.model_used}
                   </p>
                </div>
-               <div className="p-6 bg-zinc-900/30 rounded-2xl text-zinc-300 text-sm leading-relaxed border border-zinc-800/50 font-medium italic text-center">
+
+               <div className="p-6 bg-zinc-900/30 rounded-2xl text-zinc-100 text-sm leading-relaxed border border-zinc-800/50 font-medium italic text-center">
                  "{result.output.ai_answer}"
                </div>
-               <p className="text-center text-[9px] text-zinc-700 font-bold uppercase tracking-[0.3em]">
-                 Latency: {result.routing.latency_ms}ms
-               </p>
+
+               <div className="flex justify-center gap-8">
+                 <p className="text-center text-[9px] text-zinc-700 font-bold uppercase tracking-[0.3em]">
+                   Latency: {result.routing.latency_ms}ms
+                 </p>
+                 <p className="text-center text-[9px] text-zinc-700 font-bold uppercase tracking-[0.3em]">
+                   Confidence: {(result.routing.confidence * 100).toFixed(0)}%
+                 </p>
+               </div>
              </div>
           </div>
         )}
