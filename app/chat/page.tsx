@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Send, User, Bot, History, Home, Zap, DollarSign, Loader2, Trash2, Edit3, Check, X } from 'lucide-react';
+import { Plus, Send, User, Bot, History, Home, Zap, DollarSign, Loader2, Trash2, Edit3, Check, X, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { useUser } from "@clerk/nextjs";
 import ReactMarkdown from 'react-markdown';
@@ -33,6 +33,9 @@ export default function FullChatPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   
+  // Estado para el menú móvil
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
 
@@ -68,6 +71,9 @@ export default function FullChatPage() {
     if (!sId || editingId) return;
     setIsTyping(true);
     setMessages([]); 
+    // Al cargar historial en móvil, cerramos el menú
+    setIsSidebarOpen(false);
+
     try {
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/messages/${sId}`);
       const data = await response.json();
@@ -119,6 +125,7 @@ export default function FullChatPage() {
     setSessionId(newId);
     setMessages([{ role: 'assistant', content: 'New session node established.' }]);
     setInput("");
+    setIsSidebarOpen(false); // Cerramos el menú al crear nueva sesión
   };
 
   const handleSendMessage = async () => {
@@ -164,7 +171,7 @@ export default function FullChatPage() {
   };
 
   return (
-    <div className="flex h-screen bg-[#09090b] text-zinc-300 overflow-hidden font-sans">
+    <div className="flex h-screen bg-[#09090b] text-zinc-300 overflow-hidden font-sans relative">
       <style jsx global>{`
         .n-scroll::-webkit-scrollbar { width: 5px; }
         .n-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -172,12 +179,29 @@ export default function FullChatPage() {
         .n-scroll::-webkit-scrollbar-thumb:hover { background: #27272a; }
       `}</style>
 
-      {/* --- SIDEBAR --- */}
-      <aside className="w-80 border-r border-zinc-800 bg-[#050505] flex flex-col hidden md:flex">
+      {/* --- OVERLAY MÓVIL --- */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[40] md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* --- SIDEBAR ACTUALIZADO --- */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-[50] w-72 bg-[#050505] border-r border-zinc-800 flex flex-col transition-transform duration-300 ease-in-out
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:relative md:translate-x-0 md:flex md:w-80
+      `}>
         <div className="p-6 space-y-4">
-          <Link href="/" className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-600 hover:text-white transition-colors">
-            <Home size={12} /> Return to Base
-          </Link>
+          <div className="flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-600 hover:text-white transition-colors">
+              <Home size={12} /> Return to Base
+            </Link>
+            <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-zinc-500 hover:text-white">
+              <X size={20} />
+            </button>
+          </div>
           <button onClick={handleNewSession} className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 transition-all cursor-pointer shadow-lg active:scale-95">
             <Plus size={14} /> New Session
           </button>
@@ -238,15 +262,23 @@ export default function FullChatPage() {
       </aside>
 
       {/* --- MAIN AREA --- */}
-      <main className="flex-1 flex flex-col bg-[#09090b] relative">
-        <header className="h-20 border-b border-zinc-800 flex items-center px-8 bg-[#09090b]/50 backdrop-blur-xl z-10">
-           <div className="flex items-center gap-3">
+      <main className="flex-1 flex flex-col bg-[#09090b] relative w-full">
+        <header className="h-20 border-b border-zinc-800 flex items-center px-4 md:px-8 bg-[#09090b]/50 backdrop-blur-xl z-10">
+           <div className="flex items-center gap-3 w-full">
+             {/* BOTÓN HAMBURGUESA */}
+             <button 
+               onClick={() => setIsSidebarOpen(true)}
+               className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 md:hidden hover:text-white transition-colors"
+             >
+               <Menu size={20} />
+             </button>
+
              <div className="p-2 bg-blue-600/10 rounded-lg border border-blue-500/20 shadow-[0_0_15px_rgba(37,99,235,0.1)]">
                <Bot className="text-blue-500" size={20} />
              </div>
-             <div>
+             <div className="flex-1">
                <h2 className="text-sm font-black uppercase italic text-white tracking-tight leading-none">Neural Assistant v1.0</h2>
-               <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest mt-1 italic">
+               <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest mt-1 italic hidden sm:block">
                  {isTyping ? 'Syncing Packets...' : 'Neural Link: Active'}
                </p>
              </div>
@@ -255,17 +287,16 @@ export default function FullChatPage() {
 
         <div 
           ref={scrollRef} 
-          className="flex-1 overflow-y-auto p-8 pr-16 md:pr-24 space-y-10 max-w-5xl mx-auto w-full n-scroll pb-44"
+          className="flex-1 overflow-y-auto p-4 md:p-8 pr-16 md:pr-24 space-y-10 max-w-5xl mx-auto w-full n-scroll pb-44"
           style={{ scrollbarGutter: 'stable' }}
         >
           {messages.map((m, i) => (
             <div key={i} className={`flex flex-col gap-3 ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2`}>
-              <div className={`flex gap-4 max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${m.role === 'assistant' ? 'bg-blue-600/10 border-blue-500/20' : 'bg-zinc-800 border-zinc-700'}`}>
+              <div className={`flex gap-4 max-w-[90%] md:max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 ${m.role === 'assistant' ? 'bg-blue-600/10 border-blue-500/20' : 'bg-zinc-800 border-zinc-700'}`}>
                   {m.role === 'assistant' ? <Zap size={14} className="text-blue-500" /> : <User size={14} className="text-zinc-500" />}
                 </div>
-                <div className={`p-5 rounded-[1.8rem] ${m.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none shadow-blue-900/20' : 'bg-zinc-900/50 border border-zinc-800 text-zinc-300 rounded-tl-none backdrop-blur-sm shadow-xl'}`}>
-                  {/* --- RENDERIZADO MARKDOWN --- */}
+                <div className={`p-4 md:p-5 rounded-[1.5rem] md:rounded-[1.8rem] ${m.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none shadow-blue-900/20' : 'bg-zinc-900/50 border border-zinc-800 text-zinc-300 rounded-tl-none backdrop-blur-sm shadow-xl'}`}>
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     components={{
@@ -276,7 +307,7 @@ export default function FullChatPage() {
                             style={vscDarkPlus as any}
                             language={match[1]}
                             PreTag="div"
-                            className="rounded-lg my-4 border border-zinc-800"
+                            className="rounded-lg my-4 border border-zinc-800 text-[11px] md:text-sm"
                             {...props}
                           >
                             {String(children).replace(/\n$/, '')}
@@ -293,7 +324,7 @@ export default function FullChatPage() {
                       th: ({children}) => <th className="border border-zinc-700 bg-zinc-800 p-2 text-left">{children}</th>,
                       td: ({children}) => <td className="border border-zinc-700 p-2">{children}</td>,
                     }}
-                    className="text-sm font-medium leading-relaxed prose prose-invert max-w-none"
+                    className="text-xs md:text-sm font-medium leading-relaxed prose prose-invert max-w-none"
                   >
                     {m.content}
                   </ReactMarkdown>
@@ -315,20 +346,20 @@ export default function FullChatPage() {
           )}
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent z-10">
+        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent z-10">
           <div className="max-w-4xl mx-auto relative group">
             <textarea 
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
               placeholder="Execute neural command..."
-              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2.5rem] p-6 pr-20 text-sm focus:border-blue-500 outline-none resize-none n-scroll shadow-2xl backdrop-blur-xl transition-all"
+              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-6 pr-16 md:pr-20 text-xs md:text-sm focus:border-blue-500 outline-none resize-none n-scroll shadow-2xl backdrop-blur-xl transition-all"
               rows={1}
             />
             <button 
               onClick={handleSendMessage} 
               disabled={isTyping || !input.trim()}
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-blue-600 rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 transition-all cursor-pointer shadow-lg shadow-blue-500/20"
+              className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 p-2.5 md:p-3 bg-blue-600 rounded-xl md:rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 transition-all cursor-pointer shadow-lg shadow-blue-500/20"
             >
               <Send size={18} className="text-white" />
             </button>
