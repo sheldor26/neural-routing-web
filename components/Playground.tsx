@@ -31,7 +31,7 @@ export default function Playground() {
 
     try {
       // 1. Conexión directa a tu dominio neuralrouting.io
-      const response = await fetch(`https://neuralrouting.io/v1/dispatch`, {
+      const response = await fetch(`https://web-production-4f439.up.railway.app/v1/dispatch`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
