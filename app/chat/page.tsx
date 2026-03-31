@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Plus, Send, User, Bot, History, Home, Zap, DollarSign, Droplets } from 'lucide-react';
+import { Plus, Send, User, Bot, History, Home, Zap, DollarSign, Droplets } from 'lucide-react';
 import Link from 'next/link';
 import { useUser } from "@clerk/nextjs";
 
@@ -19,6 +19,10 @@ export default function FullChatPage() {
   const { user, isLoaded } = useUser();
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  
+  // Generamos un ID de sesión único al cargar la página
+  const [sessionId, setSessionId] = useState<string>("");
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     { 
       role: 'assistant', 
@@ -28,6 +32,11 @@ export default function FullChatPage() {
   
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Inicializar sesión
+  useEffect(() => {
+    setSessionId(crypto.randomUUID());
+  }, []);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({
@@ -36,6 +45,12 @@ export default function FullChatPage() {
       });
     }
   }, [messages, isTyping]);
+
+  const handleNewSession = () => {
+    setMessages([{ role: 'assistant', content: 'New session initialized. Awaiting commands.' }]);
+    setSessionId(crypto.randomUUID()); // Cambiamos el ID para separar el historial en Supabase
+    setInput("");
+  };
 
   const handleSendMessage = async () => {
     if (!input.trim() || isTyping || !isLoaded) return;
@@ -55,8 +70,9 @@ export default function FullChatPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          messages: currentMessages, // Enviamos el historial para tener memoria
-          userId: user?.id || "guest_user" 
+          messages: currentMessages,
+          userId: user?.id || "guest_user",
+          sessionId: sessionId // Enviamos el ID de sesión generado
         }),
       });
 
@@ -83,25 +99,12 @@ export default function FullChatPage() {
   return (
     <div className="flex h-screen bg-[#09090b] text-zinc-300 font-sans selection:bg-blue-500/30 overflow-hidden">
       
-      {/* Estilos Inline para la Scrollbar (Neural Design) */}
       <style jsx global>{`
-        .neural-scrollbar::-webkit-scrollbar {
-          width: 5px;
-        }
-        .neural-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .neural-scrollbar::-webkit-scrollbar-thumb {
-          background: #18181b;
-          border-radius: 10px;
-        }
-        .neural-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #27272a;
-        }
-        .neural-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: #18181b transparent;
-        }
+        .neural-scrollbar::-webkit-scrollbar { width: 4px; }
+        .neural-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .neural-scrollbar::-webkit-scrollbar-thumb { background: #18181b; border-radius: 10px; }
+        .neural-scrollbar::-webkit-scrollbar-thumb:hover { background: #27272a; }
+        .neural-scrollbar { scrollbar-width: thin; scrollbar-color: #18181b transparent; }
       `}</style>
       
       {/* --- SIDEBAR --- */}
@@ -115,8 +118,8 @@ export default function FullChatPage() {
           </Link>
 
           <button 
-            onClick={() => setMessages([{ role: 'assistant', content: 'New session initialized. Awaiting commands.' }])}
-            className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black italic uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white transition-all shadow-lg active:scale-95"
+            onClick={handleNewSession}
+            className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black italic uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white transition-all shadow-lg active:scale-95 cursor-pointer"
           >
             <Plus size={14} /> New Session
           </button>
@@ -127,8 +130,8 @@ export default function FullChatPage() {
              <p className="text-[9px] font-black uppercase text-zinc-600 tracking-[0.2em]">Infrastructure Logs</p>
              <History size={12} className="text-zinc-800" />
           </div>
-          <div className="group p-4 rounded-xl bg-blue-600/5 border border-blue-500/10 text-zinc-400 text-xs font-bold italic transition-all hover:bg-blue-600/10 cursor-pointer">
-            {user?.firstName ? `${user.firstName}'s Active Session` : "Current Active Session"}
+          <div className="group p-4 rounded-xl bg-blue-600/5 border border-blue-500/10 text-zinc-400 text-[10px] font-bold italic transition-all hover:bg-blue-600/10 cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap">
+            ID: {sessionId.slice(0, 8)}... - {user?.firstName || "Guest"}
           </div>
         </nav>
       </aside>
@@ -151,10 +154,10 @@ export default function FullChatPage() {
           </div>
         </header>
 
-        {/* Messages - ACTUALIZADO CON PADDING Y SCROLLBAR ESTÉTICA */}
+        {/* Messages */}
         <div 
           ref={scrollRef}
-          className="flex-1 overflow-y-auto p-8 pr-12 md:pr-20 space-y-10 max-w-5xl mx-auto w-full scroll-smooth pb-44 neural-scrollbar"
+          className="flex-1 overflow-y-auto p-8 pr-16 md:pr-24 space-y-10 max-w-5xl mx-auto w-full scroll-smooth pb-44 neural-scrollbar"
           style={{ scrollbarGutter: 'stable' }}
         >
           {messages.map((m, i) => (
@@ -228,14 +231,14 @@ export default function FullChatPage() {
                 }
               }}
               placeholder="Send a neural command..."
-              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2.5rem] p-6 pr-20 text-sm focus:border-blue-500 outline-none transition-all resize-none shadow-2xl backdrop-blur-xl max-h-32 scrollbar-hide"
+              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2.5rem] p-6 pr-20 text-sm focus:border-blue-500 outline-none transition-all resize-none shadow-2xl backdrop-blur-xl max-h-32 scrollbar-hide neural-scrollbar"
               rows={1}
             />
             <button 
               onClick={handleSendMessage}
               disabled={isTyping || !input.trim()}
               className={`absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-2xl transition-all shadow-[0_10px_30px_rgba(37,99,235,0.3)] 
-                ${isTyping || !input.trim() ? 'bg-zinc-800 text-zinc-600' : 'bg-blue-600 text-white hover:scale-105 active:scale-95'}`}
+                ${isTyping || !input.trim() ? 'bg-zinc-800 text-zinc-600' : 'bg-blue-600 text-white hover:scale-105 active:scale-95 cursor-pointer'}`}
             >
               <Send size={18} />
             </button>
