@@ -1,24 +1,23 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Zap, Droplets, Shield, ArrowRight, Activity, ChevronRight, Lock, HelpCircle } from 'lucide-react';
+import Link from 'next/link'; // 1. Importamos Link
+import { Zap, Droplets, Shield, ArrowRight, Activity, ChevronRight, Lock, HelpCircle, Home } from 'lucide-react'; // Agregamos Home
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function DashboardPage() {
-  // 1. State Management
+  // ... (mantenemos todo tu estado y lógica igual)
   const [chartData, setChartData] = useState([]);
   const [stats, setStats] = useState({ savings: 0, efficiency: 0, water: 0 });
   const [loading, setLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
 
-  // API Key Copy Function with custom Toast
   const copyToClipboard = () => {
     navigator.clipboard.writeText("nr_live_optica_carballo_2026");
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  // Informational Tooltip Component
   const InfoTag = ({ text }: { text: string }) => (
     <div className="group relative inline-block ml-2 cursor-help">
       <HelpCircle size={12} className="text-zinc-600 hover:text-blue-500 transition-colors" />
@@ -31,7 +30,6 @@ export default function DashboardPage() {
     </div>
   );
 
-  // 2. Real-time Synchronization with Neural Node
   useEffect(() => {
     async function loadDashboardData() {
       try {
@@ -55,7 +53,6 @@ export default function DashboardPage() {
         setLoading(false);
       }
     }
-
     loadDashboardData();
   }, []);
 
@@ -74,32 +71,47 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans selection:bg-blue-500/30 overflow-x-hidden relative">
       
-      {/* --- NAV BAR --- */}
+      {/* --- NAV BAR ACTUALIZADA --- */}
       <nav className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
+          
+          {/* Logo ahora es un Link a la Home */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20 group-hover:bg-blue-500/20 transition-all">
               <Zap size={20} className="text-blue-500 fill-blue-500/20" />
             </div>
-            <span className="text-xl font-black italic uppercase tracking-tighter text-white">
+            <span className="text-xl font-black italic uppercase tracking-tighter text-white group-hover:text-blue-400 transition-colors">
               NeuralDash<span className="text-blue-500">.io</span>
             </span>
-          </div>
-          <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-zinc-500">
-            <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-zinc-900/50 rounded-full border border-zinc-800">
-              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-              <span>Neural Node: Online</span>
+          </Link>
+
+          <div className="flex items-center gap-6">
+            {/* Botón rápido "Back to Site" */}
+            <Link 
+              href="/" 
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl border border-zinc-800 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white hover:border-zinc-600 transition-all active:scale-95"
+            >
+              <Home size={14} />
+              Back to Site
+            </Link>
+
+            <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-zinc-500 border-l border-white/10 pl-6">
+              <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-zinc-900/50 rounded-full border border-zinc-800">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                <span>Neural Node: Online</span>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-zinc-800 to-zinc-700 border border-white/10"></div>
             </div>
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-zinc-800 to-zinc-700 border border-white/10"></div>
           </div>
         </div>
       </nav>
 
+      {/* ... (Resto del Dashboard sin cambios) ... */}
       <main className="max-w-7xl mx-auto px-6 py-12">
-        
-        {/* --- METRIC CARDS --- */}
+        {/* METRIC CARDS, GRAPH, etc. */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="p-8 rounded-[2.5rem] bg-zinc-900/20 border border-zinc-800 group hover:border-blue-500/30 transition-all shadow-2xl relative">
+           {/* Card Savings */}
+           <div className="p-8 rounded-[2.5rem] bg-zinc-900/20 border border-zinc-800 group hover:border-blue-500/30 transition-all shadow-2xl relative">
             <div className="flex items-center mb-2">
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Total Savings</p>
               <InfoTag text="Net savings calculated through intelligent arbitrage between premium models and high-efficiency optimized models." />
@@ -111,7 +123,7 @@ export default function DashboardPage() {
               <Zap size={12} /> Optimization: {stats.efficiency}%
             </p>
           </div>
-
+          {/* Card Eco */}
           <div className="p-8 rounded-[2.5rem] bg-blue-500/5 border border-blue-500/10 group hover:bg-blue-500/10 transition-all relative">
             <div className="flex items-center mb-6 text-blue-500">
               <Droplets size={18} />
@@ -123,7 +135,7 @@ export default function DashboardPage() {
             </h2>
             <p className="text-zinc-500 text-sm font-medium italic">Water saved in datacenter cooling</p>
           </div>
-
+          {/* Card API KEY */}
           <div className="p-8 rounded-[2.5rem] bg-zinc-900/20 border border-zinc-800 flex flex-col justify-between relative">
             <div className="flex items-center mb-6 text-zinc-500 font-black uppercase tracking-widest text-[10px]">
               <Lock size={12} className="mr-2" /> Production Key
@@ -141,9 +153,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* --- GRAPH + INFRASTRUCTURE --- */}
+        {/* ... Resto de tu código ... */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
-          
           <div className="lg:col-span-8 p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 flex flex-col h-[480px] shadow-2xl relative">
             <div className="flex items-center justify-between mb-10">
               <h4 className="text-white font-black italic uppercase tracking-tighter text-2xl flex items-center gap-3">
@@ -155,7 +166,6 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-zinc-800"></div><span className="text-[10px] font-black uppercase text-zinc-500 italic">Cost</span></div>
               </div>
             </div>
-            
             <div className="flex-grow">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData}>
@@ -180,7 +190,6 @@ export default function DashboardPage() {
               </ResponsiveContainer>
             </div>
           </div>
-
           <div className="lg:col-span-4 p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 shadow-2xl relative">
             <h4 className="text-white font-black italic uppercase tracking-tighter text-2xl mb-8 flex items-center gap-3">
               <Shield size={24} className="text-blue-500" /> Infrastructure
@@ -207,7 +216,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* --- BILLING CTA --- */}
         <div className="p-10 rounded-[3rem] bg-blue-600 text-white flex flex-col md:flex-row items-center justify-between group hover:bg-blue-500 transition-all cursor-pointer shadow-2xl shadow-blue-900/20">
           <div className="mb-6 md:mb-0">
             <h3 className="text-4xl font-black italic uppercase tracking-tighter leading-none mb-2">Scale Your Capacity</h3>
@@ -217,14 +225,12 @@ export default function DashboardPage() {
             Go to Billing <ChevronRight size={16} />
           </div>
         </div>
-
       </main>
 
       <footer className="py-12 text-center opacity-30 border-t border-white/5 mt-12 bg-black/20">
         <p className="text-[10px] font-black uppercase tracking-[0.4em] mb-4 text-zinc-600 italic">NeuralDash Global // Neural Node // 2026</p>
       </footer>
 
-      {/* --- NEURAL TOAST NOTIFICATION --- */}
       {showToast && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-bottom-5 duration-300">
           <div className="bg-zinc-950 border border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.2)] px-6 py-3 rounded-2xl flex items-center gap-3 backdrop-blur-xl">
