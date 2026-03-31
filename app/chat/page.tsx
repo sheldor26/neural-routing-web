@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Send, User, Bot, History, Home, Zap, DollarSign, Droplets } from 'lucide-react';
+import { Plus, Send, User, Bot, History, Home, Zap, DollarSign, Droplets, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useUser } from "@clerk/nextjs";
 
@@ -26,57 +26,49 @@ export default function FullChatPage() {
   const [isTyping, setIsTyping] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
   const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { 
-      role: 'assistant', 
-      content: 'Neural Engine Online. How can I optimize your infrastructure today?' 
-    }
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Initialize and Fetch
+  // 1. Carga inicial: Sesión nueva y lista de historial
   useEffect(() => {
     if (isLoaded && user) {
-      if (!sessionId) setSessionId(crypto.randomUUID());
+      const newId = crypto.randomUUID();
+      setSessionId(newId);
       fetchSessions();
+      setMessages([{ role: 'assistant', content: 'Neural Engine Online. Infrastructure logs synced.' }]);
     }
   }, [isLoaded, user]);
 
+  // Auto-scroll al recibir mensajes
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTo({
-        top: scrollRef.current.scrollHeight,
-        behavior: 'smooth'
-      });
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     }
   }, [messages, isTyping]);
 
+  // 2. Función para traer la lista de logs del costado
   const fetchSessions = async () => {
     if (!user?.id) return;
     try {
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${user.id}`);
       const data = await response.json();
       if (Array.isArray(data)) setSessions(data);
-    } catch (error) {
-      console.error("Error fetching sessions:", error);
-    }
+    } catch (e) { console.error("Session Fetch Error", e); }
   };
 
-  // NUEVA FUNCIÓN: Carga la conversación de un log específico
+  // 3. FUNCIÓN CLAVE: Recuperar los mensajes de un log guardado
   const loadChatHistory = async (sId: string) => {
-    setMessages([]); // Limpiamos pantalla mientras carga
     setIsTyping(true);
+    setMessages([]); // Limpieza visual
     try {
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/messages/${sId}`);
       const data = await response.json();
       
-      if (Array.isArray(data)) {
+      if (Array.isArray(data) && data.length > 0) {
         const history: ChatMessage[] = [];
         data.forEach(msg => {
-          // Agregamos mensaje del usuario
           history.push({ role: 'user', content: msg.prompt });
-          // Agregamos respuesta del asistente con sus stats
           history.push({ 
             role: 'assistant', 
             content: msg.ai_response,
@@ -88,28 +80,22 @@ export default function FullChatPage() {
           });
         });
         setMessages(history);
+      } else {
+        setMessages([{ role: 'assistant', content: 'Empty log. Awaiting commands.' }]);
       }
-    } catch (error) {
-      console.error("History Error:", error);
+    } catch (e) {
+      console.error("History Load Error", e);
     } finally {
       setIsTyping(false);
     }
   };
 
-  const handleNewSession = () => {
-    setMessages([{ role: 'assistant', content: 'New session initialized. Awaiting commands.' }]);
-    setSessionId(crypto.randomUUID());
-    setInput("");
-  };
-
   const handleSendMessage = async () => {
-    if (!input.trim() || isTyping || !isLoaded) return;
-
-    const userContent = input.trim();
-    const userMessage: ChatMessage = { role: 'user', content: userContent };
-    const currentMessages = [...messages, userMessage];
+    if (!input.trim() || isTyping) return;
+    const userMsg: ChatMessage = { role: 'user', content: input.trim() };
+    const currentContext = [...messages, userMsg];
     
-    setMessages(prev => [...prev, userMessage]);
+    setMessages(prev => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
 
@@ -118,160 +104,105 @@ export default function FullChatPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          messages: currentMessages,
-          userId: user?.id || "guest_user",
+          messages: currentContext, 
+          userId: user?.id, 
           sessionId: sessionId 
         }),
       });
-
       const data = await response.json();
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: data.content,
-        stats: data.stats 
-      }]);
-      
-      fetchSessions(); // Actualiza barra lateral
-    } catch (error) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "Connection error." }]);
-    } finally {
-      setIsTyping(false);
-    }
+      setMessages(prev => [...prev, { role: 'assistant', content: data.content, stats: data.stats }]);
+      fetchSessions(); // Refrescar sidebar
+    } catch (e) {
+      setMessages(prev => [...prev, { role: 'assistant', content: "Node connection error." }]);
+    } finally { setIsTyping(false); }
   };
 
   return (
-    <div className="flex h-screen bg-[#09090b] text-zinc-300 font-sans selection:bg-blue-500/30 overflow-hidden">
-      
+    <div className="flex h-screen bg-[#09090b] text-zinc-300 overflow-hidden font-sans">
       <style jsx global>{`
-        .neural-scrollbar::-webkit-scrollbar { width: 4px; }
-        .neural-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .neural-scrollbar::-webkit-scrollbar-thumb { background: #18181b; border-radius: 10px; }
-        .neural-scrollbar::-webkit-scrollbar-thumb:hover { background: #27272a; }
-        .neural-scrollbar { scrollbar-width: thin; scrollbar-color: #18181b transparent; }
+        .n-scroll::-webkit-scrollbar { width: 4px; }
+        .n-scroll::-webkit-scrollbar-thumb { background: #18181b; border-radius: 10px; }
       `}</style>
-      
+
+      {/* --- SIDEBAR --- */}
       <aside className="w-80 border-r border-zinc-800 bg-[#050505] flex flex-col hidden md:flex">
         <div className="p-6 space-y-4">
-          <Link href="/" className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 hover:text-white transition-colors">
+          <Link href="/" className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-600 hover:text-white transition-colors">
             <Home size={12} /> Return to Base
           </Link>
-          <button onClick={handleNewSession} className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black italic uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white transition-all shadow-lg active:scale-95 cursor-pointer">
+          <button 
+            onClick={() => { setSessionId(crypto.randomUUID()); setMessages([{role:'assistant', content:'New session ready.'}]); }}
+            className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 transition-all cursor-pointer"
+          >
             <Plus size={14} /> New Session
           </button>
         </div>
-        
-        <nav className="flex-1 overflow-y-auto px-4 space-y-2 neural-scrollbar">
-          <div className="flex items-center justify-between px-2 mb-4">
-             <p className="text-[9px] font-black uppercase text-zinc-600 tracking-[0.2em]">Infrastructure Logs</p>
-             <History size={12} className="text-zinc-800" />
-          </div>
 
+        <nav className="flex-1 overflow-y-auto px-4 space-y-2 n-scroll">
+          <p className="text-[9px] font-black uppercase text-zinc-600 px-2 mb-4 tracking-widest">Infrastructure Logs</p>
           {sessions.map((sess) => (
             <div 
               key={sess.session_id}
-              onClick={() => {
-                setSessionId(sess.session_id);
-                loadChatHistory(sess.session_id); // Cargamos la conversación guardada
-              }}
+              onClick={() => { setSessionId(sess.session_id); loadChatHistory(sess.session_id); }}
               className={`group p-4 rounded-xl border transition-all cursor-pointer ${
-                sessionId === sess.session_id 
-                  ? 'bg-blue-600/10 border-blue-500/30 text-white shadow-[0_0_15px_rgba(37,99,235,0.05)]' 
-                  : 'bg-zinc-900/30 border-zinc-800/50 text-zinc-500 hover:bg-zinc-800/50'
+                sessionId === sess.session_id ? 'bg-blue-600/10 border-blue-500/40 text-white' : 'bg-zinc-900/20 border-zinc-800/50 text-zinc-500 hover:bg-zinc-800/40'
               }`}
             >
-              <div className="text-[10px] font-black uppercase italic truncate">
-                Log: {sess.session_id.slice(0, 12)}...
-              </div>
-              <div className="text-[8px] text-zinc-600 mt-1 uppercase tracking-widest">
-                {new Date(sess.created_at).toLocaleDateString()} - {new Date(sess.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              <div className="text-[10px] font-black uppercase italic truncate">Log: {sess.session_id.slice(0, 10)}...</div>
+              <div className="text-[8px] text-zinc-700 mt-1 uppercase font-bold">
+                {new Date(sess.created_at).toLocaleDateString()} - {new Date(sess.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
               </div>
             </div>
           ))}
         </nav>
       </aside>
 
-      <main className="flex-1 flex flex-col relative bg-[#09090b]">
-        <header className="h-20 border-b border-zinc-800 flex items-center justify-between px-8 bg-[#09090b]/50 backdrop-blur-xl z-20">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-600/10 rounded-lg border border-blue-500/20">
-               <Bot className="text-blue-500" size={20} />
-            </div>
-            <div>
-              <h2 className="text-sm font-black uppercase italic text-white leading-none">Neural Assistant v1.0</h2>
-              <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest flex items-center gap-1 mt-1">
-                <span className={`w-1.5 h-1.5 rounded-full ${isTyping ? 'bg-blue-500 animate-ping' : 'bg-green-500 animate-pulse'}`} />
-                {isTyping ? 'Retrieving Data...' : 'Node Status: Optimal'}
-              </p>
-            </div>
-          </div>
+      {/* --- CHAT --- */}
+      <main className="flex-1 flex flex-col bg-[#09090b] relative">
+        <header className="h-20 border-b border-zinc-800 flex items-center px-8 bg-[#09090b]/50 backdrop-blur-xl">
+           <div className="flex items-center gap-3">
+             <div className="p-2 bg-blue-600/10 rounded-lg border border-blue-500/20"><Bot className="text-blue-500" size={20} /></div>
+             <div>
+               <h2 className="text-sm font-black uppercase italic text-white tracking-tight">Neural Assistant v1.0</h2>
+               <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest">{isTyping ? 'Syncing Node...' : 'System Optimal'}</p>
+             </div>
+           </div>
         </header>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 pr-16 md:pr-24 space-y-10 max-w-5xl mx-auto w-full scroll-smooth pb-44 neural-scrollbar">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 pr-12 space-y-10 max-w-5xl mx-auto w-full n-scroll pb-40">
           {messages.map((m, i) => (
-            <div key={i} className={`flex flex-col gap-3 ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
-              <div className={`flex gap-4 max-w-[90%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${m.role === 'assistant' ? 'bg-blue-600/10 border-blue-500/20' : 'bg-zinc-800 border-zinc-700'}`}>
+            <div key={i} className={`flex flex-col gap-3 ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2`}>
+              <div className={`flex gap-4 max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${m.role === 'assistant' ? 'bg-blue-600/10 border-blue-500/20' : 'bg-zinc-800 border-zinc-700'}`}>
                   {m.role === 'assistant' ? <Zap size={14} className="text-blue-500" /> : <User size={14} className="text-zinc-500" />}
                 </div>
-                <div className={`p-6 rounded-[2rem] shadow-2xl ${m.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900/50 border border-zinc-800 text-zinc-300 rounded-tl-none backdrop-blur-sm'}`}>
-                  <p className="text-sm leading-relaxed italic font-medium whitespace-pre-wrap">{m.content}</p>
+                <div className={`p-5 rounded-[1.8rem] ${m.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900/50 border border-zinc-800 text-zinc-300 rounded-tl-none'}`}>
+                  <p className="text-sm italic font-medium whitespace-pre-wrap leading-relaxed">{m.content}</p>
                 </div>
               </div>
-
               {m.role === 'assistant' && m.stats && (
-                <div className="flex items-center gap-4 ml-12 px-2 animate-in fade-in slide-in-from-left-2 duration-700 delay-300">
-                  <div className="flex items-center gap-1.5">
-                    <Bot size={10} className="text-zinc-600" />
-                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-500">{m.stats.model}</span>
-                  </div>
-                  <div className="h-3 w-[1px] bg-zinc-800" />
-                  <div className="flex items-center gap-1.5">
-                    <DollarSign size={10} className="text-green-500" />
-                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-green-500">Saved {m.stats.savings}</span>
-                  </div>
-                  <div className="h-3 w-[1px] bg-zinc-800" />
-                  <div className="flex items-center gap-1.5">
-                    <Droplets size={10} className="text-blue-400" />
-                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-blue-400">{m.stats.water} Conserved</span>
-                  </div>
+                <div className="flex gap-4 ml-12 text-[8px] font-black uppercase text-zinc-600 tracking-widest animate-in fade-in">
+                  <span>Model: {m.stats.model}</span>
+                  <span>Saved: ${m.stats.savings}</span>
                 </div>
               )}
             </div>
           ))}
-
-          {isTyping && (
-            <div className="flex gap-4 animate-pulse ml-2">
-              <div className="w-8 h-8 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center">
-                <Zap size={14} className="text-blue-500" />
-              </div>
-              <div className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-2xl">
-                <div className="flex gap-1.5">
-                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce [animation-duration:0.8s]" />
-                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce [animation-duration:0.8s] [animation-delay:0.2s]" />
-                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce [animation-duration:0.8s] [animation-delay:0.4s]" />
-                </div>
-              </div>
-            </div>
-          )}
+          {isTyping && <div className="ml-12 animate-pulse text-blue-500"><Loader2 size={16} className="animate-spin" /></div>}
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent z-20">
-          <div className="max-w-4xl mx-auto relative group">
+        <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent">
+          <div className="max-w-4xl mx-auto relative">
             <textarea 
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-              placeholder="Send a neural command..."
-              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2.5rem] p-6 pr-20 text-sm focus:border-blue-500 outline-none transition-all resize-none shadow-2xl backdrop-blur-xl max-h-32 neural-scrollbar"
+              onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
+              placeholder="Execute command..."
+              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2.5rem] p-6 pr-20 text-sm focus:border-blue-500 outline-none resize-none n-scroll"
               rows={1}
             />
-            <button onClick={handleSendMessage} disabled={isTyping || !input.trim()} className={`absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-2xl transition-all ${isTyping || !input.trim() ? 'bg-zinc-800 text-zinc-600' : 'bg-blue-600 text-white hover:scale-105 active:scale-95 cursor-pointer'}`}>
-              <Send size={18} />
+            <button onClick={handleSendMessage} className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-blue-600 rounded-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-lg shadow-blue-500/20">
+              <Send size={18} className="text-white" />
             </button>
           </div>
         </div>
