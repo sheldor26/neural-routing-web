@@ -82,9 +82,14 @@ export default function FullChatPage() {
     }
   }, [isLoaded, user]);
 
+  // FIXED AUTO-SCROLL LOGIC
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+      const scrollContainer = scrollRef.current;
+      scrollContainer.scrollTo({
+        top: scrollContainer.scrollHeight,
+        behavior: 'smooth'
+      });
     }
   }, [messages, isTyping]);
 
@@ -197,8 +202,6 @@ export default function FullChatPage() {
       });
       
       const data = await response.json();
-      
-      // Clean Response: Remove "User: ..." prefixes
       const rawAnswer = data.content || "";
       const aiAnswer = rawAnswer.replace(/^User:.*?\n/i, '').trim();
       const aiSuggestedTitle = data.suggested_title;
@@ -364,8 +367,8 @@ export default function FullChatPage() {
            </div>
         </header>
 
-        {/* MESSAGES CONTAINER WITH pb-52 FIX */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 pr-16 md:pr-24 space-y-10 max-w-5xl mx-auto w-full n-scroll pb-52 text-white" style={{ scrollbarGutter: 'stable' }}>
+        {/* FIXED MESSAGES CONTAINER */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 pr-16 md:pr-24 space-y-10 max-w-5xl mx-auto w-full n-scroll text-white" style={{ scrollbarGutter: 'stable' }}>
           {messages.map((m, i) => (
             <div key={i} className={`flex flex-col gap-3 ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2`}>
               <div className={`flex gap-4 max-w-[90%] md:max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -401,10 +404,12 @@ export default function FullChatPage() {
             </div>
           ))}
           {isTyping && <div className="ml-12 flex items-center gap-2 text-blue-500/50 italic text-[10px] font-black uppercase tracking-widest"><Loader2 size={12} className="animate-spin" /> Syncing Node...</div>}
+          
+          {/* THE EMPTY ANCHOR: This ensures you can scroll past the fixed input bar */}
+          <div className="h-64 w-full flex-shrink-0" /> 
         </div>
 
-        {/* INPUT AREA WITH GRADIENT BACKGROUND */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent z-10 text-white">
+        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] via-80% to-transparent z-10 text-white">
           <div className="max-w-4xl mx-auto relative group">
             <textarea 
               ref={textareaRef} 
