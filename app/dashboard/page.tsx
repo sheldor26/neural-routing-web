@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Zap, Droplets, Shield, ArrowRight, Activity, ChevronRight, Lock, HelpCircle, Home, Loader2 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useUser } from '@clerk/nextjs';
+import { useUser, UserButton } from '@clerk/nextjs';
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();
@@ -41,18 +41,21 @@ export default function DashboardPage() {
         const data = await response.json();
         
         if (data && !data.error) {
-          // Format chart data: Rename 'savings' to 'ahorro' for the chart component logic
+          // FIX: Ensure data points are treated as Numbers and check for alternative field names
+          const totalSavings = Number(data.total_savings || data.savings || 0);
+          const requestsCount = Number(data.requests_count || data.total_requests || 0);
+
           const formattedHistory = (data.history || []).map((item: any) => ({
-            name: item.name,
-            ahorro: item.savings,
-            costo: item.savings * 0.2 // Estimated baseline cost for visualization
+            name: item.name || "Node",
+            ahorro: Number(item.savings || 0),
+            costo: Number(item.savings || 0) * 0.2 
           }));
 
           setChartData(formattedHistory);
           setStats({
-            savings: data.total_savings || 0,
-            requests: data.requests_count || 0,
-            water: (data.requests_count || 0) * 0.0125 // Conserved water logic
+            savings: totalSavings,
+            requests: requestsCount,
+            water: requestsCount * 0.0125 // Global eco-impact formula
           });
         }
       } catch (error) {
@@ -81,9 +84,9 @@ export default function DashboardPage() {
       
       {/* --- NAV BAR --- */}
       <nav className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between text-white">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20 group-hover:bg-blue-500/20 transition-all">
+            <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20 group-hover:bg-blue-500/20 transition-all text-white">
               <Zap size={20} className="text-blue-500 fill-blue-500/20" />
             </div>
             <span className="text-xl font-black italic uppercase tracking-tighter text-white group-hover:text-blue-400 transition-colors">
@@ -93,19 +96,17 @@ export default function DashboardPage() {
 
           <div className="flex items-center gap-6">
             <Link 
-              href="/" 
+              href="/chat" 
               className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl border border-zinc-800 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all"
             >
-              <Home size={14} /> Back to Site
+              <Zap size={14} /> Open Chat
             </Link>
             <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-zinc-500 border-l border-white/10 pl-6">
               <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-zinc-900/50 rounded-full border border-zinc-800">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
                 <span>Node: Online</span>
               </div>
-              <div className="w-10 h-10 rounded-full bg-zinc-800 border border-white/10 overflow-hidden">
-                 {user?.imageUrl ? <img src={user.imageUrl} alt="Profile" /> : null}
-              </div>
+              <UserButton afterSignOutUrl="/" />
             </div>
           </div>
         </div>
@@ -123,7 +124,7 @@ export default function DashboardPage() {
             <h2 className="text-6xl font-black italic tracking-tighter text-white mb-2">
               ${stats.savings.toFixed(4)}
             </h2>
-            <p className="text-xs text-blue-500 font-bold italic tracking-tight flex items-center gap-1">
+            <p className="text-xs text-blue-500 font-bold italic tracking-tight flex items-center gap-1 uppercase">
               <Activity size={12} /> {stats.requests} Processed Requests
             </p>
           </div>
@@ -134,7 +135,7 @@ export default function DashboardPage() {
               <span className="text-[10px] font-black uppercase tracking-widest ml-2">Eco-Impact</span>
               <InfoTag text="Calculated water conservation in datacenter cooling systems (0.0125L per optimized cycle)." />
             </div>
-            <h2 className="text-5xl font-black italic tracking-tighter text-white leading-none mb-2">
+            <h2 className="text-5xl font-black italic tracking-tighter text-white leading-none mb-2 uppercase">
               {stats.water.toFixed(4)}L
             </h2>
             <p className="text-zinc-500 text-sm font-medium italic uppercase tracking-tighter">H2O Conserved</p>
@@ -149,7 +150,7 @@ export default function DashboardPage() {
               onClick={copyToClipboard}
               className="bg-black/50 border border-zinc-800 p-4 rounded-2xl flex items-center justify-between group cursor-pointer hover:border-blue-500/50 transition-all active:scale-95"
             >
-              <code className="text-xs text-zinc-500 font-mono italic group-hover:text-blue-400">
+              <code className="text-xs text-zinc-500 font-mono italic group-hover:text-blue-400 uppercase">
                 nr_live_prod_••••••••
               </code>
               <ArrowRight size={14} className="text-white group-hover:translate-x-1 transition-transform" />
@@ -165,7 +166,10 @@ export default function DashboardPage() {
                 <Activity size={24} className="text-blue-500" /> Optimization Analytics
               </h4>
               <div className="flex gap-6">
-                <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]"></div><span className="text-[10px] font-black uppercase text-zinc-500 italic">Savings</span></div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]"></div>
+                  <span className="text-[10px] font-black uppercase text-zinc-500 italic">Savings</span>
+                </div>
               </div>
             </div>
             <div className="flex-grow">
@@ -191,7 +195,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="lg:col-span-4 p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 shadow-2xl relative">
+          <div className="lg:col-span-4 p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 shadow-2xl relative text-white">
             <h4 className="text-white font-black italic uppercase tracking-tighter text-2xl mb-8 flex items-center gap-3">
               <Shield size={24} className="text-blue-500" /> Infrastructure
             </h4>
@@ -219,9 +223,9 @@ export default function DashboardPage() {
         <div className="p-10 rounded-[3rem] bg-blue-600 text-white flex flex-col md:flex-row items-center justify-between group hover:bg-blue-500 transition-all cursor-pointer shadow-2xl">
           <div className="mb-6 md:mb-0">
             <h3 className="text-4xl font-black italic uppercase tracking-tighter leading-none mb-2">Scale Your Capacity</h3>
-            <p className="text-blue-100/70 text-sm font-medium italic">Upgrade to Enterprise nodes for dedicated GPU throughput.</p>
+            <p className="text-blue-100/70 text-sm font-medium italic uppercase tracking-tighter">Upgrade to Enterprise nodes for dedicated GPU throughput.</p>
           </div>
-          <div className="px-10 py-5 bg-white text-black rounded-2xl font-black uppercase italic tracking-tighter text-xs flex items-center gap-3 shadow-xl">
+          <div className="px-10 py-5 bg-white text-black rounded-2xl font-black uppercase italic tracking-tighter text-xs flex items-center gap-3 shadow-xl uppercase">
             Go Pro <ChevronRight size={16} />
           </div>
         </div>
@@ -229,7 +233,7 @@ export default function DashboardPage() {
 
       {showToast && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-bottom-5 duration-300">
-          <div className="bg-zinc-950 border border-blue-500/50 px-6 py-3 rounded-2xl flex items-center gap-3 backdrop-blur-xl">
+          <div className="bg-zinc-950 border border-blue-500/50 px-6 py-3 rounded-2xl flex items-center gap-3 backdrop-blur-xl text-white">
             <Zap size={16} className="text-blue-500" />
             <p className="text-xs font-black uppercase tracking-widest text-white italic">Key Copied to Clipboard</p>
           </div>
