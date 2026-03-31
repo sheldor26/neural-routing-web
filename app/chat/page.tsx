@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Send, User, Bot, History, Home, Zap, DollarSign, Droplets, Loader2 } from 'lucide-react';
+import { Plus, Send, User, Bot, History, Home, Zap, DollarSign, Droplets, Loader2, Trash2, Edit3, Check, X } from 'lucide-react';
 import Link from 'next/link';
 import { useUser } from "@clerk/nextjs";
 
@@ -18,6 +18,7 @@ interface ChatMessage {
 interface ChatSession {
   session_id: string;
   created_at: string;
+  custom_title?: string; // Nuevo campo
 }
 
 export default function FullChatPage() {
@@ -28,6 +29,10 @@ export default function FullChatPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   
+  // Estados para renombrar
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,7 +62,7 @@ export default function FullChatPage() {
   };
 
   const loadChatHistory = async (sId: string) => {
-    if (!sId) return;
+    if (!sId || editingId) return; // No cargar si estamos editando
     setIsTyping(true);
     setMessages([]); 
     try {
@@ -80,20 +85,39 @@ export default function FullChatPage() {
           }
         });
         setMessages(history);
-      } else {
-        setMessages([{ role: 'assistant', content: 'Neural Log: This session node is currently empty.' }]);
       }
     } catch (e) {
-      setMessages([{ role: 'assistant', content: 'Connection Error: Database unreachable.' }]);
+      console.error("Sync Error:", e);
     } finally {
       setIsTyping(false);
     }
   };
 
+  const deleteSession = async (sId: string) => {
+    if (!confirm("Are you sure you want to delete this log?")) return;
+    try {
+      await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${sId}`, { method: 'DELETE' });
+      if (sId === sessionId) handleNewSession();
+      fetchSessions();
+    } catch (e) { console.error("Delete Error", e); }
+  };
+
+  const renameSession = async (sId: string) => {
+    try {
+      await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${sId}/rename`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ new_title: editValue })
+      });
+      setEditingId(null);
+      fetchSessions();
+    } catch (e) { console.error("Rename Error", e); }
+  };
+
   const handleNewSession = () => {
     const newId = crypto.randomUUID();
     setSessionId(newId);
-    setMessages([{ role: 'assistant', content: 'New session established. Waiting for prompt.' }]);
+    setMessages([{ role: 'assistant', content: 'New session node established.' }]);
     setInput("");
   };
 
@@ -120,7 +144,7 @@ export default function FullChatPage() {
         fetchSessions(); 
       }
     } catch (e) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "Node connection error. Please retry." }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: "Node failure." }]);
     } finally { setIsTyping(false); }
   };
 
@@ -130,7 +154,6 @@ export default function FullChatPage() {
         .n-scroll::-webkit-scrollbar { width: 5px; }
         .n-scroll::-webkit-scrollbar-track { background: transparent; }
         .n-scroll::-webkit-scrollbar-thumb { background: #1f1f23; border-radius: 10px; }
-        .n-scroll::-webkit-scrollbar-thumb:hover { background: #27272a; }
       `}</style>
 
       {/* --- SIDEBAR --- */}
@@ -139,36 +162,61 @@ export default function FullChatPage() {
           <Link href="/" className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-600 hover:text-white transition-colors">
             <Home size={12} /> Return to Base
           </Link>
-          <button 
-            onClick={handleNewSession}
-            className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 transition-all cursor-pointer shadow-lg active:scale-95"
-          >
+          <button onClick={handleNewSession} className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 transition-all cursor-pointer shadow-lg active:scale-95">
             <Plus size={14} /> New Session
           </button>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-4 space-y-2 n-scroll">
-          <div className="flex items-center justify-between px-2 mb-4">
-            <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic">Infrastructure Logs</p>
-            <History size={12} className="text-zinc-800" />
-          </div>
+          <p className="text-[9px] font-black uppercase text-zinc-600 px-2 mb-4 tracking-widest italic">Infrastructure Logs</p>
           {sessions.map((sess) => (
             <div 
               key={sess.session_id}
-              onClick={() => { 
-                if (sessionId !== sess.session_id) {
-                  setSessionId(sess.session_id); 
-                  loadChatHistory(sess.session_id); 
-                }
-              }}
-              className={`group p-4 rounded-xl border transition-all cursor-pointer ${
+              className={`group relative p-4 rounded-xl border transition-all ${
                 sessionId === sess.session_id ? 'bg-blue-600/10 border-blue-500/40 text-white shadow-[0_0_20px_rgba(37,99,235,0.05)]' : 'bg-zinc-900/20 border-zinc-800/50 text-zinc-500 hover:bg-zinc-800/40'
               }`}
             >
-              <div className="text-[10px] font-black uppercase italic truncate">Log: {sess.session_id.slice(0, 12)}...</div>
-              <div className="text-[8px] text-zinc-700 mt-1 uppercase font-bold tracking-tighter">
-                {new Date(sess.created_at).toLocaleDateString()} - {new Date(sess.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+              <div onClick={() => loadChatHistory(sess.session_id)} className="cursor-pointer">
+                {editingId === sess.session_id ? (
+                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    <input 
+                      autoFocus
+                      className="bg-black border border-blue-500 rounded px-2 py-1 text-[10px] w-full outline-none"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                    />
+                    <button onClick={() => renameSession(sess.session_id)} className="text-green-500"><Check size={12}/></button>
+                    <button onClick={() => setEditingId(null)} className="text-red-500"><X size={12}/></button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-[10px] font-black uppercase italic truncate pr-8">
+                      {sess.custom_title || `Log: ${sess.session_id.slice(0, 10)}`}
+                    </div>
+                    <div className="text-[8px] text-zinc-700 mt-1 uppercase font-bold">
+                      {new Date(sess.created_at).toLocaleDateString()}
+                    </div>
+                  </>
+                )}
               </div>
+
+              {/* ACTION BUTTONS (Hover) */}
+              {editingId !== sess.session_id && (
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                   <button 
+                    onClick={(e) => { e.stopPropagation(); setEditingId(sess.session_id); setEditValue(sess.custom_title || ""); }}
+                    className="p-1 hover:text-blue-500 text-zinc-600 transition-colors"
+                  >
+                    <Edit3 size={12} />
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); deleteSession(sess.session_id); }}
+                    className="p-1 hover:text-red-500 text-zinc-600 transition-colors"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </nav>
@@ -190,7 +238,6 @@ export default function FullChatPage() {
            </div>
         </header>
 
-        {/* CONTENEDOR DE MENSAJES: Padding Derecho aumentado */}
         <div 
           ref={scrollRef} 
           className="flex-1 overflow-y-auto p-8 pr-16 md:pr-24 space-y-10 max-w-5xl mx-auto w-full n-scroll pb-44"
@@ -222,7 +269,6 @@ export default function FullChatPage() {
           )}
         </div>
 
-        {/* Input Area */}
         <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent z-10">
           <div className="max-w-4xl mx-auto relative group">
             <textarea 
