@@ -1,6 +1,7 @@
 "use client";
 import { useState } from 'react';
-import { MessageSquare, Plus, Send, User, Bot, History, Home } from 'lucide-react';
+// Added Zap to the imports below to fix the ReferenceError
+import { MessageSquare, Plus, Send, User, Bot, History, Home, Zap } from 'lucide-react';
 import Link from 'next/link';
 
 export default function FullChatPage() {
@@ -36,7 +37,6 @@ export default function FullChatPage() {
              <History size={12} className="text-zinc-800" />
           </div>
 
-          {/* This will be mapped from Supabase later */}
           <div className="group p-4 rounded-xl bg-blue-600/5 border border-blue-500/10 hover:border-blue-500/40 text-zinc-400 hover:text-white text-xs font-bold italic cursor-pointer transition-all">
             Llama 3 Cost Optimization
           </div>
@@ -60,7 +60,6 @@ export default function FullChatPage() {
       {/* --- MAIN CHAT AREA --- */}
       <main className="flex-1 flex flex-col relative bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-blue-900/5 via-transparent to-transparent">
         
-        {/* Header with Real-time Metrics */}
         <header className="h-20 border-b border-zinc-800 flex items-center justify-between px-8 bg-[#09090b]/50 backdrop-blur-xl z-20">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-600/10 rounded-lg border border-blue-500/20">
@@ -76,7 +75,6 @@ export default function FullChatPage() {
           </div>
         </header>
 
-        {/* Messages Thread */}
         <div className="flex-1 overflow-y-auto p-8 space-y-8 max-w-4xl mx-auto w-full scrollbar-hide">
           {messages.map((m, i) => (
             <div key={i} className={`flex gap-4 ${m.role === 'user' ? 'justify-end' : ''}`}>
@@ -103,7 +101,6 @@ export default function FullChatPage() {
           ))}
         </div>
 
-        {/* Input Area */}
         <div className="p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent z-20">
           <div className="max-w-4xl mx-auto relative group">
             <textarea 
