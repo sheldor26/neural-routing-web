@@ -82,12 +82,14 @@ export default function FullChatPage() {
     }
   }, [isLoaded, user]);
 
-  // FIXED AUTO-SCROLL LOGIC
+  // IMPROVED SMART SCROLL LOGIC
   useEffect(() => {
-    if (scrollRef.current) {
+    if (scrollRef.current && isTyping) {
       const scrollContainer = scrollRef.current;
+      // Instead of absolute bottom, we scroll to a point that keeps the text entry visible
+      // but allows the user to see the beginning of the response.
       scrollContainer.scrollTo({
-        top: scrollContainer.scrollHeight,
+        top: scrollContainer.scrollHeight - 600, 
         behavior: 'smooth'
       });
     }
@@ -367,8 +369,8 @@ export default function FullChatPage() {
            </div>
         </header>
 
-        {/* FIXED MESSAGES CONTAINER */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 pr-16 md:pr-24 space-y-10 max-w-5xl mx-auto w-full n-scroll text-white" style={{ scrollbarGutter: 'stable' }}>
+        {/* REFINED MESSAGES CONTAINER */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 pr-16 md:pr-24 space-y-10 max-w-5xl mx-auto w-full n-scroll text-white pt-10" style={{ scrollbarGutter: 'stable' }}>
           {messages.map((m, i) => (
             <div key={i} className={`flex flex-col gap-3 ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2`}>
               <div className={`flex gap-4 max-w-[90%] md:max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -405,8 +407,8 @@ export default function FullChatPage() {
           ))}
           {isTyping && <div className="ml-12 flex items-center gap-2 text-blue-500/50 italic text-[10px] font-black uppercase tracking-widest"><Loader2 size={12} className="animate-spin" /> Syncing Node...</div>}
           
-          {/* THE EMPTY ANCHOR: This ensures you can scroll past the fixed input bar */}
-          <div className="h-64 w-full flex-shrink-0" /> 
+          {/* THE SMART ANCHOR: Provides space to scroll past input without excessive void */}
+          <div className="h-32 w-full flex-shrink-0" /> 
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] via-80% to-transparent z-10 text-white">
