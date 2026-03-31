@@ -12,7 +12,7 @@ export default function AdminBlog() {
   const [isPublishing, setIsPublishing] = useState(false);
 
   // Cambiá esto por tu mail real de Clerk
-  const ADMIN_EMAIL = "juanlxxxxxxxx@gmail.com"; 
+  const ADMIN_EMAIL = "juanmirande10@gmail.com"; 
 
   const handlePublish = async () => {
     if (!title || !content) return alert("Operator: Title and Content are required.");
