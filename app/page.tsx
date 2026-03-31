@@ -39,19 +39,23 @@ export default function LandingPage() {
 
       {/* --- HERO SECTION --- */}
       <header className="relative py-24 px-6 text-center max-w-6xl mx-auto flex flex-col items-center z-10">
-        <div className="flex flex-wrap items-center justify-center gap-4 mb-10 p-2 bg-zinc-900/40 border border-zinc-800/50 backdrop-blur-md rounded-full">
-          <div className="px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black tracking-widest uppercase">
+        {/* BADGES CONTAINER - Actualizado para ser responsivo y mostrar el agua */}
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 mb-10 p-2 bg-zinc-900/40 border border-zinc-800/50 backdrop-blur-md rounded-2xl sm:rounded-full">
+          <div className="px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] sm:text-[10px] font-black tracking-widest uppercase">
             Private Beta
           </div>
+          
           <div className="flex items-center gap-2 px-3 border-l border-zinc-800/50">
             <DollarSign size={14} className="text-green-500" />
-            <span className="text-[11px] font-black italic text-white tracking-tight">
+            <span className="text-[10px] sm:text-[11px] font-black italic text-white tracking-tight">
               $145,280.40 <span className="text-zinc-600 uppercase not-italic ml-1">Saved</span>
             </span>
           </div>
-          <div className="flex items-center gap-2 px-3 border-l border-zinc-800/50 hidden sm:flex">
+
+          {/* Badge de Agua: Ahora visible en móvil y con ajuste de fuente */}
+          <div className="flex items-center gap-2 px-3 border-l border-zinc-800/50">
             <Droplets size={14} className="text-blue-500" />
-            <span className="text-[11px] font-black italic text-white tracking-tight">
+            <span className="text-[10px] sm:text-[11px] font-black italic text-white tracking-tight">
               1,816,005L <span className="text-zinc-600 uppercase not-italic ml-1">Conserved</span>
             </span>
           </div>
