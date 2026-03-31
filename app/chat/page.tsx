@@ -33,11 +33,13 @@ export default function FullChatPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   
-  // Estado para el menú móvil
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+
+  // NUEVOS ESTADOS PARA EL MODAL DE BORRADO
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -71,9 +73,7 @@ export default function FullChatPage() {
     if (!sId || editingId) return;
     setIsTyping(true);
     setMessages([]); 
-    // Al cargar historial en móvil, cerramos el menú
     setIsSidebarOpen(false);
-
     try {
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/messages/${sId}`);
       const data = await response.json();
@@ -99,13 +99,23 @@ export default function FullChatPage() {
     finally { setIsTyping(false); }
   };
 
-  const deleteSession = async (sId: string) => {
-    if (!confirm("Are you sure you want to delete this log?")) return;
+  // FUNCIONES DE BORRADO ACTUALIZADAS
+  const openDeleteModal = (sId: string) => {
+    setSessionToDelete(sId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!sessionToDelete) return;
     try {
-      await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${sId}`, { method: 'DELETE' });
-      if (sId === sessionId) handleNewSession();
+      await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${sessionToDelete}`, { method: 'DELETE' });
+      if (sessionToDelete === sessionId) handleNewSession();
       fetchSessions();
     } catch (e) { console.error("Delete Error", e); }
+    finally {
+      setIsDeleteModalOpen(false);
+      setSessionToDelete(null);
+    }
   };
 
   const renameSession = async (sId: string) => {
@@ -125,7 +135,7 @@ export default function FullChatPage() {
     setSessionId(newId);
     setMessages([{ role: 'assistant', content: 'New session node established.' }]);
     setInput("");
-    setIsSidebarOpen(false); // Cerramos el menú al crear nueva sesión
+    setIsSidebarOpen(false);
   };
 
   const handleSendMessage = async () => {
@@ -135,7 +145,6 @@ export default function FullChatPage() {
     setMessages(prev => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
-
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -146,9 +155,7 @@ export default function FullChatPage() {
           sessionId: sessionId 
         }),
       });
-
       const data = await response.json();
-      
       const aiAnswer = data.output?.ai_answer || data.content;
       const modelName = data.routing?.model_used || data.stats?.model || "Neural Node";
       const savingsVal = data.business_metrics?.estimated_savings_usd || data.stats?.savings || 0;
@@ -166,7 +173,7 @@ export default function FullChatPage() {
         fetchSessions(); 
       }
     } catch (e) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "Neural Node timeout. Please check infrastructure." }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: "Neural Node timeout." }]);
     } finally { setIsTyping(false); }
   };
 
@@ -176,31 +183,47 @@ export default function FullChatPage() {
         .n-scroll::-webkit-scrollbar { width: 5px; }
         .n-scroll::-webkit-scrollbar-track { background: transparent; }
         .n-scroll::-webkit-scrollbar-thumb { background: #1f1f23; border-radius: 10px; }
-        .n-scroll::-webkit-scrollbar-thumb:hover { background: #27272a; }
       `}</style>
 
-      {/* --- OVERLAY MÓVIL --- */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[40] md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
+      {/* MODAL DE BORRADO PERSONALIZADO */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setIsDeleteModalOpen(false)} />
+          <div className="relative w-full max-w-sm bg-[#050505] border border-zinc-800 rounded-[2rem] p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex flex-col items-center text-center space-y-6">
+              <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center border border-red-500/20">
+                <Trash2 size={28} className="text-red-500" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-black uppercase italic tracking-tight text-white">Eliminar Registro</h3>
+                <p className="text-xs text-zinc-500 font-medium leading-relaxed">
+                  ¿Estás seguro de que deseas purgar esta sesión? Esta acción es irreversible en los nodos de la infraestructura.
+                </p>
+              </div>
+              <div className="flex w-full gap-3">
+                <button onClick={() => setIsDeleteModalOpen(false)} className="flex-1 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all cursor-pointer">
+                  Cancelar
+                </button>
+                <button onClick={confirmDelete} className="flex-1 py-3 rounded-xl bg-red-600 text-[10px] font-black uppercase tracking-widest text-white hover:bg-red-500 shadow-[0_0_20px_rgba(220,38,38,0.2)] transition-all cursor-pointer">
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* --- SIDEBAR ACTUALIZADO --- */}
-      <aside className={`
-        fixed inset-y-0 left-0 z-[50] w-72 bg-[#050505] border-r border-zinc-800 flex flex-col transition-transform duration-300 ease-in-out
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:relative md:translate-x-0 md:flex md:w-80
-      `}>
+      {isSidebarOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[40] md:hidden" onClick={() => setIsSidebarOpen(false)} />
+      )}
+
+      <aside className={`fixed inset-y-0 left-0 z-[50] w-72 bg-[#050505] border-r border-zinc-800 flex flex-col transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 md:flex md:w-80`}>
         <div className="p-6 space-y-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-600 hover:text-white transition-colors">
               <Home size={12} /> Return to Base
             </Link>
-            <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-zinc-500 hover:text-white">
-              <X size={20} />
-            </button>
+            <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-zinc-500 hover:text-white"><X size={20} /></button>
           </div>
           <button onClick={handleNewSession} className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 transition-all cursor-pointer shadow-lg active:scale-95">
             <Plus size={14} /> New Session
@@ -210,48 +233,27 @@ export default function FullChatPage() {
         <nav className="flex-1 overflow-y-auto px-4 space-y-2 n-scroll">
           <p className="text-[9px] font-black uppercase text-zinc-600 px-2 mb-4 tracking-widest italic">Infrastructure Logs</p>
           {sessions.map((sess) => (
-            <div 
-              key={sess.session_id}
-              className={`group relative p-4 rounded-xl border transition-all ${
-                sessionId === sess.session_id ? 'bg-blue-600/10 border-blue-500/40 text-white shadow-[0_0_20px_rgba(37,99,235,0.05)]' : 'bg-zinc-900/20 border-zinc-800/50 text-zinc-500 hover:bg-zinc-800/40'
-              }`}
-            >
+            <div key={sess.session_id} className={`group relative p-4 rounded-xl border transition-all ${sessionId === sess.session_id ? 'bg-blue-600/10 border-blue-500/40 text-white shadow-[0_0_20px_rgba(37,99,235,0.05)]' : 'bg-zinc-900/20 border-zinc-800/50 text-zinc-500 hover:bg-zinc-800/40'}`}>
               <div onClick={() => loadChatHistory(sess.session_id)} className="cursor-pointer">
                 {editingId === sess.session_id ? (
                   <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                    <input 
-                      autoFocus
-                      className="bg-black border border-blue-500 rounded px-2 py-1 text-[10px] w-full outline-none text-white font-bold"
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                    />
+                    <input autoFocus className="bg-black border border-blue-500 rounded px-2 py-1 text-[10px] w-full outline-none text-white font-bold" value={editValue} onChange={(e) => setEditValue(e.target.value)} />
                     <button onClick={() => renameSession(sess.session_id)} className="text-green-500"><Check size={12}/></button>
                     <button onClick={() => setEditingId(null)} className="text-red-500"><X size={12}/></button>
                   </div>
                 ) : (
                   <>
-                    <div className="text-[10px] font-black uppercase italic truncate pr-12">
-                      {sess.custom_title || `Log: ${sess.session_id.slice(0, 10)}`}
-                    </div>
-                    <div className="text-[8px] text-zinc-700 mt-1 uppercase font-bold">
-                      {new Date(sess.created_at).toLocaleDateString()}
-                    </div>
+                    <div className="text-[10px] font-black uppercase italic truncate pr-12">{sess.custom_title || `Log: ${sess.session_id.slice(0, 10)}`}</div>
+                    <div className="text-[8px] text-zinc-700 mt-1 uppercase font-bold">{new Date(sess.created_at).toLocaleDateString()}</div>
                   </>
                 )}
               </div>
-
               {editingId !== sess.session_id && (
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm p-1 rounded-lg">
-                   <button 
-                    onClick={(e) => { e.stopPropagation(); setEditingId(sess.session_id); setEditValue(sess.custom_title || ""); }}
-                    className="p-1 hover:text-blue-500 text-zinc-600 transition-colors"
-                  >
+                   <button onClick={(e) => { e.stopPropagation(); setEditingId(sess.session_id); setEditValue(sess.custom_title || ""); }} className="p-1 hover:text-blue-500 text-zinc-600 transition-colors">
                     <Edit3 size={12} />
                   </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); deleteSession(sess.session_id); }}
-                    className="p-1 hover:text-red-500 text-zinc-600 transition-colors"
-                  >
+                  <button onClick={(e) => { e.stopPropagation(); openDeleteModal(sess.session_id); }} className="p-1 hover:text-red-500 text-zinc-600 transition-colors">
                     <Trash2 size={12} />
                   </button>
                 </div>
@@ -261,35 +263,21 @@ export default function FullChatPage() {
         </nav>
       </aside>
 
-      {/* --- MAIN AREA --- */}
       <main className="flex-1 flex flex-col bg-[#09090b] relative w-full">
         <header className="h-20 border-b border-zinc-800 flex items-center px-4 md:px-8 bg-[#09090b]/50 backdrop-blur-xl z-10">
            <div className="flex items-center gap-3 w-full">
-             {/* BOTÓN HAMBURGUESA */}
-             <button 
-               onClick={() => setIsSidebarOpen(true)}
-               className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 md:hidden hover:text-white transition-colors"
-             >
-               <Menu size={20} />
-             </button>
-
+             <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 md:hidden hover:text-white transition-colors"><Menu size={20} /></button>
              <div className="p-2 bg-blue-600/10 rounded-lg border border-blue-500/20 shadow-[0_0_15px_rgba(37,99,235,0.1)]">
                <Bot className="text-blue-500" size={20} />
              </div>
              <div className="flex-1">
                <h2 className="text-sm font-black uppercase italic text-white tracking-tight leading-none">Neural Assistant v1.0</h2>
-               <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest mt-1 italic hidden sm:block">
-                 {isTyping ? 'Syncing Packets...' : 'Neural Link: Active'}
-               </p>
+               <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest mt-1 italic hidden sm:block">{isTyping ? 'Syncing Packets...' : 'Neural Link: Active'}</p>
              </div>
            </div>
         </header>
 
-        <div 
-          ref={scrollRef} 
-          className="flex-1 overflow-y-auto p-4 md:p-8 pr-16 md:pr-24 space-y-10 max-w-5xl mx-auto w-full n-scroll pb-44"
-          style={{ scrollbarGutter: 'stable' }}
-        >
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 pr-16 md:pr-24 space-y-10 max-w-5xl mx-auto w-full n-scroll pb-44" style={{ scrollbarGutter: 'stable' }}>
           {messages.map((m, i) => (
             <div key={i} className={`flex flex-col gap-3 ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2`}>
               <div className={`flex gap-4 max-w-[90%] md:max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -303,19 +291,11 @@ export default function FullChatPage() {
                       code({ node, inline, className, children, ...props }: any) {
                         const match = /language-(\w+)/.exec(className || '');
                         return !inline && match ? (
-                          <SyntaxHighlighter
-                            style={vscDarkPlus as any}
-                            language={match[1]}
-                            PreTag="div"
-                            className="rounded-lg my-4 border border-zinc-800 text-[11px] md:text-sm"
-                            {...props}
-                          >
+                          <SyntaxHighlighter style={vscDarkPlus as any} language={match[1]} PreTag="div" className="rounded-lg my-4 border border-zinc-800 text-[11px] md:text-sm" {...props}>
                             {String(children).replace(/\n$/, '')}
                           </SyntaxHighlighter>
                         ) : (
-                          <code className="bg-zinc-800 px-1.5 py-0.5 rounded text-blue-400 font-mono" {...props}>
-                            {children}
-                          </code>
+                          <code className="bg-zinc-800 px-1.5 py-0.5 rounded text-blue-400 font-mono" {...props}>{children}</code>
                         );
                       },
                       ul: ({children}) => <ul className="list-disc ml-4 space-y-2 my-2">{children}</ul>,
@@ -348,19 +328,8 @@ export default function FullChatPage() {
 
         <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent z-10">
           <div className="max-w-4xl mx-auto relative group">
-            <textarea 
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
-              placeholder="Execute neural command..."
-              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-6 pr-16 md:pr-20 text-xs md:text-sm focus:border-blue-500 outline-none resize-none n-scroll shadow-2xl backdrop-blur-xl transition-all"
-              rows={1}
-            />
-            <button 
-              onClick={handleSendMessage} 
-              disabled={isTyping || !input.trim()}
-              className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 p-2.5 md:p-3 bg-blue-600 rounded-xl md:rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 transition-all cursor-pointer shadow-lg shadow-blue-500/20"
-            >
+            <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}} placeholder="Execute neural command..." className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-6 pr-16 md:pr-20 text-xs md:text-sm focus:border-blue-500 outline-none resize-none n-scroll shadow-2xl backdrop-blur-xl transition-all" rows={1} />
+            <button onClick={handleSendMessage} disabled={isTyping || !input.trim()} className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 p-2.5 md:p-3 bg-blue-600 rounded-xl md:rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 transition-all cursor-pointer shadow-lg shadow-blue-500/20">
               <Send size={18} className="text-white" />
             </button>
           </div>
