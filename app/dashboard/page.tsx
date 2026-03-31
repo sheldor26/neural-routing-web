@@ -14,8 +14,8 @@ export default function DashboardPage() {
   useEffect(() => {
     async function loadDashboardData() {
       try {
-        // CAMBIA ESTA URL por la de tu backend real cuando lo subas a Railway
-        const API_BASE = "http://localhost:8000"; 
+        // URL de tu backend en Railway
+        const API_BASE = "https://web-production-4f439.up.railway.app"; 
         const userId = "user_38g3uPhdZraElqcUSk6VWnUVLo1"; 
 
         const response = await fetch(`${API_BASE}/v1/user-stats/${userId}`);
@@ -26,7 +26,7 @@ export default function DashboardPage() {
           setStats({
             savings: data.savings || 0,
             efficiency: data.efficiency || 0,
-            water: (data.savings || 0) * 12.5 // Factor Virasoro
+            water: (data.savings || 0) * 12.5 // Factor Neural
           });
         }
       } catch (error) {
@@ -45,7 +45,7 @@ export default function DashboardPage() {
         <Zap size={40} className="text-blue-500 animate-pulse mb-4" />
         <p className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-500 text-center">
           Establishing Secure Link...<br/>
-          <span className="text-blue-500/50">Neural Node Virasoro</span>
+          <span className="text-blue-500/50">Neural Node System</span>
         </p>
       </div>
     );
@@ -82,7 +82,7 @@ export default function DashboardPage() {
           <div className="p-8 rounded-[2.5rem] bg-zinc-900/20 border border-zinc-800 group hover:border-blue-500/30 transition-all shadow-2xl">
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-2">Total Savings</p>
             <h2 className="text-6xl font-black italic tracking-tighter text-white mb-2">
-              ${stats.savings.toFixed(2)}
+              ${stats.savings.toFixed(4)}
             </h2>
             <p className="text-xs text-blue-500 font-bold italic tracking-tight flex items-center gap-1">
               <Zap size={12} /> Optimization: {stats.efficiency}%
@@ -95,7 +95,7 @@ export default function DashboardPage() {
               <span className="text-[10px] font-black uppercase tracking-widest">Eco-Impact</span>
             </div>
             <h2 className="text-5xl font-black italic tracking-tighter text-white leading-none mb-2">
-              {stats.water.toLocaleString(undefined, {minimumFractionDigits: 1})}L
+              {stats.water.toFixed(4)}L
             </h2>
             <p className="text-zinc-500 text-sm font-medium italic">Water saved in datacenter cooling</p>
           </div>
@@ -140,7 +140,7 @@ export default function DashboardPage() {
                   <Tooltip 
                     contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '20px', padding: '15px' }}
                     itemStyle={{ fontWeight: '900', textTransform: 'uppercase', fontStyle: 'italic', fontSize: '12px' }}
-                    formatter={(value: number) => [`$${value.toFixed(2)}`, ""]}
+                    formatter={(value: number) => [`$${value.toFixed(4)}`, "SAVED"]}
                     labelFormatter={(label) => `Report: ${label}`}
                   />
                   <Area type="monotone" dataKey="costo" stroke="#27272a" fillOpacity={0.1} fill="#27272a" strokeWidth={2} />
@@ -189,7 +189,7 @@ export default function DashboardPage() {
       </main>
 
       <footer className="py-12 text-center opacity-30 border-t border-white/5 mt-12 bg-black/20">
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] mb-4 text-zinc-600 italic">NeuralDash Global // Virasoro Node // 2026</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.4em] mb-4 text-zinc-600 italic">NeuralDash Global // Neural Node // 2026</p>
       </footer>
     </div>
   );
