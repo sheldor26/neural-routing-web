@@ -4,52 +4,53 @@ export async function POST(req: Request) {
   try {
     const { messages, userId } = await req.json();
     
-    // Tomamos el último mensaje para el dispatch inmediato
+    // Extraemos el último mensaje (lo que el usuario acaba de escribir)
     const lastMessage = messages[messages.length - 1].content;
 
-    // Detectamos si estamos en producción o local para la URL del Playground
-    const BACKEND_URL = process.env.NEXT_PUBLIC_PYTHON_API_URL || 'http://127.0.0.1:8000';
+    // USAMOS LA URL QUE YA SABEMOS QUE FUNCIONA EN EL PLAYGROUND
+    const RAILWAY_URL = "https://web-production-4f439.up.railway.app/v1/dispatch";
     
-    // Limpiamos la URL para evitar problemas de dobles barras
-    const cleanBaseUrl = BACKEND_URL.replace(/\/$/, "");
-    const PYTHON_GATEWAY_URL = `${cleanBaseUrl}/v1/dispatch`;
+    // Agregamos el timestamp para evitar cache (como en tu Playground)
+    const FINAL_URL = `${RAILWAY_URL}?t=${Date.now()}`;
 
-    const response = await fetch(PYTHON_GATEWAY_URL, {
+    const response = await fetch(FINAL_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-KEY': 'key_demo_user', 
+        'X-API-KEY': 'key_demo_user', // Tu llave verificada
       },
       body: JSON.stringify({
         prompt: lastMessage,
-        user_id: userId || "guest_user" // Vital para el historial en Supabase
+        user_id: userId || "guest_user" 
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || `Neural Node Error: ${response.status}`);
+      throw new Error(errorData.detail || `Neural Error: ${response.status}`);
     }
 
     const data = await response.json();
 
-    // Estructura compatible con el historial del Playground
+    // IMPORTANTE: Mapeamos la respuesta para que el componente de Chat la renderice bien
     return NextResponse.json({
       role: 'assistant',
       content: data.output.ai_answer,
       stats: {
         model: data.routing.model_used,
-        savings: `${data.business_metrics.estimated_savings_usd}`,
-        water: data.business_metrics.water_conserved_l || "0.0125L" 
+        tier: data.routing.selected_tier || data.routing.tier,
+        latency: `${Math.round(data.routing.latency_ms)}ms`,
+        savings: `$${data.business_metrics.estimated_savings_usd}`,
+        water: "0.0125L" 
       }
     });
 
   } catch (error: any) {
-    console.error("Neural Link Failure:", error.message);
+    console.error("❌ Neural Link Failure:", error.message);
     
     return NextResponse.json({ 
       role: 'assistant', 
-      content: `Connection failed. Make sure your Python Neural Node is accessible at the configured URL.` 
+      content: "Error: No se pudo establecer conexión segura con el Nodo Neural en Railway." 
     }, { status: 500 });
   }
 }

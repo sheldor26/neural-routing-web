@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, Plus, Send, User, Bot, History, Home, Zap, DollarSign, Droplets } from 'lucide-react';
 import Link from 'next/link';
-import { useUser } from "@clerk/nextjs"; // Importamos Clerk para el UserID real
+import { useUser } from "@clerk/nextjs";
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -11,11 +11,12 @@ interface ChatMessage {
     model: string;
     savings: string;
     water: string;
+    tier?: string;
   };
 }
 
 export default function FullChatPage() {
-  const { user } = useUser(); // Obtenemos el usuario logueado
+  const { user, isLoaded } = useUser();
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -37,40 +38,45 @@ export default function FullChatPage() {
   }, [messages, isTyping]);
 
   const handleSendMessage = async () => {
-    if (!input.trim() || isTyping) return;
+    if (!input.trim() || isTyping || !isLoaded) return;
 
     const userContent = input.trim();
     const userMessage: ChatMessage = { role: 'user', content: userContent };
     
+    // Actualizamos UI localmente
+    const currentMessages = [...messages, userMessage];
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsTyping(true);
 
     try {
-      // Llamada a tu API de Next.js que hace de puente con main.py
+      // Llamada a la API interna de Next.js
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          messages: [...messages, userMessage],
-          userId: user?.id || "guest_user" // Enviamos el ID de Clerk a Python
+          messages: currentMessages,
+          userId: user?.id || "guest_user" 
         }),
       });
 
-      if (!response.ok) throw new Error("Neural Node connection failed");
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Neural Node connection failed");
+      }
 
       const data = await response.json();
       
       setMessages(prev => [...prev, { 
         role: 'assistant', 
         content: data.content,
-        stats: data.stats // Estos vienen procesados por tu NeuralRouterV2
+        stats: data.stats // Mapeado desde el return de /api/chat
       }]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Chat Error:", error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: "Error: Could not establish secure link with Neural Node. Make sure main.py is running." 
+        content: `System Error: Unable to reach Neural Node. Check Railway deployment status.` 
       }]);
     } finally {
       setIsTyping(false);
@@ -153,7 +159,7 @@ export default function FullChatPage() {
                 </div>
               </div>
 
-              {/* Stats dinámicos de tu NeuralRouterV2 */}
+              {/* Stats dinámicos corregidos */}
               {m.role === 'assistant' && m.stats && (
                 <div className="flex items-center gap-4 ml-12 px-2 animate-in fade-in slide-in-from-left-2 duration-700 delay-300">
                   <div className="flex items-center gap-1.5">
