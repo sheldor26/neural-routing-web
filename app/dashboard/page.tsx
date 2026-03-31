@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Zap, Shield, Activity, Cpu, Sliders, TrendingUp, Target, Home, LayoutDashboard, Loader2, HelpCircle, ArrowUpRight, Globe, BarChart3 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { Zap, Activity, Cpu, Sliders, TrendingUp, Home, Loader2, Globe } from 'lucide-react';
+import { AreaChart, Area, XAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useUser, UserButton } from '@clerk/nextjs';
 
 export default function DashboardPage() {
@@ -15,30 +15,32 @@ export default function DashboardPage() {
     savings: 0, 
     requests: 0, 
     quality: null, 
-    risk: 8, 
-    global_confidence: 0, // 🚨 NEW: Global confidence
+    risk: 0, 
+    global_confidence: 0,
     validated_samples: 0,
-    opt_opportunity_pct: 0,
     opt_opportunity_usd: 0,
-    recommended_threshold: 12
+    recommended_threshold: 5
   });
   const [simulation, setSimulation] = useState({ qImp: "0.0%", sImp: "0.0%", label: "System Nominal", loading: false });
   const [loading, setLoading] = useState(true);
 
-  // 🚨 NEW: Real Global Confidence Level
+  // Helper para color de confianza
   const getGlobalConfidenceLevel = (score: number) => {
     if (score >= 90) return "text-emerald-500";
     if (score >= 75) return "text-yellow-500";
     return "text-red-500";
   };
 
-  // 🚨 NEW: Real Simulation Trigger (POST /v1/simulate)
+  // 1. Simulación (Predictive Analysis)
   const runSimulation = async (targetMode: string) => {
     setSimulation(prev => ({ ...prev, loading: true }));
     try {
-      const response = await fetch(`https://web-production-4f439.up.railway.app/v1/simulate`, {
+      const response = await fetch(`https://neuralrouting.io/v1/simulate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-API-KEY': 'nr-dev-secret-123' // Reemplazar por tu lógica de keys
+        },
         body: JSON.stringify({ userId: user?.id, mode: targetMode })
       });
       const data = await response.json();
@@ -54,48 +56,61 @@ export default function DashboardPage() {
     }
   };
 
-  // 🚨 NEW: Persistent Policy Update
+  // 2. Actualización de Política (Persistent Update)
   const updateRoutingPolicy = async (mode: string) => {
     setRoutingMode(mode);
     try {
-      await fetch(`https://web-production-4f439.up.railway.app/v1/update-policy`, {
+      await fetch(`https://neuralrouting.io/v1/update-policy`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-API-KEY': 'nr-dev-secret-123'
+        },
         body: JSON.stringify({ userId: user?.id, mode })
       });
-      // After updating policy, run a fresh simulation
       runSimulation(mode);
     } catch (e) { console.error("Policy Sync Error", e); }
   };
 
+  // 3. Carga de datos reales desde main.py
   useEffect(() => {
     async function loadDashboardData() {
       if (!isLoaded || !user?.id) return;
       try {
-        const response = await fetch(`https://web-production-4f439.up.railway.app/v1/user-stats/${user.id}`);
+        const response = await fetch(`https://neuralrouting.io/v1/user-stats/${user.id}`, {
+            headers: { 'X-API-KEY': 'nr-dev-secret-123' }
+        });
         const data = await response.json();
+        
         if (data && !data.error) {
-          setDecisions(data.recent_decisions || []);
+          // Mapeo directo de los campos de tu backend
           setStats({
             savings: Number(data.total_savings || 0),
-            requests: Number(data.requests_count || 0),
-            quality: data.quality_score || null,
-            global_confidence: data.global_confidence || 91, // 🚨 Average confidence logic
-            risk: data.at_risk_percent || 8,
+            requests: Number(data.requests_analyzed || 0),
+            quality: data.quality_index || null,
+            global_confidence: data.global_confidence || 0,
+            risk: data.at_risk_percent || 0,
             validated_samples: data.validated_samples || 0,
-            opt_opportunity_pct: data.optimization_opportunity_pct || 64,
-            opt_opportunity_usd: data.optimization_opportunity_usd || 420,
-            recommended_threshold: data.recommended_threshold_increase || 12
+            opt_opportunity_usd: data.optimization_opportunity_usd || 0,
+            recommended_threshold: data.recommended_threshold_increase || 5
           });
           
-          // 🚨 CHART ENHANCEMENT: Savings + Quality Tradeoff
-          setChartData((data.history || []).map((item: any) => ({ 
-            name: item.name || "Node", 
-            savings: Number(item.savings || 0),
-            quality: Number(item.quality || 0.90) * 100 // Multiplied for chart visibility
-          })));
+          setDecisions(data.recent_decisions || []);
+          
+          // Historial para el gráfico (Savings + Quality)
+          if (data.history) {
+            setChartData(data.history.map((item: any) => ({ 
+              name: item.name, 
+              savings: Number(item.savings || 0),
+              quality: Number(item.quality || 0)
+            })));
+          }
         }
-      } catch (e) { console.error(e); } finally { setLoading(false); }
+      } catch (e) { 
+        console.error("Dashboard Load Error:", e); 
+      } finally { 
+        setLoading(false); 
+      }
     }
     loadDashboardData();
   }, [isLoaded, user]);
@@ -124,7 +139,7 @@ export default function DashboardPage() {
 
       <main className="max-w-7xl mx-auto px-6 py-12">
 
-        {/* METRICS ROW (Includes Global Confidence) */}
+        {/* METRICS ROW */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
           <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-zinc-800">
             <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-1">Total Savings</p>
@@ -134,25 +149,24 @@ export default function DashboardPage() {
             <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-1">Quality Index</p>
             <h2 className="text-4xl font-black italic text-white">{stats.quality ? Number(stats.quality).toFixed(2) : 'N/A'}</h2>
           </div>
-          {/* 🚨 NEW: SYSTEM CONFIDENCE CARD */}
           <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-zinc-800">
             <div className="flex justify-between items-start mb-1">
               <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500">System Confidence</p>
               <Globe size={10} className="text-blue-500" />
             </div>
-            <h2 className={`text-4xl font-black italic ${getGlobalConfidenceConfidenceLevel(stats.global_confidence)}`}>{stats.global_confidence}%</h2>
+            <h2 className={`text-4xl font-black italic ${getGlobalConfidenceLevel(stats.global_confidence)}`}>{stats.global_confidence}%</h2>
           </div>
           <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-red-500/10">
             <p className="text-[9px] font-black uppercase tracking-[0.3em] text-red-500/70 mb-1">Risk Factor</p>
-            <h2 className="text-4xl font-black italic text-white">{stats.risk}%</h2>
+            <h2 className="text-4xl font-black italic text-white">{stats.risk.toFixed(1)}%</h2>
           </div>
         </div>
 
-        {/* CHART SECTION (DUAL AXIS SAVINGS VS QUALITY) */}
+        {/* CHART SECTION */}
         <div className="p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 flex flex-col h-[400px] shadow-2xl mb-12">
           <div className="flex items-center justify-between mb-8">
             <h4 className="text-white font-black italic uppercase tracking-tighter text-xl flex items-center gap-3">
-              <TrendingUp size={20} className="text-blue-500" /> Infrastructure Performance Trade-off
+              <TrendingUp size={20} className="text-blue-500" /> Performance Analysis
             </h4>
             <div className="flex gap-4">
                <div className="flex items-center gap-2 text-[9px] font-black uppercase text-blue-500"><div className="w-2 h-2 bg-blue-500 rounded-full" /> Savings</div>
@@ -177,7 +191,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
-          {/* REAL SIMULATOR */}
+          {/* SIMULATOR */}
           <div className="lg:col-span-5 p-10 rounded-[3rem] bg-blue-600/5 border border-blue-500/20 relative overflow-hidden group shadow-2xl">
             <div className="relative z-10">
               <h4 className="text-white font-black italic uppercase tracking-tighter text-xl mb-2">Next-Gen Simulator</h4>
@@ -213,26 +227,27 @@ export default function DashboardPage() {
               <Cpu size={20} className="text-blue-500" /> Decision Engine Logs
             </h4>
             <div className="space-y-4">
-              {decisions.map((dec: any, i) => (
+              {decisions.length > 0 ? decisions.map((dec: any, i) => (
                 <div key={i} className="flex items-center justify-between p-5 bg-black/40 rounded-2xl border border-white/5 group hover:border-blue-500/30 transition-all">
                   <div className="flex gap-4">
                     <div className={`w-1 h-10 rounded-full ${dec.model_used?.includes('Premium') ? 'bg-blue-500' : 'bg-zinc-700'}`} />
                     <div>
                       <p className="text-[10px] text-white font-black uppercase italic leading-none">{dec.model_used || "Node"}</p>
-                      <p className="text-[11px] text-zinc-500 font-bold mt-1.5">{dec.reason}</p>
+                      <p className="text-[11px] text-zinc-500 font-bold mt-1.5 line-clamp-1">{dec.prompt_preview || "Request processed"}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-[11px] font-black text-emerald-500 italic">Saved: ${dec.saved_amount || '0.003'}</p>
-                    <span className="text-[8px] text-zinc-700 font-black uppercase">Live Link</span>
+                    <p className="text-[11px] font-black text-emerald-500 italic">Saved: ${dec.cost_saved?.toFixed(4) || '0.000'}</p>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="text-center py-10 text-zinc-600 text-xs italic uppercase font-black">No recent activity found</div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* 🚨 PERSISTENT POLICY CONTROL */}
+        {/* POLICY CONTROL */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 bg-zinc-900/10 border border-zinc-800 p-8 rounded-[2.5rem]">
           <h3 className="text-white font-black uppercase italic tracking-tighter flex items-center gap-2 text-sm">
             <Sliders size={18} className="text-blue-500" /> Infrastructure Policy: <span className="text-blue-400">{routingMode}</span>
