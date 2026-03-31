@@ -30,24 +30,25 @@ export default function FullChatPage() {
   
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // 1. Carga inicial: Sesión nueva y lista de historial
+  // 1. Carga inicial
   useEffect(() => {
     if (isLoaded && user) {
-      const newId = crypto.randomUUID();
-      setSessionId(newId);
+      // Si no hay sesión, creamos una nueva, pero siempre cargamos historial de logs
+      if (!sessionId) {
+        const newId = crypto.randomUUID();
+        setSessionId(newId);
+        setMessages([{ role: 'assistant', content: 'Neural Engine Online. Awaiting commands.' }]);
+      }
       fetchSessions();
-      setMessages([{ role: 'assistant', content: 'Neural Engine Online. Infrastructure logs synced.' }]);
     }
   }, [isLoaded, user]);
 
-  // Auto-scroll al recibir mensajes
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     }
   }, [messages, isTyping]);
 
-  // 2. Función para traer la lista de logs del costado
   const fetchSessions = async () => {
     if (!user?.id) return;
     try {
@@ -57,41 +58,57 @@ export default function FullChatPage() {
     } catch (e) { console.error("Session Fetch Error", e); }
   };
 
-  // 3. FUNCIÓN CLAVE: Recuperar los mensajes de un log guardado
+  // 3. RECUPERACIÓN DE HISTORIAL (Corregida)
   const loadChatHistory = async (sId: string) => {
+    if (isTyping) return;
     setIsTyping(true);
-    setMessages([]); // Limpieza visual
+    setMessages([]); // Limpiamos pantalla
+    
     try {
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/messages/${sId}`);
       const data = await response.json();
       
       if (Array.isArray(data) && data.length > 0) {
         const history: ChatMessage[] = [];
-        data.forEach(msg => {
-          history.push({ role: 'user', content: msg.prompt });
-          history.push({ 
-            role: 'assistant', 
-            content: msg.ai_response,
-            stats: {
-              model: msg.model_selected,
-              savings: msg.cost_saved.toFixed(4),
-              water: "0.0125L"
-            }
-          });
+        data.forEach((msg: any) => {
+          // Validamos que existan los campos antes de pushear
+          if (msg.prompt) {
+            history.push({ role: 'user', content: msg.prompt });
+          }
+          if (msg.ai_response) {
+            history.push({ 
+              role: 'assistant', 
+              content: msg.ai_response,
+              stats: {
+                model: msg.model_selected || "Neural Node",
+                savings: msg.cost_saved ? msg.cost_saved.toFixed(4) : "0.0000",
+                water: "0.0125L"
+              }
+            });
+          }
         });
         setMessages(history);
       } else {
-        setMessages([{ role: 'assistant', content: 'Empty log. Awaiting commands.' }]);
+        setMessages([{ role: 'assistant', content: 'This log is currently empty.' }]);
       }
     } catch (e) {
       console.error("History Load Error", e);
+      setMessages([{ role: 'assistant', content: 'Error retrieving neural logs.' }]);
     } finally {
       setIsTyping(false);
     }
   };
 
+  const handleNewSession = () => {
+    const newId = crypto.randomUUID();
+    setSessionId(newId);
+    setMessages([{ role: 'assistant', content: 'New session ready. Previous logs available in sidebar.' }]);
+    setInput("");
+  };
+
   const handleSendMessage = async () => {
-    if (!input.trim() || isTyping) return;
+    if (!input.trim() || isTyping || !user) return;
+    
     const userMsg: ChatMessage = { role: 'user', content: input.trim() };
     const currentContext = [...messages, userMsg];
     
@@ -105,16 +122,26 @@ export default function FullChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           messages: currentContext, 
-          userId: user?.id, 
+          userId: user.id, 
           sessionId: sessionId 
         }),
       });
+      
       const data = await response.json();
-      setMessages(prev => [...prev, { role: 'assistant', content: data.content, stats: data.stats }]);
-      fetchSessions(); // Refrescar sidebar
+      
+      if (data.content) {
+        setMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: data.content, 
+          stats: data.stats 
+        }]);
+        fetchSessions(); // Actualizar lista lateral
+      }
     } catch (e) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "Node connection error." }]);
-    } finally { setIsTyping(false); }
+      setMessages(prev => [...prev, { role: 'assistant', content: "Node connection error. Check infrastructure." }]);
+    } finally { 
+      setIsTyping(false); 
+    }
   };
 
   return (
@@ -131,7 +158,7 @@ export default function FullChatPage() {
             <Home size={12} /> Return to Base
           </Link>
           <button 
-            onClick={() => { setSessionId(crypto.randomUUID()); setMessages([{role:'assistant', content:'New session ready.'}]); }}
+            onClick={handleNewSession}
             className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 transition-all cursor-pointer"
           >
             <Plus size={14} /> New Session
@@ -143,9 +170,14 @@ export default function FullChatPage() {
           {sessions.map((sess) => (
             <div 
               key={sess.session_id}
-              onClick={() => { setSessionId(sess.session_id); loadChatHistory(sess.session_id); }}
+              onClick={() => { 
+                if (sessionId !== sess.session_id) {
+                  setSessionId(sess.session_id); 
+                  loadChatHistory(sess.session_id); 
+                }
+              }}
               className={`group p-4 rounded-xl border transition-all cursor-pointer ${
-                sessionId === sess.session_id ? 'bg-blue-600/10 border-blue-500/40 text-white' : 'bg-zinc-900/20 border-zinc-800/50 text-zinc-500 hover:bg-zinc-800/40'
+                sessionId === sess.session_id ? 'bg-blue-600/10 border-blue-500/40 text-white shadow-[0_0_20px_rgba(37,99,235,0.05)]' : 'bg-zinc-900/20 border-zinc-800/50 text-zinc-500 hover:bg-zinc-800/40'
               }`}
             >
               <div className="text-[10px] font-black uppercase italic truncate">Log: {sess.session_id.slice(0, 10)}...</div>
@@ -157,14 +189,18 @@ export default function FullChatPage() {
         </nav>
       </aside>
 
-      {/* --- CHAT --- */}
+      {/* --- CHAT AREA --- */}
       <main className="flex-1 flex flex-col bg-[#09090b] relative">
-        <header className="h-20 border-b border-zinc-800 flex items-center px-8 bg-[#09090b]/50 backdrop-blur-xl">
+        <header className="h-20 border-b border-zinc-800 flex items-center px-8 bg-[#09090b]/50 backdrop-blur-xl z-10">
            <div className="flex items-center gap-3">
-             <div className="p-2 bg-blue-600/10 rounded-lg border border-blue-500/20"><Bot className="text-blue-500" size={20} /></div>
+             <div className="p-2 bg-blue-600/10 rounded-lg border border-blue-500/20">
+               <Bot className="text-blue-500" size={20} />
+             </div>
              <div>
                <h2 className="text-sm font-black uppercase italic text-white tracking-tight">Neural Assistant v1.0</h2>
-               <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest">{isTyping ? 'Syncing Node...' : 'System Optimal'}</p>
+               <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest">
+                 {isTyping ? 'Synchronizing Node...' : 'System Optimal'}
+               </p>
              </div>
            </div>
         </header>
@@ -176,32 +212,41 @@ export default function FullChatPage() {
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${m.role === 'assistant' ? 'bg-blue-600/10 border-blue-500/20' : 'bg-zinc-800 border-zinc-700'}`}>
                   {m.role === 'assistant' ? <Zap size={14} className="text-blue-500" /> : <User size={14} className="text-zinc-500" />}
                 </div>
-                <div className={`p-5 rounded-[1.8rem] ${m.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900/50 border border-zinc-800 text-zinc-300 rounded-tl-none'}`}>
+                <div className={`p-5 rounded-[1.8rem] ${m.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900/50 border border-zinc-800 text-zinc-300 rounded-tl-none backdrop-blur-sm'}`}>
                   <p className="text-sm italic font-medium whitespace-pre-wrap leading-relaxed">{m.content}</p>
                 </div>
               </div>
               {m.role === 'assistant' && m.stats && (
                 <div className="flex gap-4 ml-12 text-[8px] font-black uppercase text-zinc-600 tracking-widest animate-in fade-in">
                   <span>Model: {m.stats.model}</span>
+                  <div className="w-[1px] h-2 bg-zinc-800 self-center" />
                   <span>Saved: ${m.stats.savings}</span>
                 </div>
               )}
             </div>
           ))}
-          {isTyping && <div className="ml-12 animate-pulse text-blue-500"><Loader2 size={16} className="animate-spin" /></div>}
+          {isTyping && (
+            <div className="ml-12 flex items-center gap-2 text-blue-500/50 italic text-[10px] font-black uppercase tracking-widest">
+              <Loader2 size={12} className="animate-spin" /> Retrieving data packets...
+            </div>
+          )}
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent">
+        <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent z-10">
           <div className="max-w-4xl mx-auto relative">
             <textarea 
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
-              placeholder="Execute command..."
-              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2.5rem] p-6 pr-20 text-sm focus:border-blue-500 outline-none resize-none n-scroll"
+              placeholder="Execute neural command..."
+              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2.5rem] p-6 pr-20 text-sm focus:border-blue-500 outline-none resize-none n-scroll shadow-2xl backdrop-blur-xl"
               rows={1}
             />
-            <button onClick={handleSendMessage} className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-blue-600 rounded-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-lg shadow-blue-500/20">
+            <button 
+              onClick={handleSendMessage} 
+              disabled={isTyping || !input.trim()}
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-blue-600 rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 transition-all cursor-pointer shadow-lg shadow-blue-500/20"
+            >
               <Send size={18} className="text-white" />
             </button>
           </div>
