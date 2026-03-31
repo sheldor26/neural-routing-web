@@ -15,14 +15,17 @@ interface ChatMessage {
   };
 }
 
+interface ChatSession {
+  session_id: string;
+  created_at: string;
+}
+
 export default function FullChatPage() {
   const { user, isLoaded } = useUser();
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  
-  // Generamos un ID de sesión único al cargar la página
   const [sessionId, setSessionId] = useState<string>("");
-
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([
     { 
       role: 'assistant', 
@@ -32,10 +35,13 @@ export default function FullChatPage() {
   
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Inicializar sesión
+  // Initialize session and fetch history
   useEffect(() => {
-    setSessionId(crypto.randomUUID());
-  }, []);
+    if (isLoaded && user) {
+      setSessionId(crypto.randomUUID());
+      fetchSessions();
+    }
+  }, [isLoaded, user]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -46,10 +52,24 @@ export default function FullChatPage() {
     }
   }, [messages, isTyping]);
 
+  const fetchSessions = async () => {
+    if (!user?.id) return;
+    try {
+      const response = await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${user.id}`);
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setSessions(data);
+      }
+    } catch (error) {
+      console.error("Error fetching sessions:", error);
+    }
+  };
+
   const handleNewSession = () => {
     setMessages([{ role: 'assistant', content: 'New session initialized. Awaiting commands.' }]);
-    setSessionId(crypto.randomUUID()); // Cambiamos el ID para separar el historial en Supabase
+    setSessionId(crypto.randomUUID());
     setInput("");
+    fetchSessions(); // Refresh list
   };
 
   const handleSendMessage = async () => {
@@ -57,8 +77,6 @@ export default function FullChatPage() {
 
     const userContent = input.trim();
     const userMessage: ChatMessage = { role: 'user', content: userContent };
-    
-    // Capturamos el estado actual para enviarlo como contexto
     const currentMessages = [...messages, userMessage];
     
     setMessages(prev => [...prev, userMessage]);
@@ -72,7 +90,7 @@ export default function FullChatPage() {
         body: JSON.stringify({ 
           messages: currentMessages,
           userId: user?.id || "guest_user",
-          sessionId: sessionId // Enviamos el ID de sesión generado
+          sessionId: sessionId 
         }),
       });
 
@@ -85,11 +103,15 @@ export default function FullChatPage() {
         content: data.content,
         stats: data.stats 
       }]);
+      
+      // Refresh session list to show current session if it's new
+      fetchSessions();
+      
     } catch (error: any) {
       console.error("Chat Error:", error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: "System Error: Unable to reach Neural Node. Check Railway deployment status." 
+        content: "System Error: Unable to reach Neural Node. Check infrastructure status." 
       }]);
     } finally {
       setIsTyping(false);
@@ -130,9 +152,28 @@ export default function FullChatPage() {
              <p className="text-[9px] font-black uppercase text-zinc-600 tracking-[0.2em]">Infrastructure Logs</p>
              <History size={12} className="text-zinc-800" />
           </div>
-          <div className="group p-4 rounded-xl bg-blue-600/5 border border-blue-500/10 text-zinc-400 text-[10px] font-bold italic transition-all hover:bg-blue-600/10 cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap">
-            ID: {sessionId.slice(0, 8)}... - {user?.firstName || "Guest"}
-          </div>
+
+          {sessions.map((sess) => (
+            <div 
+              key={sess.session_id}
+              onClick={() => {
+                setSessionId(sess.session_id);
+                // Future: Load messages for this specific session
+              }}
+              className={`group p-4 rounded-xl border transition-all cursor-pointer ${
+                sessionId === sess.session_id 
+                  ? 'bg-blue-600/10 border-blue-500/30 text-white' 
+                  : 'bg-zinc-900/30 border-zinc-800/50 text-zinc-500 hover:bg-zinc-800/50'
+              }`}
+            >
+              <div className="text-[10px] font-black uppercase italic truncate">
+                Log: {sess.session_id.slice(0, 8)}...
+              </div>
+              <div className="text-[8px] text-zinc-600 mt-1 uppercase tracking-widest">
+                {new Date(sess.created_at).toLocaleDateString()} - {new Date(sess.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </div>
+            </div>
+          ))}
         </nav>
       </aside>
 
