@@ -30,7 +30,6 @@ export default function FullChatPage() {
   
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // 1. Carga inicial de historial de sesiones
   useEffect(() => {
     if (isLoaded && user) {
       if (!sessionId) {
@@ -57,28 +56,17 @@ export default function FullChatPage() {
     } catch (e) { console.error("Session Fetch Error", e); }
   };
 
-  // 2. RECUPERACIÓN DE HISTORIAL (Mapeo agresivo basado en Supabase)
   const loadChatHistory = async (sId: string) => {
     if (!sId) return;
     setIsTyping(true);
-    // Limpiamos mensajes antes de cargar el nuevo set para evitar confusiones
     setMessages([]); 
-    
     try {
-      console.log(`📡 Fetching data for session ID: ${sId}`);
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/messages/${sId}`);
       const data = await response.json();
-      
-      console.log("📦 Received packets:", data);
-
       if (Array.isArray(data) && data.length > 0) {
         const history: ChatMessage[] = [];
-        
         data.forEach((msg: any) => {
-          // Buscamos 'prompt' y 'ai_response' que son las columnas de tu tabla
-          if (msg.prompt) {
-            history.push({ role: 'user', content: msg.prompt });
-          }
+          if (msg.prompt) history.push({ role: 'user', content: msg.prompt });
           if (msg.ai_response) {
             history.push({ 
               role: 'assistant', 
@@ -91,13 +79,11 @@ export default function FullChatPage() {
             });
           }
         });
-        
         setMessages(history);
       } else {
         setMessages([{ role: 'assistant', content: 'Neural Log: This session node is currently empty.' }]);
       }
     } catch (e) {
-      console.error("❌ Sync Error:", e);
       setMessages([{ role: 'assistant', content: 'Connection Error: Database unreachable.' }]);
     } finally {
       setIsTyping(false);
@@ -107,20 +93,17 @@ export default function FullChatPage() {
   const handleNewSession = () => {
     const newId = crypto.randomUUID();
     setSessionId(newId);
-    setMessages([{ role: 'assistant', content: 'New session node established. Infrastructure ready.' }]);
+    setMessages([{ role: 'assistant', content: 'New session established. Waiting for prompt.' }]);
     setInput("");
   };
 
   const handleSendMessage = async () => {
     if (!input.trim() || isTyping || !user) return;
-    
     const userMsg: ChatMessage = { role: 'user', content: input.trim() };
     const currentContext = [...messages, userMsg];
-    
     setMessages(prev => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
-
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -131,29 +114,23 @@ export default function FullChatPage() {
           sessionId: sessionId 
         }),
       });
-      
       const data = await response.json();
-      
       if (data.content) {
-        setMessages(prev => [...prev, { 
-          role: 'assistant', 
-          content: data.content, 
-          stats: data.stats 
-        }]);
-        fetchSessions(); // Actualizar barra lateral para reflejar nuevos logs
+        setMessages(prev => [...prev, { role: 'assistant', content: data.content, stats: data.stats }]);
+        fetchSessions(); 
       }
     } catch (e) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "Node connection failure. Retrying..." }]);
-    } finally { 
-      setIsTyping(false); 
-    }
+      setMessages(prev => [...prev, { role: 'assistant', content: "Node connection error. Please retry." }]);
+    } finally { setIsTyping(false); }
   };
 
   return (
     <div className="flex h-screen bg-[#09090b] text-zinc-300 overflow-hidden font-sans">
       <style jsx global>{`
-        .n-scroll::-webkit-scrollbar { width: 4px; }
-        .n-scroll::-webkit-scrollbar-thumb { background: #18181b; border-radius: 10px; }
+        .n-scroll::-webkit-scrollbar { width: 5px; }
+        .n-scroll::-webkit-scrollbar-track { background: transparent; }
+        .n-scroll::-webkit-scrollbar-thumb { background: #1f1f23; border-radius: 10px; }
+        .n-scroll::-webkit-scrollbar-thumb:hover { background: #27272a; }
       `}</style>
 
       {/* --- SIDEBAR --- */}
@@ -201,7 +178,7 @@ export default function FullChatPage() {
       <main className="flex-1 flex flex-col bg-[#09090b] relative">
         <header className="h-20 border-b border-zinc-800 flex items-center px-8 bg-[#09090b]/50 backdrop-blur-xl z-10">
            <div className="flex items-center gap-3">
-             <div className="p-2 bg-blue-600/10 rounded-lg border border-blue-500/20">
+             <div className="p-2 bg-blue-600/10 rounded-lg border border-blue-500/20 shadow-[0_0_15px_rgba(37,99,235,0.1)]">
                <Bot className="text-blue-500" size={20} />
              </div>
              <div>
@@ -213,7 +190,12 @@ export default function FullChatPage() {
            </div>
         </header>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 pr-12 space-y-10 max-w-5xl mx-auto w-full n-scroll pb-44">
+        {/* CONTENEDOR DE MENSAJES: Padding Derecho aumentado */}
+        <div 
+          ref={scrollRef} 
+          className="flex-1 overflow-y-auto p-8 pr-16 md:pr-24 space-y-10 max-w-5xl mx-auto w-full n-scroll pb-44"
+          style={{ scrollbarGutter: 'stable' }}
+        >
           {messages.map((m, i) => (
             <div key={i} className={`flex flex-col gap-3 ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2`}>
               <div className={`flex gap-4 max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
