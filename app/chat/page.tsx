@@ -30,19 +30,19 @@ export default function FullChatPage() {
   
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // 1. Carga inicial
+  // 1. Carga inicial de sesiones
   useEffect(() => {
     if (isLoaded && user) {
-      // Si no hay sesión, creamos una nueva, pero siempre cargamos historial de logs
       if (!sessionId) {
         const newId = crypto.randomUUID();
         setSessionId(newId);
-        setMessages([{ role: 'assistant', content: 'Neural Engine Online. Awaiting commands.' }]);
+        setMessages([{ role: 'assistant', content: 'Neural Engine Online. Infrastructure logs synced.' }]);
       }
       fetchSessions();
     }
   }, [isLoaded, user]);
 
+  // Scroll automático
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -58,42 +58,55 @@ export default function FullChatPage() {
     } catch (e) { console.error("Session Fetch Error", e); }
   };
 
-  // 3. RECUPERACIÓN DE HISTORIAL (Corregida)
+  // 2. RECUPERACIÓN DE HISTORIAL (Mapeo Flexible y Debug)
   const loadChatHistory = async (sId: string) => {
-    if (isTyping) return;
+    if (!sId) return;
     setIsTyping(true);
-    setMessages([]); // Limpiamos pantalla
+    setMessages([]); // Limpieza visual previa
     
     try {
+      console.log(`📡 Requesting session history for: ${sId}`);
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/messages/${sId}`);
       const data = await response.json();
       
+      console.log("📦 Raw history packets:", data);
+
       if (Array.isArray(data) && data.length > 0) {
         const history: ChatMessage[] = [];
+        
         data.forEach((msg: any) => {
-          // Validamos que existan los campos antes de pushear
-          if (msg.prompt) {
-            history.push({ role: 'user', content: msg.prompt });
+          // Intentamos extraer el texto de múltiples posibles nombres de columna
+          const userContent = msg.prompt || msg.content || msg.user_message;
+          const aiContent = msg.ai_response || msg.response || msg.assistant_message;
+
+          if (userContent) {
+            history.push({ role: 'user', content: userContent });
           }
-          if (msg.ai_response) {
+          if (aiContent) {
             history.push({ 
               role: 'assistant', 
-              content: msg.ai_response,
+              content: aiContent,
               stats: {
                 model: msg.model_selected || "Neural Node",
-                savings: msg.cost_saved ? msg.cost_saved.toFixed(4) : "0.0000",
+                savings: msg.cost_saved ? Number(msg.cost_saved).toFixed(4) : "0.0000",
                 water: "0.0125L"
               }
             });
           }
         });
-        setMessages(history);
+        
+        if (history.length > 0) {
+          setMessages(history);
+          console.log("✅ History reconstructed successfully");
+        } else {
+          setMessages([{ role: 'assistant', content: 'Neural Log: This session appears to have no readable data.' }]);
+        }
       } else {
-        setMessages([{ role: 'assistant', content: 'This log is currently empty.' }]);
+        setMessages([{ role: 'assistant', content: 'Session metadata found, but conversation is empty.' }]);
       }
     } catch (e) {
-      console.error("History Load Error", e);
-      setMessages([{ role: 'assistant', content: 'Error retrieving neural logs.' }]);
+      console.error("❌ History Sync Error:", e);
+      setMessages([{ role: 'assistant', content: 'Critical Sync Error: Database connection timeout.' }]);
     } finally {
       setIsTyping(false);
     }
@@ -102,7 +115,7 @@ export default function FullChatPage() {
   const handleNewSession = () => {
     const newId = crypto.randomUUID();
     setSessionId(newId);
-    setMessages([{ role: 'assistant', content: 'New session ready. Previous logs available in sidebar.' }]);
+    setMessages([{ role: 'assistant', content: 'New session established. Waiting for prompt.' }]);
     setInput("");
   };
 
@@ -110,6 +123,7 @@ export default function FullChatPage() {
     if (!input.trim() || isTyping || !user) return;
     
     const userMsg: ChatMessage = { role: 'user', content: input.trim() };
+    // Mantenemos el contexto actual para enviar a la IA
     const currentContext = [...messages, userMsg];
     
     setMessages(prev => [...prev, userMsg]);
@@ -135,10 +149,10 @@ export default function FullChatPage() {
           content: data.content, 
           stats: data.stats 
         }]);
-        fetchSessions(); // Actualizar lista lateral
+        fetchSessions(); // Refrescar sidebar para que aparezca el log si es nuevo
       }
     } catch (e) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "Node connection error. Check infrastructure." }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: "Node connection error. Please retry." }]);
     } finally { 
       setIsTyping(false); 
     }
@@ -159,14 +173,17 @@ export default function FullChatPage() {
           </Link>
           <button 
             onClick={handleNewSession}
-            className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 transition-all cursor-pointer"
+            className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 transition-all cursor-pointer shadow-lg active:scale-95"
           >
             <Plus size={14} /> New Session
           </button>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-4 space-y-2 n-scroll">
-          <p className="text-[9px] font-black uppercase text-zinc-600 px-2 mb-4 tracking-widest">Infrastructure Logs</p>
+          <div className="flex items-center justify-between px-2 mb-4">
+            <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic">Infrastucture Logs</p>
+            <History size={12} className="text-zinc-800" />
+          </div>
           {sessions.map((sess) => (
             <div 
               key={sess.session_id}
@@ -180,8 +197,8 @@ export default function FullChatPage() {
                 sessionId === sess.session_id ? 'bg-blue-600/10 border-blue-500/40 text-white shadow-[0_0_20px_rgba(37,99,235,0.05)]' : 'bg-zinc-900/20 border-zinc-800/50 text-zinc-500 hover:bg-zinc-800/40'
               }`}
             >
-              <div className="text-[10px] font-black uppercase italic truncate">Log: {sess.session_id.slice(0, 10)}...</div>
-              <div className="text-[8px] text-zinc-700 mt-1 uppercase font-bold">
+              <div className="text-[10px] font-black uppercase italic truncate">Log: {sess.session_id.slice(0, 12)}...</div>
+              <div className="text-[8px] text-zinc-700 mt-1 uppercase font-bold tracking-tighter">
                 {new Date(sess.created_at).toLocaleDateString()} - {new Date(sess.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
               </div>
             </div>
@@ -193,19 +210,19 @@ export default function FullChatPage() {
       <main className="flex-1 flex flex-col bg-[#09090b] relative">
         <header className="h-20 border-b border-zinc-800 flex items-center px-8 bg-[#09090b]/50 backdrop-blur-xl z-10">
            <div className="flex items-center gap-3">
-             <div className="p-2 bg-blue-600/10 rounded-lg border border-blue-500/20">
+             <div className="p-2 bg-blue-600/10 rounded-lg border border-blue-500/20 shadow-[0_0_15px_rgba(37,99,235,0.1)]">
                <Bot className="text-blue-500" size={20} />
              </div>
              <div>
                <h2 className="text-sm font-black uppercase italic text-white tracking-tight">Neural Assistant v1.0</h2>
                <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest">
-                 {isTyping ? 'Synchronizing Node...' : 'System Optimal'}
+                 {isTyping ? 'Syncing Node Memory...' : 'Neural Link: Stable'}
                </p>
              </div>
            </div>
         </header>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 pr-12 space-y-10 max-w-5xl mx-auto w-full n-scroll pb-40">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 pr-12 space-y-10 max-w-5xl mx-auto w-full n-scroll pb-44">
           {messages.map((m, i) => (
             <div key={i} className={`flex flex-col gap-3 ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2`}>
               <div className={`flex gap-4 max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -227,25 +244,26 @@ export default function FullChatPage() {
           ))}
           {isTyping && (
             <div className="ml-12 flex items-center gap-2 text-blue-500/50 italic text-[10px] font-black uppercase tracking-widest">
-              <Loader2 size={12} className="animate-spin" /> Retrieving data packets...
+              <Loader2 size={12} className="animate-spin" /> Fetching data packets...
             </div>
           )}
         </div>
 
+        {/* Input Area */}
         <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent z-10">
-          <div className="max-w-4xl mx-auto relative">
+          <div className="max-w-4xl mx-auto relative group">
             <textarea 
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
-              placeholder="Execute neural command..."
-              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2.5rem] p-6 pr-20 text-sm focus:border-blue-500 outline-none resize-none n-scroll shadow-2xl backdrop-blur-xl"
+              placeholder="Send neural command..."
+              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2.5rem] p-6 pr-20 text-sm focus:border-blue-500 outline-none resize-none n-scroll shadow-2xl backdrop-blur-xl transition-all"
               rows={1}
             />
             <button 
               onClick={handleSendMessage} 
               disabled={isTyping || !input.trim()}
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-blue-600 rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 transition-all cursor-pointer shadow-lg shadow-blue-500/20"
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-blue-600 rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 transition-all cursor-pointer shadow-lg shadow-blue-500/20"
             >
               <Send size={18} className="text-white" />
             </button>
