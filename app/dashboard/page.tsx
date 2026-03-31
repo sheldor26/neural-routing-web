@@ -5,42 +5,34 @@ import { Zap, Droplets, Shield, ArrowRight, Activity, ChevronRight, Lock } from 
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function DashboardPage() {
-  // 1. Estados para manejar datos reales
+  // 1. Estados inicializados en CERO (Sin datos falsos)
   const [chartData, setChartData] = useState([]);
   const [stats, setStats] = useState({ savings: 0, efficiency: 0, water: 0 });
   const [loading, setLoading] = useState(true);
 
-  // 2. Efecto para buscar los datos al cargar la página
+  // 2. Efecto de sincronización real con tu Nodo Neural
   useEffect(() => {
     async function loadDashboardData() {
       try {
-        // AQUÍ CONECTARÁS TU API DE PYTHON/RAILWAY:
-        // const response = await fetch('https://tu-api.railway.app/dashboard-stats');
-        // const data = await response.json();
-        
-        // Simulación de carga de datos reales (Simulamos un delay de red)
-        setTimeout(() => {
-          const mockDataFromDB = [
-            { name: 'Lun', ahorro: 420, costo: 150 },
-            { name: 'Mar', ahorro: 580, costo: 180 },
-            { name: 'Mie', ahorro: 890, costo: 210 },
-            { name: 'Jue', ahorro: 720, costo: 160 },
-            { name: 'Vie', ahorro: 1050, costo: 230 },
-            { name: 'Sab', ahorro: 900, costo: 190 },
-            { name: 'Dom', ahorro: 1150, costo: 170 },
-          ];
-          
-          setChartData(mockDataFromDB);
-          setStats({
-            savings: 1240.50, // Suma total real de la DB
-            efficiency: 92.4,
-            water: 1240.50 * 12.5 // Proporción Neural: 12.5L por USD
-          });
-          setLoading(false);
-        }, 1200);
+        // CAMBIA ESTA URL por la de tu backend real cuando lo subas a Railway
+        const API_BASE = "http://localhost:8000"; 
+        const userId = "user_38g3uPhdZraElqcUSk6VWnUVLo1"; 
 
+        const response = await fetch(`${API_BASE}/v1/user-stats/${userId}`);
+        const data = await response.json();
+        
+        if (data && !data.error) {
+          setChartData(data.history || []);
+          setStats({
+            savings: data.savings || 0,
+            efficiency: data.efficiency || 0,
+            water: (data.savings || 0) * 12.5 // Factor Virasoro
+          });
+        }
       } catch (error) {
-        console.error("Error conectando con los nodos de Neural:", error);
+        console.error("Error sincronizando con Neural Node:", error);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -51,7 +43,10 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center">
         <Zap size={40} className="text-blue-500 animate-pulse mb-4" />
-        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-500">Synchronizing Neural Nodes...</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-500 text-center">
+          Establishing Secure Link...<br/>
+          <span className="text-blue-500/50">Neural Node Virasoro</span>
+        </p>
       </div>
     );
   }
@@ -86,7 +81,9 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="p-8 rounded-[2.5rem] bg-zinc-900/20 border border-zinc-800 group hover:border-blue-500/30 transition-all shadow-2xl">
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-2">Total Savings</p>
-            <h2 className="text-6xl font-black italic tracking-tighter text-white mb-2">${stats.savings.toLocaleString()}</h2>
+            <h2 className="text-6xl font-black italic tracking-tighter text-white mb-2">
+              ${stats.savings.toFixed(2)}
+            </h2>
             <p className="text-xs text-blue-500 font-bold italic tracking-tight flex items-center gap-1">
               <Zap size={12} /> Optimization: {stats.efficiency}%
             </p>
@@ -97,7 +94,9 @@ export default function DashboardPage() {
               <Droplets size={18} />
               <span className="text-[10px] font-black uppercase tracking-widest">Eco-Impact</span>
             </div>
-            <h2 className="text-5xl font-black italic tracking-tighter text-white leading-none mb-2">{stats.water.toLocaleString()}L</h2>
+            <h2 className="text-5xl font-black italic tracking-tighter text-white leading-none mb-2">
+              {stats.water.toLocaleString(undefined, {minimumFractionDigits: 1})}L
+            </h2>
             <p className="text-zinc-500 text-sm font-medium italic">Water saved in datacenter cooling</p>
           </div>
 
@@ -142,7 +141,7 @@ export default function DashboardPage() {
                     contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '20px', padding: '15px' }}
                     itemStyle={{ fontWeight: '900', textTransform: 'uppercase', fontStyle: 'italic', fontSize: '12px' }}
                     formatter={(value: number) => [`$${value.toFixed(2)}`, ""]}
-                    labelFormatter={(label) => `Neural Node Report: ${label}`}
+                    labelFormatter={(label) => `Report: ${label}`}
                   />
                   <Area type="monotone" dataKey="costo" stroke="#27272a" fillOpacity={0.1} fill="#27272a" strokeWidth={2} />
                   <Area type="monotone" dataKey="ahorro" stroke="#3b82f6" fillOpacity={1} fill="url(#colorAhorro)" strokeWidth={5} />
@@ -190,7 +189,7 @@ export default function DashboardPage() {
       </main>
 
       <footer className="py-12 text-center opacity-30 border-t border-white/5 mt-12 bg-black/20">
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] mb-4 text-zinc-600 italic">NeuralDash Global // Neural Node // 2026</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.4em] mb-4 text-zinc-600 italic">NeuralDash Global // Virasoro Node // 2026</p>
       </footer>
     </div>
   );
