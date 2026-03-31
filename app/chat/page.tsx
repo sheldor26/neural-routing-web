@@ -30,7 +30,7 @@ export default function FullChatPage() {
   
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // 1. Carga inicial y sincronización de sesiones
+  // 1. Carga inicial de historial de sesiones
   useEffect(() => {
     if (isLoaded && user) {
       if (!sessionId) {
@@ -57,22 +57,25 @@ export default function FullChatPage() {
     } catch (e) { console.error("Session Fetch Error", e); }
   };
 
-  // 2. RECUPERACIÓN DE HISTORIAL (Mapeo exacto según tu Supabase)
+  // 2. RECUPERACIÓN DE HISTORIAL (Mapeo agresivo basado en Supabase)
   const loadChatHistory = async (sId: string) => {
     if (!sId) return;
     setIsTyping(true);
-    setMessages([]); // Limpieza previa
+    // Limpiamos mensajes antes de cargar el nuevo set para evitar confusiones
+    setMessages([]); 
     
     try {
-      console.log(`📡 Fetching logs for: ${sId}`);
+      console.log(`📡 Fetching data for session ID: ${sId}`);
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/messages/${sId}`);
       const data = await response.json();
       
+      console.log("📦 Received packets:", data);
+
       if (Array.isArray(data) && data.length > 0) {
         const history: ChatMessage[] = [];
         
         data.forEach((msg: any) => {
-          // MAPEO CRÍTICO: Usamos 'prompt' y 'ai_response' que es lo que muestra tu tabla
+          // Buscamos 'prompt' y 'ai_response' que son las columnas de tu tabla
           if (msg.prompt) {
             history.push({ role: 'user', content: msg.prompt });
           }
@@ -90,13 +93,12 @@ export default function FullChatPage() {
         });
         
         setMessages(history);
-        console.log("✅ History Pack Reconstructed");
       } else {
-        setMessages([{ role: 'assistant', content: 'Empty log entry. Awaiting telemetry.' }]);
+        setMessages([{ role: 'assistant', content: 'Neural Log: This session node is currently empty.' }]);
       }
     } catch (e) {
       console.error("❌ Sync Error:", e);
-      setMessages([{ role: 'assistant', content: 'Neural Link Interrupted. DB Unreachable.' }]);
+      setMessages([{ role: 'assistant', content: 'Connection Error: Database unreachable.' }]);
     } finally {
       setIsTyping(false);
     }
@@ -105,7 +107,7 @@ export default function FullChatPage() {
   const handleNewSession = () => {
     const newId = crypto.randomUUID();
     setSessionId(newId);
-    setMessages([{ role: 'assistant', content: 'New session node established.' }]);
+    setMessages([{ role: 'assistant', content: 'New session node established. Infrastructure ready.' }]);
     setInput("");
   };
 
@@ -120,7 +122,6 @@ export default function FullChatPage() {
     setIsTyping(true);
 
     try {
-      // Usamos el endpoint del API Route de Next.js que ya configuraste
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -139,10 +140,10 @@ export default function FullChatPage() {
           content: data.content, 
           stats: data.stats 
         }]);
-        fetchSessions(); // Actualizar sidebar
+        fetchSessions(); // Actualizar barra lateral para reflejar nuevos logs
       }
     } catch (e) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "Gateway timeout. Check Railway node." }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: "Node connection failure. Retrying..." }]);
     } finally { 
       setIsTyping(false); 
     }
@@ -163,14 +164,17 @@ export default function FullChatPage() {
           </Link>
           <button 
             onClick={handleNewSession}
-            className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 transition-all cursor-pointer shadow-lg"
+            className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 transition-all cursor-pointer shadow-lg active:scale-95"
           >
             <Plus size={14} /> New Session
           </button>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-4 space-y-2 n-scroll">
-          <p className="text-[9px] font-black uppercase text-zinc-600 px-2 mb-4 tracking-widest italic">Infrastructure Logs</p>
+          <div className="flex items-center justify-between px-2 mb-4">
+            <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic">Infrastructure Logs</p>
+            <History size={12} className="text-zinc-800" />
+          </div>
           {sessions.map((sess) => (
             <div 
               key={sess.session_id}
@@ -193,17 +197,17 @@ export default function FullChatPage() {
         </nav>
       </aside>
 
-      {/* --- CHAT AREA --- */}
+      {/* --- MAIN AREA --- */}
       <main className="flex-1 flex flex-col bg-[#09090b] relative">
         <header className="h-20 border-b border-zinc-800 flex items-center px-8 bg-[#09090b]/50 backdrop-blur-xl z-10">
            <div className="flex items-center gap-3">
-             <div className="p-2 bg-blue-600/10 rounded-lg border border-blue-500/20 shadow-[0_0_15px_rgba(37,99,235,0.1)]">
+             <div className="p-2 bg-blue-600/10 rounded-lg border border-blue-500/20">
                <Bot className="text-blue-500" size={20} />
              </div>
              <div>
-               <h2 className="text-sm font-black uppercase italic text-white tracking-tight">Neural Assistant v1.0</h2>
-               <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest">
-                 {isTyping ? 'Syncing Node Memory...' : 'Neural Link: Stable'}
+               <h2 className="text-sm font-black uppercase italic text-white tracking-tight leading-none">Neural Assistant v1.0</h2>
+               <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest mt-1 italic">
+                 {isTyping ? 'Syncing Packets...' : 'Neural Link: Active'}
                </p>
              </div>
            </div>
@@ -216,34 +220,35 @@ export default function FullChatPage() {
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${m.role === 'assistant' ? 'bg-blue-600/10 border-blue-500/20' : 'bg-zinc-800 border-zinc-700'}`}>
                   {m.role === 'assistant' ? <Zap size={14} className="text-blue-500" /> : <User size={14} className="text-zinc-500" />}
                 </div>
-                <div className={`p-5 rounded-[1.8rem] ${m.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900/50 border border-zinc-800 text-zinc-300 rounded-tl-none backdrop-blur-sm'}`}>
+                <div className={`p-5 rounded-[1.8rem] ${m.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900/50 border border-zinc-800 text-zinc-300 rounded-tl-none backdrop-blur-sm shadow-xl'}`}>
                   <p className="text-sm italic font-medium whitespace-pre-wrap leading-relaxed">{m.content}</p>
                 </div>
               </div>
               {m.role === 'assistant' && m.stats && (
                 <div className="flex gap-4 ml-12 text-[8px] font-black uppercase text-zinc-600 tracking-widest animate-in fade-in">
-                  <span>Model: {m.stats.model}</span>
+                  <span className="flex items-center gap-1"><Zap size={8} className="text-blue-500"/> {m.stats.model}</span>
                   <div className="w-[1px] h-2 bg-zinc-800 self-center" />
-                  <span>Saved: ${m.stats.savings}</span>
+                  <span className="flex items-center gap-1"><DollarSign size={8} className="text-green-500"/> ${m.stats.savings}</span>
                 </div>
               )}
             </div>
           ))}
           {isTyping && (
             <div className="ml-12 flex items-center gap-2 text-blue-500/50 italic text-[10px] font-black uppercase tracking-widest">
-              <Loader2 size={12} className="animate-spin" /> Fetching data packets...
+              <Loader2 size={12} className="animate-spin" /> Retrieving Packets...
             </div>
           )}
         </div>
 
+        {/* Input Area */}
         <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent z-10">
-          <div className="max-w-4xl mx-auto relative">
+          <div className="max-w-4xl mx-auto relative group">
             <textarea 
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
-              placeholder="Execute command..."
-              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2.5rem] p-6 pr-20 text-sm focus:border-blue-500 outline-none resize-none n-scroll shadow-2xl backdrop-blur-xl"
+              placeholder="Execute neural command..."
+              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2.5rem] p-6 pr-20 text-sm focus:border-blue-500 outline-none resize-none n-scroll shadow-2xl backdrop-blur-xl transition-all"
               rows={1}
             />
             <button 
