@@ -66,11 +66,11 @@ export default function LandingPage() {
         <div className="relative z-20 flex flex-col sm:flex-row items-center gap-6">
           <HeroAuth />
           <Link 
-            href="/how-it-works" 
-            className="group relative px-8 py-4 flex items-center gap-3 rounded-xl border border-zinc-800/50 bg-zinc-900/30 text-zinc-500 text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-500 hover:border-blue-500/30 hover:text-white hover:bg-blue-500/5 shadow-2xl"
+            href="/pricing" 
+            className="group relative px-8 py-4 flex items-center gap-3 rounded-xl border border-zinc-800/50 bg-zinc-900/30 text-zinc-400 text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-500 hover:border-blue-500/50 hover:text-white hover:bg-blue-500/10 shadow-2xl"
           >
-             <Info size={14} className="transition-transform group-hover:scale-110" />
-             <span>Documentation</span>
+             <DollarSign size={14} className="text-blue-500 transition-transform group-hover:scale-125 group-hover:rotate-12" />
+             <span>View Pricing</span>
           </Link>
         </div>
 
