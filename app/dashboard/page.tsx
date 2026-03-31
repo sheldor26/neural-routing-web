@@ -5,16 +5,22 @@ import { Zap, Droplets, Shield, ArrowRight, Activity, ChevronRight, Lock } from 
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function DashboardPage() {
-  // 1. Estados inicializados en CERO (Sin datos falsos)
+  // 1. Estados inicializados en CERO
   const [chartData, setChartData] = useState([]);
   const [stats, setStats] = useState({ savings: 0, efficiency: 0, water: 0 });
   const [loading, setLoading] = useState(true);
+
+  // Función para copiar la API Key al portapapeles
+  const copyToClipboard = () => {
+    // Aquí puedes poner la clave real o manejarla por variables de entorno
+    navigator.clipboard.writeText("nr_live_optica_carballo_2026");
+    alert("Neural API Key copied to clipboard!");
+  };
 
   // 2. Efecto de sincronización real con tu Nodo Neural
   useEffect(() => {
     async function loadDashboardData() {
       try {
-        // URL de tu backend en Railway
         const API_BASE = "https://web-production-4f439.up.railway.app"; 
         const userId = "user_38g3uPhdZraElqcUSk6VWnUVLo1"; 
 
@@ -26,7 +32,7 @@ export default function DashboardPage() {
           setStats({
             savings: data.savings || 0,
             efficiency: data.efficiency || 0,
-            water: (data.savings || 0) * 12.5 // Factor Neural
+            water: (data.savings || 0) * 12.5 // Factor Neural de impacto hídrico
           });
         }
       } catch (error) {
@@ -104,7 +110,10 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2 mb-6 text-zinc-500 font-black uppercase tracking-widest text-[10px]">
               <Lock size={12} /> Production Key
             </div>
-            <div className="bg-black/50 border border-zinc-800 p-4 rounded-2xl flex items-center justify-between group cursor-pointer hover:border-zinc-700 transition-colors shadow-inner">
+            <div 
+              onClick={copyToClipboard}
+              className="bg-black/50 border border-zinc-800 p-4 rounded-2xl flex items-center justify-between group cursor-pointer hover:border-zinc-700 transition-colors shadow-inner"
+            >
               <code className="text-xs text-zinc-500 font-mono italic">nr_live_••••••••••••</code>
               <ArrowRight size={14} className="text-white group-hover:translate-x-1 transition-transform" />
             </div>
@@ -141,7 +150,7 @@ export default function DashboardPage() {
                     contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '20px', padding: '15px' }}
                     itemStyle={{ fontWeight: '900', textTransform: 'uppercase', fontStyle: 'italic', fontSize: '12px' }}
                     formatter={(value: number) => [`$${value.toFixed(4)}`, "SAVED"]}
-                    labelFormatter={(label) => `Report: ${label}`}
+                    labelFormatter={(label) => `Neural Report: ${label}`}
                   />
                   <Area type="monotone" dataKey="costo" stroke="#27272a" fillOpacity={0.1} fill="#27272a" strokeWidth={2} />
                   <Area type="monotone" dataKey="ahorro" stroke="#3b82f6" fillOpacity={1} fill="url(#colorAhorro)" strokeWidth={5} />
