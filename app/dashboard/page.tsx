@@ -5,20 +5,20 @@ import { Zap, Droplets, Shield, ArrowRight, Activity, ChevronRight, Lock, HelpCi
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function DashboardPage() {
-  // 1. Estados
+  // 1. State Management
   const [chartData, setChartData] = useState([]);
   const [stats, setStats] = useState({ savings: 0, efficiency: 0, water: 0 });
   const [loading, setLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
 
-  // Función para copiar la API Key
+  // API Key Copy Function with custom Toast
   const copyToClipboard = () => {
     navigator.clipboard.writeText("nr_live_optica_carballo_2026");
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  // Componente Tooltip personalizado para las métricas
+  // Informational Tooltip Component
   const InfoTag = ({ text }: { text: string }) => (
     <div className="group relative inline-block ml-2 cursor-help">
       <HelpCircle size={12} className="text-zinc-600 hover:text-blue-500 transition-colors" />
@@ -31,7 +31,7 @@ export default function DashboardPage() {
     </div>
   );
 
-  // 2. Sincronización con tu Nodo Neural
+  // 2. Real-time Synchronization with Neural Node
   useEffect(() => {
     async function loadDashboardData() {
       try {
@@ -50,7 +50,7 @@ export default function DashboardPage() {
           });
         }
       } catch (error) {
-        console.error("Error sincronizando con Neural Node:", error);
+        console.error("Neural Node Sync Error:", error);
       } finally {
         setLoading(false);
       }
@@ -102,7 +102,7 @@ export default function DashboardPage() {
           <div className="p-8 rounded-[2.5rem] bg-zinc-900/20 border border-zinc-800 group hover:border-blue-500/30 transition-all shadow-2xl relative">
             <div className="flex items-center mb-2">
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Total Savings</p>
-              <InfoTag text="Ahorro neto calculado mediante el arbitraje inteligente entre modelos premium y modelos optimizados de alta eficiencia." />
+              <InfoTag text="Net savings calculated through intelligent arbitrage between premium models and high-efficiency optimized models." />
             </div>
             <h2 className="text-6xl font-black italic tracking-tighter text-white mb-2">
               ${stats.savings.toFixed(4)}
@@ -116,7 +116,7 @@ export default function DashboardPage() {
             <div className="flex items-center mb-6 text-blue-500">
               <Droplets size={18} />
               <span className="text-[10px] font-black uppercase tracking-widest ml-2">Eco-Impact</span>
-              <InfoTag text="Litros de agua proyectados que se dejan de consumir en la refrigeración de centros de datos gracias a la reducción de carga computacional." />
+              <InfoTag text="Estimated water savings in datacenter cooling systems achieved by significantly reducing unnecessary computational load." />
             </div>
             <h2 className="text-5xl font-black italic tracking-tighter text-white leading-none mb-2">
               {stats.water.toFixed(4)}L
@@ -127,7 +127,7 @@ export default function DashboardPage() {
           <div className="p-8 rounded-[2.5rem] bg-zinc-900/20 border border-zinc-800 flex flex-col justify-between relative">
             <div className="flex items-center mb-6 text-zinc-500 font-black uppercase tracking-widest text-[10px]">
               <Lock size={12} className="mr-2" /> Production Key
-              <InfoTag text="Llave de autenticación cifrada para integrar el motor de Neural Routing en tus aplicaciones externas vía API." />
+              <InfoTag text="Encrypted authentication key to integrate the Neural Routing engine into your external applications via API." />
             </div>
             <div 
               onClick={copyToClipboard}
@@ -148,7 +148,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between mb-10">
               <h4 className="text-white font-black italic uppercase tracking-tighter text-2xl flex items-center gap-3">
                 <Activity size={24} className="text-blue-500" /> Neural Arbitrage Analytics
-                <InfoTag text="Análisis histórico de las decisiones de ruteo y el impacto económico generado en los últimos 7 ciclos." />
+                <InfoTag text="Historical analysis of routing decisions and the economic impact generated over the last 7 cycles." />
               </h4>
               <div className="flex gap-6">
                 <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]"></div><span className="text-[10px] font-black uppercase text-zinc-500 italic">Saved</span></div>
@@ -184,7 +184,7 @@ export default function DashboardPage() {
           <div className="lg:col-span-4 p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 shadow-2xl relative">
             <h4 className="text-white font-black italic uppercase tracking-tighter text-2xl mb-8 flex items-center gap-3">
               <Shield size={24} className="text-blue-500" /> Infrastructure
-              <InfoTag text="Estado operativo y latencia de los nodos de procesamiento distribuidos en la red Neural." />
+              <InfoTag text="Operational status and latency of processing nodes distributed across the Neural network." />
             </h4>
             <div className="space-y-6">
               {[
