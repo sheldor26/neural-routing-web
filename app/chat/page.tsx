@@ -113,7 +113,7 @@ export default function FullChatPage() {
           if (msg.ai_response) {
             history.push({ 
               role: 'assistant', 
-              content: msg.ai_response,
+              content: msg.ai_response.replace(/^User:.*?\n/i, '').trim(),
               stats: {
                 model: msg.model_selected || "Neural Node",
                 savings: msg.cost_saved ? Number(msg.cost_saved).toFixed(4) : "0.0000",
@@ -198,7 +198,9 @@ export default function FullChatPage() {
       
       const data = await response.json();
       
-      const aiAnswer = data.content; // Updated mapping for your API route
+      // Clean Response: Remove "User: ..." prefixes
+      const rawAnswer = data.content || "";
+      const aiAnswer = rawAnswer.replace(/^User:.*?\n/i, '').trim();
       const aiSuggestedTitle = data.suggested_title;
       
       const modelName = data.routing?.model_used || "Neural Node";
@@ -215,9 +217,7 @@ export default function FullChatPage() {
           } 
         }]);
 
-        // PRO AUTO-RENAME LOGIC
         if (isFirstMessage) {
-            // Use AI suggestion first, then fallback to manual substring logic
             const finalTitle = aiSuggestedTitle || 
                                (currentPrompt.split(' ').slice(0, 4).join(' ') + (currentPrompt.split(' ').length > 4 ? "..." : ""));
             await renameSession(sessionId, finalTitle);
@@ -364,7 +364,8 @@ export default function FullChatPage() {
            </div>
         </header>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 pr-16 md:pr-24 space-y-10 max-w-5xl mx-auto w-full n-scroll pb-44 text-white" style={{ scrollbarGutter: 'stable' }}>
+        {/* MESSAGES CONTAINER WITH pb-52 FIX */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 pr-16 md:pr-24 space-y-10 max-w-5xl mx-auto w-full n-scroll pb-52 text-white" style={{ scrollbarGutter: 'stable' }}>
           {messages.map((m, i) => (
             <div key={i} className={`flex flex-col gap-3 ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2`}>
               <div className={`flex gap-4 max-w-[90%] md:max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -402,6 +403,7 @@ export default function FullChatPage() {
           {isTyping && <div className="ml-12 flex items-center gap-2 text-blue-500/50 italic text-[10px] font-black uppercase tracking-widest"><Loader2 size={12} className="animate-spin" /> Syncing Node...</div>}
         </div>
 
+        {/* INPUT AREA WITH GRADIENT BACKGROUND */}
         <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent z-10 text-white">
           <div className="max-w-4xl mx-auto relative group">
             <textarea 
