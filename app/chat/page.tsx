@@ -30,7 +30,7 @@ export default function FullChatPage() {
   
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // 1. Carga inicial de sesiones
+  // 1. Carga inicial y sincronización de sesiones
   useEffect(() => {
     if (isLoaded && user) {
       if (!sessionId) {
@@ -42,7 +42,6 @@ export default function FullChatPage() {
     }
   }, [isLoaded, user]);
 
-  // Scroll automático
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -58,34 +57,29 @@ export default function FullChatPage() {
     } catch (e) { console.error("Session Fetch Error", e); }
   };
 
-  // 2. RECUPERACIÓN DE HISTORIAL (Mapeo Flexible y Debug)
+  // 2. RECUPERACIÓN DE HISTORIAL (Mapeo exacto según tu Supabase)
   const loadChatHistory = async (sId: string) => {
     if (!sId) return;
     setIsTyping(true);
-    setMessages([]); // Limpieza visual previa
+    setMessages([]); // Limpieza previa
     
     try {
-      console.log(`📡 Requesting session history for: ${sId}`);
+      console.log(`📡 Fetching logs for: ${sId}`);
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/messages/${sId}`);
       const data = await response.json();
       
-      console.log("📦 Raw history packets:", data);
-
       if (Array.isArray(data) && data.length > 0) {
         const history: ChatMessage[] = [];
         
         data.forEach((msg: any) => {
-          // Intentamos extraer el texto de múltiples posibles nombres de columna
-          const userContent = msg.prompt || msg.content || msg.user_message;
-          const aiContent = msg.ai_response || msg.response || msg.assistant_message;
-
-          if (userContent) {
-            history.push({ role: 'user', content: userContent });
+          // MAPEO CRÍTICO: Usamos 'prompt' y 'ai_response' que es lo que muestra tu tabla
+          if (msg.prompt) {
+            history.push({ role: 'user', content: msg.prompt });
           }
-          if (aiContent) {
+          if (msg.ai_response) {
             history.push({ 
               role: 'assistant', 
-              content: aiContent,
+              content: msg.ai_response,
               stats: {
                 model: msg.model_selected || "Neural Node",
                 savings: msg.cost_saved ? Number(msg.cost_saved).toFixed(4) : "0.0000",
@@ -95,18 +89,14 @@ export default function FullChatPage() {
           }
         });
         
-        if (history.length > 0) {
-          setMessages(history);
-          console.log("✅ History reconstructed successfully");
-        } else {
-          setMessages([{ role: 'assistant', content: 'Neural Log: This session appears to have no readable data.' }]);
-        }
+        setMessages(history);
+        console.log("✅ History Pack Reconstructed");
       } else {
-        setMessages([{ role: 'assistant', content: 'Session metadata found, but conversation is empty.' }]);
+        setMessages([{ role: 'assistant', content: 'Empty log entry. Awaiting telemetry.' }]);
       }
     } catch (e) {
-      console.error("❌ History Sync Error:", e);
-      setMessages([{ role: 'assistant', content: 'Critical Sync Error: Database connection timeout.' }]);
+      console.error("❌ Sync Error:", e);
+      setMessages([{ role: 'assistant', content: 'Neural Link Interrupted. DB Unreachable.' }]);
     } finally {
       setIsTyping(false);
     }
@@ -115,7 +105,7 @@ export default function FullChatPage() {
   const handleNewSession = () => {
     const newId = crypto.randomUUID();
     setSessionId(newId);
-    setMessages([{ role: 'assistant', content: 'New session established. Waiting for prompt.' }]);
+    setMessages([{ role: 'assistant', content: 'New session node established.' }]);
     setInput("");
   };
 
@@ -123,7 +113,6 @@ export default function FullChatPage() {
     if (!input.trim() || isTyping || !user) return;
     
     const userMsg: ChatMessage = { role: 'user', content: input.trim() };
-    // Mantenemos el contexto actual para enviar a la IA
     const currentContext = [...messages, userMsg];
     
     setMessages(prev => [...prev, userMsg]);
@@ -131,6 +120,7 @@ export default function FullChatPage() {
     setIsTyping(true);
 
     try {
+      // Usamos el endpoint del API Route de Next.js que ya configuraste
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -149,10 +139,10 @@ export default function FullChatPage() {
           content: data.content, 
           stats: data.stats 
         }]);
-        fetchSessions(); // Refrescar sidebar para que aparezca el log si es nuevo
+        fetchSessions(); // Actualizar sidebar
       }
     } catch (e) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "Node connection error. Please retry." }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: "Gateway timeout. Check Railway node." }]);
     } finally { 
       setIsTyping(false); 
     }
@@ -173,17 +163,14 @@ export default function FullChatPage() {
           </Link>
           <button 
             onClick={handleNewSession}
-            className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 transition-all cursor-pointer shadow-lg active:scale-95"
+            className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 transition-all cursor-pointer shadow-lg"
           >
             <Plus size={14} /> New Session
           </button>
         </div>
 
         <nav className="flex-1 overflow-y-auto px-4 space-y-2 n-scroll">
-          <div className="flex items-center justify-between px-2 mb-4">
-            <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest italic">Infrastucture Logs</p>
-            <History size={12} className="text-zinc-800" />
-          </div>
+          <p className="text-[9px] font-black uppercase text-zinc-600 px-2 mb-4 tracking-widest italic">Infrastructure Logs</p>
           {sessions.map((sess) => (
             <div 
               key={sess.session_id}
@@ -249,15 +236,14 @@ export default function FullChatPage() {
           )}
         </div>
 
-        {/* Input Area */}
         <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent z-10">
-          <div className="max-w-4xl mx-auto relative group">
+          <div className="max-w-4xl mx-auto relative">
             <textarea 
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
-              placeholder="Send neural command..."
-              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2.5rem] p-6 pr-20 text-sm focus:border-blue-500 outline-none resize-none n-scroll shadow-2xl backdrop-blur-xl transition-all"
+              placeholder="Execute command..."
+              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2.5rem] p-6 pr-20 text-sm focus:border-blue-500 outline-none resize-none n-scroll shadow-2xl backdrop-blur-xl"
               rows={1}
             />
             <button 
