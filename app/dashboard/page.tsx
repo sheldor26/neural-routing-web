@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Zap, Droplets, Shield, ArrowRight, Activity, ChevronRight, Lock } from 'lucide-center';
+import { Zap, Droplets, Shield, ArrowRight, Activity, ChevronRight, Lock, HelpCircle } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function DashboardPage() {
@@ -9,16 +9,27 @@ export default function DashboardPage() {
   const [chartData, setChartData] = useState([]);
   const [stats, setStats] = useState({ savings: 0, efficiency: 0, water: 0 });
   const [loading, setLoading] = useState(true);
-  const [showToast, setShowToast] = useState(false); // Estado para la notificación
+  const [showToast, setShowToast] = useState(false);
 
-  // Función para copiar la API Key con notificación personalizada
+  // Función para copiar la API Key
   const copyToClipboard = () => {
-    // Aquí puedes usar la clave que definiste en tu main.py
     navigator.clipboard.writeText("nr_live_optica_carballo_2026");
     setShowToast(true);
-    // Ocultar notificación tras 3 segundos
     setTimeout(() => setShowToast(false), 3000);
   };
+
+  // Componente Tooltip personalizado para las métricas
+  const InfoTag = ({ text }: { text: string }) => (
+    <div className="group relative inline-block ml-2 cursor-help">
+      <HelpCircle size={12} className="text-zinc-600 hover:text-blue-500 transition-colors" />
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-48 p-3 bg-black border border-zinc-800 rounded-xl shadow-2xl z-50">
+        <p className="text-[9px] leading-relaxed text-zinc-400 font-bold uppercase tracking-tighter italic">
+          {text}
+        </p>
+        <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-zinc-800"></div>
+      </div>
+    </div>
+  );
 
   // 2. Sincronización con tu Nodo Neural
   useEffect(() => {
@@ -88,8 +99,11 @@ export default function DashboardPage() {
         
         {/* --- METRIC CARDS --- */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="p-8 rounded-[2.5rem] bg-zinc-900/20 border border-zinc-800 group hover:border-blue-500/30 transition-all shadow-2xl">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-2">Total Savings</p>
+          <div className="p-8 rounded-[2.5rem] bg-zinc-900/20 border border-zinc-800 group hover:border-blue-500/30 transition-all shadow-2xl relative">
+            <div className="flex items-center mb-2">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Total Savings</p>
+              <InfoTag text="Ahorro neto calculado mediante el arbitraje inteligente entre modelos premium y modelos optimizados de alta eficiencia." />
+            </div>
             <h2 className="text-6xl font-black italic tracking-tighter text-white mb-2">
               ${stats.savings.toFixed(4)}
             </h2>
@@ -98,10 +112,11 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <div className="p-8 rounded-[2.5rem] bg-blue-500/5 border border-blue-500/10 group hover:bg-blue-500/10 transition-all">
-            <div className="flex items-center gap-2 mb-6 text-blue-500">
+          <div className="p-8 rounded-[2.5rem] bg-blue-500/5 border border-blue-500/10 group hover:bg-blue-500/10 transition-all relative">
+            <div className="flex items-center mb-6 text-blue-500">
               <Droplets size={18} />
-              <span className="text-[10px] font-black uppercase tracking-widest">Eco-Impact</span>
+              <span className="text-[10px] font-black uppercase tracking-widest ml-2">Eco-Impact</span>
+              <InfoTag text="Litros de agua proyectados que se dejan de consumir en la refrigeración de centros de datos gracias a la reducción de carga computacional." />
             </div>
             <h2 className="text-5xl font-black italic tracking-tighter text-white leading-none mb-2">
               {stats.water.toFixed(4)}L
@@ -109,9 +124,10 @@ export default function DashboardPage() {
             <p className="text-zinc-500 text-sm font-medium italic">Water saved in datacenter cooling</p>
           </div>
 
-          <div className="p-8 rounded-[2.5rem] bg-zinc-900/20 border border-zinc-800 flex flex-col justify-between">
-            <div className="flex items-center gap-2 mb-6 text-zinc-500 font-black uppercase tracking-widest text-[10px]">
-              <Lock size={12} /> Production Key
+          <div className="p-8 rounded-[2.5rem] bg-zinc-900/20 border border-zinc-800 flex flex-col justify-between relative">
+            <div className="flex items-center mb-6 text-zinc-500 font-black uppercase tracking-widest text-[10px]">
+              <Lock size={12} className="mr-2" /> Production Key
+              <InfoTag text="Llave de autenticación cifrada para integrar el motor de Neural Routing en tus aplicaciones externas vía API." />
             </div>
             <div 
               onClick={copyToClipboard}
@@ -128,10 +144,11 @@ export default function DashboardPage() {
         {/* --- GRAPH + INFRASTRUCTURE --- */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
           
-          <div className="lg:col-span-8 p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 flex flex-col h-[480px] shadow-2xl">
+          <div className="lg:col-span-8 p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 flex flex-col h-[480px] shadow-2xl relative">
             <div className="flex items-center justify-between mb-10">
               <h4 className="text-white font-black italic uppercase tracking-tighter text-2xl flex items-center gap-3">
                 <Activity size={24} className="text-blue-500" /> Neural Arbitrage Analytics
+                <InfoTag text="Análisis histórico de las decisiones de ruteo y el impacto económico generado en los últimos 7 ciclos." />
               </h4>
               <div className="flex gap-6">
                 <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]"></div><span className="text-[10px] font-black uppercase text-zinc-500 italic">Saved</span></div>
@@ -164,9 +181,10 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="lg:col-span-4 p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 shadow-2xl">
+          <div className="lg:col-span-4 p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 shadow-2xl relative">
             <h4 className="text-white font-black italic uppercase tracking-tighter text-2xl mb-8 flex items-center gap-3">
               <Shield size={24} className="text-blue-500" /> Infrastructure
+              <InfoTag text="Estado operativo y latencia de los nodos de procesamiento distribuidos en la red Neural." />
             </h4>
             <div className="space-y-6">
               {[
