@@ -102,7 +102,7 @@ export default function FullChatPage() {
     setIsTyping(true);
     setMessages([]); 
     setIsSidebarOpen(false);
-    setSessionId(sId); // Ensure state updates to the active session
+    setSessionId(sId); 
     try {
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/messages/${sId}`);
       const data = await response.json();
@@ -179,8 +179,6 @@ export default function FullChatPage() {
     const currentPrompt = input.trim();
     const userMsg: ChatMessage = { role: 'user', content: currentPrompt };
     const currentContext = [...messages, userMsg];
-    
-    // Capture if this is the first user message (messages has 1 item which is the welcome message)
     const isFirstMessage = messages.length === 1;
 
     setMessages(prev => [...prev, userMsg]);
@@ -197,10 +195,14 @@ export default function FullChatPage() {
           sessionId: sessionId 
         }),
       });
+      
       const data = await response.json();
-      const aiAnswer = data.output?.ai_answer || data.content;
-      const modelName = data.routing?.model_used || data.stats?.model || "Neural Node";
-      const savingsVal = data.business_metrics?.estimated_savings_usd || data.stats?.savings || 0;
+      
+      const aiAnswer = data.content; // Updated mapping for your API route
+      const aiSuggestedTitle = data.suggested_title;
+      
+      const modelName = data.routing?.model_used || "Neural Node";
+      const savingsVal = data.business_metrics?.estimated_savings_usd || 0;
 
       if (aiAnswer) {
         setMessages(prev => [...prev, { 
@@ -213,10 +215,12 @@ export default function FullChatPage() {
           } 
         }]);
 
-        // AUTO-RENAME LOGIC: Update title based on the first prompt
+        // PRO AUTO-RENAME LOGIC
         if (isFirstMessage) {
-            const suggestedTitle = currentPrompt.split(' ').slice(0, 4).join(' ') + (currentPrompt.split(' ').length > 4 ? "..." : "");
-            await renameSession(sessionId, suggestedTitle);
+            // Use AI suggestion first, then fallback to manual substring logic
+            const finalTitle = aiSuggestedTitle || 
+                               (currentPrompt.split(' ').slice(0, 4).join(' ') + (currentPrompt.split(' ').length > 4 ? "..." : ""));
+            await renameSession(sessionId, finalTitle);
         } else {
             fetchSessions();
         }
@@ -324,14 +328,14 @@ export default function FullChatPage() {
       </aside>
 
       <main className="flex-1 flex flex-col bg-[#09090b] relative w-full">
-        <header className="h-20 border-b border-zinc-800 flex items-center justify-between px-4 md:px-8 bg-[#09090b]/50 backdrop-blur-xl z-10">
+        <header className="h-20 border-b border-zinc-800 flex items-center justify-between px-4 md:px-8 bg-[#09090b]/50 backdrop-blur-xl z-10 text-white">
            <div className="flex items-center gap-3">
              <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 md:hidden hover:text-white transition-colors"><Menu size={20} /></button>
              <div className="p-2 bg-blue-600/10 rounded-lg border border-blue-500/20 shadow-[0_0_15px_rgba(37,99,235,0.1)]">
                <Bot className="text-blue-500" size={20} />
              </div>
              <div className="hidden sm:block">
-               <h2 className="text-sm font-black uppercase italic text-white tracking-tight leading-none text-white">Neural Assistant v1.0</h2>
+               <h2 className="text-sm font-black uppercase italic text-white tracking-tight leading-none">Neural Assistant v1.0</h2>
                <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest mt-1 italic">{isTyping ? 'Syncing...' : 'Neural Link: Active'}</p>
              </div>
            </div>
