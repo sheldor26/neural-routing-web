@@ -2,8 +2,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, Plus, Send, User, Bot, History, Home, Zap, DollarSign, Droplets } from 'lucide-react';
 import Link from 'next/link';
+import { useUser } from "@clerk/nextjs"; // Importamos Clerk para el UserID real
 
-// Interface for messages with real-time stats
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
@@ -15,6 +15,7 @@ interface ChatMessage {
 }
 
 export default function FullChatPage() {
+  const { user } = useUser(); // Obtenemos el usuario logueado
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -26,7 +27,6 @@ export default function FullChatPage() {
   
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({
@@ -47,11 +47,13 @@ export default function FullChatPage() {
     setIsTyping(true);
 
     try {
+      // Llamada a tu API de Next.js que hace de puente con main.py
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          messages: [...messages, userMessage] 
+          messages: [...messages, userMessage],
+          userId: user?.id || "guest_user" // Enviamos el ID de Clerk a Python
         }),
       });
 
@@ -62,13 +64,13 @@ export default function FullChatPage() {
       setMessages(prev => [...prev, { 
         role: 'assistant', 
         content: data.content,
-        stats: data.stats // Real savings data from API
+        stats: data.stats // Estos vienen procesados por tu NeuralRouterV2
       }]);
     } catch (error) {
       console.error("Chat Error:", error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: "Error: Could not establish secure link with Neural Node. Please try again." 
+        content: "Error: Could not establish secure link with Neural Node. Make sure main.py is running." 
       }]);
     } finally {
       setIsTyping(false);
@@ -102,7 +104,7 @@ export default function FullChatPage() {
              <History size={12} className="text-zinc-800" />
           </div>
           <div className="group p-4 rounded-xl bg-blue-600/5 border border-blue-500/10 text-zinc-400 text-xs font-bold italic transition-all hover:bg-blue-600/10 cursor-pointer">
-            Current Active Session
+            {user?.firstName ? `${user.firstName}'s Active Session` : "Current Active Session"}
           </div>
         </nav>
       </aside>
@@ -134,7 +136,6 @@ export default function FullChatPage() {
             <div key={i} className={`flex flex-col gap-3 ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
               
               <div className={`flex gap-4 max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                {/* Role Icon */}
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${
                   m.role === 'assistant' 
                   ? 'bg-blue-600/10 border-blue-500/20' 
@@ -143,7 +144,6 @@ export default function FullChatPage() {
                   {m.role === 'assistant' ? <Zap size={14} className="text-blue-500" /> : <User size={14} className="text-zinc-500" />}
                 </div>
 
-                {/* Bubble */}
                 <div className={`p-6 rounded-[2rem] shadow-2xl ${
                   m.role === 'user' 
                     ? 'bg-blue-600 text-white rounded-tr-none' 
@@ -153,7 +153,7 @@ export default function FullChatPage() {
                 </div>
               </div>
 
-              {/* --- REAL SAVINGS METADATA --- */}
+              {/* Stats dinámicos de tu NeuralRouterV2 */}
               {m.role === 'assistant' && m.stats && (
                 <div className="flex items-center gap-4 ml-12 px-2 animate-in fade-in slide-in-from-left-2 duration-700 delay-300">
                   <div className="flex items-center gap-1.5">
@@ -175,7 +175,6 @@ export default function FullChatPage() {
             </div>
           ))}
 
-          {/* Typing Indicator */}
           {isTyping && (
             <div className="flex gap-4 animate-pulse ml-2">
               <div className="w-8 h-8 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center">

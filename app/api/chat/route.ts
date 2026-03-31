@@ -1,29 +1,46 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
-  const lastMessage = messages[messages.length - 1].content;
+  try {
+    const { messages, userId } = await req.json();
+    const lastMessage = messages[messages.length - 1].content;
 
-  // --- LÓGICA DE COSTOS REALES (Precios por 1M tokens aprox) ---
-  // GPT-4o (Premium): ~$5.00 input / $15.00 output
-  // Llama 3 / 4o-mini (Economy): ~$0.15 input / $0.60 output
-  
-  const inputTokens = lastMessage.length / 4; // Estimación burda de tokens
-  const premiumCost = (inputTokens / 1000000) * 5.00;
-  const economyCost = (inputTokens / 1000000) * 0.15;
-  
-  const savingsValue = premiumCost - economyCost;
-  
-  // Cálculo de agua: ~0.5L por cada 10-50 mensajes (Promedio industria)
-  const waterSavedPerRequest = 0.0125; 
+    // Llamamos a tu FastAPI en el puerto 8000
+    const response = await fetch('http://127.0.0.1:8000/v1/dispatch', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': 'key_demo_user' // Usamos una de las llaves que definiste en CLIENT_KEYS
+      },
+      body: JSON.stringify({
+        prompt: lastMessage,
+        user_id: userId || "guest_user"
+      }),
+    });
 
-  return NextResponse.json({ 
-    role: 'assistant', 
-    content: "The calculation is complete. The result of 4 + 4 is 8.", 
-    stats: {
-      model: "Llama 3.1 (Routed)",
-      savings: `$${savingsValue.toFixed(5)}`, // Valor real de la diferencia
-      water: `${waterSavedPerRequest}L`
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Neural Gateway Error");
     }
-  });
+
+    const data = await response.json();
+
+    // Formateamos la salida de tu main.py para que el chat la entienda
+    return NextResponse.json({
+      role: 'assistant',
+      content: data.output.ai_answer,
+      stats: {
+        model: data.routing.model_used,
+        savings: `$${data.business_metrics.estimated_savings_usd}`,
+        water: "0.0125L" // Este lo podemos dejar fijo o calcularlo luego
+      }
+    });
+
+  } catch (error: any) {
+    console.error("Gateway Connection Failed:", error);
+    return NextResponse.json({ 
+      role: 'assistant', 
+      content: "Neural Gateway is offline. Check if main.py is running on port 8000." 
+    }, { status: 500 });
+  }
 }
