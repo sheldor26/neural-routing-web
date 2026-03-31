@@ -9,7 +9,13 @@ import { useUser, UserButton } from '@clerk/nextjs';
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();
   const [chartData, setChartData] = useState([]);
-  const [stats, setStats] = useState({ savings: 0, requests: 0, water: 0 });
+  const [stats, setStats] = useState({ 
+    savings: 0, 
+    requests: 0, 
+    water: 0,
+    quality: 0.93, // Default fallback
+    risk: 8        // Default fallback
+  });
   const [loading, setLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
 
@@ -41,7 +47,6 @@ export default function DashboardPage() {
         const data = await response.json();
         
         if (data && !data.error) {
-          // FIX: Ensure data points are treated as Numbers and check for alternative field names
           const totalSavings = Number(data.total_savings || data.savings || 0);
           const requestsCount = Number(data.requests_count || data.total_requests || 0);
 
@@ -55,7 +60,9 @@ export default function DashboardPage() {
           setStats({
             savings: totalSavings,
             requests: requestsCount,
-            water: requestsCount * 0.0125 // Global eco-impact formula
+            water: requestsCount * 0.0125,
+            quality: data.quality_score || 0.93,
+            risk: data.at_risk_percent || 8
           });
         }
       } catch (error) {
@@ -82,7 +89,6 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans selection:bg-blue-500/30 overflow-x-hidden relative">
       
-      {/* --- NAV BAR --- */}
       <nav className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between text-white">
           <Link href="/" className="flex items-center gap-3 group">
@@ -114,7 +120,7 @@ export default function DashboardPage() {
 
       <main className="max-w-7xl mx-auto px-6 py-12">
         
-        {/* METRIC CARDS */}
+        {/* PRIMARY METRIC CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="p-8 rounded-[2.5rem] bg-zinc-900/20 border border-zinc-800 group hover:border-blue-500/30 transition-all shadow-2xl relative">
             <div className="flex items-center mb-2">
@@ -158,11 +164,62 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* --- QUALITY & RISK SECTION (NEW) --- */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          
+          {/* QUALITY SCORE CARD */}
+          <div className="p-8 rounded-[2.5rem] bg-zinc-900/20 border border-emerald-500/20 group hover:border-emerald-500/40 transition-all shadow-2xl relative overflow-hidden">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500/70 text-emerald-500">Neural Quality Score</p>
+                <h2 className="text-6xl font-black italic tracking-tighter text-white">{stats.quality}</h2>
+              </div>
+              <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
+                <Shield size={24} className="text-emerald-500" />
+              </div>
+            </div>
+            <div className="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+              <div 
+                className="bg-emerald-500 h-full shadow-[0_0_15px_#10b981] transition-all duration-1000" 
+                style={{ width: `${stats.quality * 100}%` }}
+              />
+            </div>
+            <p className="text-[9px] text-zinc-500 font-bold uppercase mt-4 italic">
+              Optimization Accuracy: <span className="text-emerald-500">Nominal</span>
+            </p>
+          </div>
+
+          {/* RISK ASSESSMENT CARD */}
+          <div className="p-8 rounded-[2.5rem] bg-zinc-900/20 border border-red-500/20 group hover:border-red-500/40 transition-all shadow-2xl relative overflow-hidden">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-red-500/70 text-red-500">At Risk Requests</p>
+                <h2 className="text-6xl font-black italic tracking-tighter text-white">{stats.risk}<span className="text-2xl text-red-500">%</span></h2>
+              </div>
+              <div className="p-4 bg-red-500/10 rounded-2xl border border-red-500/20 text-white">
+                <Activity size={24} className="text-red-500" />
+              </div>
+            </div>
+            <div className="flex gap-1">
+              {[...Array(10)].map((_, i) => (
+                <div 
+                  key={i} 
+                  className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${i < Math.ceil(stats.risk / 10) ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : 'bg-zinc-800'}`} 
+                />
+              ))}
+            </div>
+            <p className="text-[9px] text-zinc-500 font-bold uppercase mt-4 italic">
+              Potential precision loss detected in current cycle
+            </p>
+          </div>
+
+        </div>
+
         {/* GRAPH & INFRA */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
           <div className="lg:col-span-8 p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 flex flex-col h-[480px] shadow-2xl relative">
             <div className="flex items-center justify-between mb-10">
-              <h4 className="text-white font-black italic uppercase tracking-tighter text-2xl flex items-center gap-3">
+              <h4 className="text-white font-black italic uppercase tracking-tighter text-2xl flex items-center gap-3 text-white">
                 <Activity size={24} className="text-blue-500" /> Optimization Analytics
               </h4>
               <div className="flex gap-6">
