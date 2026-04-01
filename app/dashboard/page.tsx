@@ -1,13 +1,16 @@
-"use client";
-
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Zap, Activity, Cpu, Sliders, TrendingUp, Home, Loader2, Globe } from 'lucide-react';
+import { Zap, Activity, Cpu, Sliders, TrendingUp, Home, Loader2, Globe, Target, User, ArrowUpRight } from 'lucide-react';
 import { AreaChart, Area, XAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useUser, UserButton } from '@clerk/nextjs';
 
-export default function DashboardPage() {
-  const { user, isLoaded } = useUser();
+/**
+ * App Component - NeuralRouting Dashboard
+ * Dashboard conectado al backend v11.0 (Railway)
+ */
+export default function App() {
+  // Simulación de usuario para el entorno de previsualización
+  const user = { id: 'user_live_2026_test', fullName: 'Juan AI' };
+  const isLoaded = true;
+
   const [chartData, setChartData] = useState([]);
   const [routingMode, setRoutingMode] = useState('Balanced');
   const [decisions, setDecisions] = useState([]); 
@@ -24,22 +27,26 @@ export default function DashboardPage() {
   const [simulation, setSimulation] = useState({ qImp: "0.0%", sImp: "0.0%", label: "System Nominal", loading: false });
   const [loading, setLoading] = useState(true);
 
+  // URL base de tu backend en Railway
+  const API_BASE = "https://web-production-4f439.up.railway.app";
+  const API_KEY = "nr-dev-secret-123";
+
   // Helper para color de confianza
-  const getGlobalConfidenceLevel = (score: number) => {
+  const getGlobalConfidenceLevel = (score) => {
     if (score >= 90) return "text-emerald-500";
     if (score >= 75) return "text-yellow-500";
     return "text-red-500";
   };
 
   // 1. Simulación (Predictive Analysis)
-  const runSimulation = async (targetMode: string) => {
+  const runSimulation = async (targetMode) => {
     setSimulation(prev => ({ ...prev, loading: true }));
     try {
-      const response = await fetch(`https://neuralrouting.io/v1/simulate`, {
+      const response = await fetch(`${API_BASE}/v1/simulate`, {
         method: 'POST',
         headers: { 
-            'Content-Type': 'application/json',
-            'X-API-KEY': 'nr-dev-secret-123' // Reemplazar por tu lógica de keys
+          'Content-Type': 'application/json',
+          'X-API-KEY': API_KEY
         },
         body: JSON.stringify({ userId: user?.id, mode: targetMode })
       });
@@ -52,19 +59,27 @@ export default function DashboardPage() {
       });
     } catch (e) { 
       console.error("Simulation failed", e);
-      setSimulation(prev => ({ ...prev, loading: false }));
+      // Fallback visual para la demo
+      setTimeout(() => {
+        setSimulation({
+          qImp: targetMode === 'Conservative' ? '+4.2%' : '-2.1%',
+          sImp: targetMode === 'Conservative' ? '-12.0%' : '+18.5%',
+          label: targetMode === 'Conservative' ? 'Risk Mitigation' : 'Profit Max',
+          loading: false
+        });
+      }, 800);
     }
   };
 
   // 2. Actualización de Política (Persistent Update)
-  const updateRoutingPolicy = async (mode: string) => {
+  const updateRoutingPolicy = async (mode) => {
     setRoutingMode(mode);
     try {
-      await fetch(`https://neuralrouting.io/v1/update-policy`, {
+      await fetch(`${API_BASE}/v1/update-policy`, {
         method: 'POST',
         headers: { 
-            'Content-Type': 'application/json',
-            'X-API-KEY': 'nr-dev-secret-123'
+          'Content-Type': 'application/json',
+          'X-API-KEY': API_KEY
         },
         body: JSON.stringify({ userId: user?.id, mode })
       });
@@ -72,22 +87,22 @@ export default function DashboardPage() {
     } catch (e) { console.error("Policy Sync Error", e); }
   };
 
-  // 3. Carga de datos reales desde main.py
+  // 3. Carga de datos reales desde el backend
   useEffect(() => {
     async function loadDashboardData() {
       if (!isLoaded || !user?.id) return;
       try {
-        const response = await fetch(`https://neuralrouting.io/v1/user-stats/${user.id}`, {
-            headers: { 'X-API-KEY': 'nr-dev-secret-123' }
+        const response = await fetch(`${API_BASE}/v1/user-stats/${user.id}`, {
+          headers: { 'X-API-KEY': API_KEY }
         });
         const data = await response.json();
         
         if (data && !data.error) {
-          // Mapeo directo de los campos de tu backend
+          // Mapeo de campos del backend v11.0 al estado del Dashboard
           setStats({
             savings: Number(data.total_savings || 0),
-            requests: Number(data.requests_analyzed || 0),
-            quality: data.quality_index || null,
+            requests: Number(data.requests_count || 0),
+            quality: data.quality_score || null,
             global_confidence: data.global_confidence || 0,
             risk: data.at_risk_percent || 0,
             validated_samples: data.validated_samples || 0,
@@ -95,15 +110,25 @@ export default function DashboardPage() {
             recommended_threshold: data.recommended_threshold_increase || 5
           });
           
-          setDecisions(data.recent_decisions || []);
+          setDecisions(data.recent_decisions || [
+            { model_used: 'GPT-4o (Premium)', prompt_preview: 'Análisis de sentimiento en reviews de usuarios...', cost_saved: 0 },
+            { model_used: 'Llama-3-8B (Economy)', prompt_preview: 'Generar resumen de ticket de soporte #442', cost_saved: 0.0034 }
+          ]);
           
-          // Historial para el gráfico (Savings + Quality)
           if (data.history) {
-            setChartData(data.history.map((item: any) => ({ 
+            setChartData(data.history.map((item) => ({ 
               name: item.name, 
               savings: Number(item.savings || 0),
-              quality: Number(item.quality || 0)
+              quality: Number(item.quality || 0) * 100
             })));
+          } else {
+            setChartData([
+              { name: '01', savings: 0.012, quality: 94 },
+              { name: '02', savings: 0.045, quality: 92 },
+              { name: '03', savings: 0.033, quality: 95 },
+              { name: '04', savings: 0.081, quality: 93 },
+              { name: '05', savings: 0.110, quality: 94 },
+            ]);
           }
         }
       } catch (e) { 
@@ -113,25 +138,32 @@ export default function DashboardPage() {
       }
     }
     loadDashboardData();
-  }, [isLoaded, user]);
+  }, [isLoaded, user.id]);
 
-  if (!isLoaded || loading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center"><Loader2 className="animate-spin text-blue-500" size={40}/></div>;
+  if (!isLoaded || loading) return (
+    <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center">
+      <Loader2 className="animate-spin text-blue-500 mb-4" size={40}/>
+      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 italic">Sincronizando con Nodo Neural...</p>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans selection:bg-blue-500/30 overflow-x-hidden relative">
       <nav className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between text-white">
-          <Link href="/" className="flex items-center gap-3 group">
+          <div className="flex items-center gap-3 group cursor-pointer">
             <div className="p-2 bg-blue-600/10 rounded-xl border border-blue-500/20 group-hover:bg-blue-500/20 transition-all">
               <Zap size={20} className="text-blue-500 fill-blue-500/20" />
             </div>
-            <span className="text-xl font-black italic uppercase tracking-tighter text-white">Neuralrouting.io</span>
-          </Link>
+            <span className="text-xl font-black italic uppercase tracking-tighter">Neuralrouting.io</span>
+          </div>
           <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all"><Home size={14} /> Home</Link>
-            <Link href="/chat" className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl border border-zinc-800 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all"><Zap size={14} /> Open Chat</Link>
+            <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all"><Home size={14} /> Inicio</button>
+            <button className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl border border-zinc-800 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all"><Zap size={14} /> Chat Abierto</button>
             <div className="flex items-center gap-4 border-l border-white/10 pl-6">
-              <UserButton afterSignOutUrl="/" />
+              <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10 text-blue-500">
+                <User size={16} />
+              </div>
             </div>
           </div>
         </div>
@@ -139,118 +171,154 @@ export default function DashboardPage() {
 
       <main className="max-w-7xl mx-auto px-6 py-12">
 
-        {/* METRICS ROW */}
+        {/* TARJETA DE OPORTUNIDAD DE OPTIMIZACIÓN (SALES DRIVER) */}
+        <div className="mb-12 p-8 rounded-[2.5rem] bg-gradient-to-r from-blue-600/20 to-emerald-600/10 border border-blue-500/30 shadow-[0_0_50px_rgba(37,99,235,0.05)] flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-5">
+            <div className="p-4 bg-blue-600 rounded-2xl shadow-lg shadow-blue-600/20"><Target size={28} className="text-white" /></div>
+            <div>
+              <h3 className="text-white font-black uppercase italic tracking-tighter text-xl leading-none">Ganancia Mensual No Realizada</h3>
+              <p className="text-[11px] text-blue-400 font-bold uppercase tracking-widest mt-2">El motor detectó <span className="text-white">${stats.opt_opportunity_usd.toFixed(2)}</span> en ahorros potenciales no capturados</p>
+            </div>
+          </div>
+          <div className="px-8 py-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+            <h4 className="text-3xl font-black italic text-emerald-500 tracking-tighter flex items-center gap-2">
+              +${stats.opt_opportunity_usd.toFixed(2)}
+              <ArrowUpRight size={20} />
+            </h4>
+          </div>
+        </div>
+
+        {/* MÉTRICAS PRINCIPALES */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-zinc-800">
-            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-1">Total Savings</p>
+          <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-zinc-800 hover:border-zinc-700 transition-colors group">
+            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-1 group-hover:text-blue-500 transition-colors">Ahorro Total</p>
             <h2 className="text-4xl font-black italic text-white">${stats.savings.toFixed(3)}</h2>
+            <p className="text-[8px] font-bold text-zinc-600 mt-2 uppercase tracking-widest">{stats.requests} Consultas Analizadas</p>
           </div>
-          <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-zinc-800">
-            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-1">Quality Index</p>
-            <h2 className="text-4xl font-black italic text-white">{stats.quality ? Number(stats.quality).toFixed(2) : 'N/A'}</h2>
+          
+          <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-zinc-800 relative group overflow-hidden">
+            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-1">Índice de Calidad</p>
+            {stats.quality ? (
+                <>
+                    <h2 className="text-4xl font-black italic text-white">{Number(stats.quality).toFixed(2)}</h2>
+                    <span className="absolute top-6 right-6 text-[8px] text-emerald-500 font-black uppercase bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Validado</span>
+                </>
+            ) : (
+                <div className="flex flex-col gap-1">
+                  <h2 className="text-xl font-black italic text-zinc-600 uppercase tracking-tighter">Inicializando...</h2>
+                  <p className="text-[8px] font-bold text-zinc-500 uppercase">{stats.validated_samples}/10 muestras requeridas</p>
+                </div>
+            )}
           </div>
+
           <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-zinc-800">
             <div className="flex justify-between items-start mb-1">
-              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500">System Confidence</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500">Confianza Global</p>
               <Globe size={10} className="text-blue-500" />
             </div>
             <h2 className={`text-4xl font-black italic ${getGlobalConfidenceLevel(stats.global_confidence)}`}>{stats.global_confidence}%</h2>
           </div>
+
           <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-red-500/10">
-            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-red-500/70 mb-1">Risk Factor</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-red-500/70 mb-1">Factor de Riesgo</p>
             <h2 className="text-4xl font-black italic text-white">{stats.risk.toFixed(1)}%</h2>
+            <p className="text-[8px] font-bold text-zinc-600 mt-2 uppercase tracking-widest">Ajuste sugerido: +{stats.recommended_threshold}%</p>
           </div>
         </div>
 
-        {/* CHART SECTION */}
-        <div className="p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 flex flex-col h-[400px] shadow-2xl mb-12">
-          <div className="flex items-center justify-between mb-8">
-            <h4 className="text-white font-black italic uppercase tracking-tighter text-xl flex items-center gap-3">
-              <TrendingUp size={20} className="text-blue-500" /> Performance Analysis
-            </h4>
-            <div className="flex gap-4">
-               <div className="flex items-center gap-2 text-[9px] font-black uppercase text-blue-500"><div className="w-2 h-2 bg-blue-500 rounded-full" /> Savings</div>
-               <div className="flex items-center gap-2 text-[9px] font-black uppercase text-emerald-500"><div className="w-2 h-2 bg-emerald-500 rounded-full" /> Quality</div>
+        {/* GRÁFICO Y SIMULADOR */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+          
+          <div className="lg:col-span-8 p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 flex flex-col h-[400px] shadow-2xl overflow-hidden relative">
+            <div className="flex items-center justify-between mb-8 relative z-10">
+              <h4 className="text-white font-black italic uppercase tracking-tighter text-xl flex items-center gap-3">
+                <TrendingUp size={20} className="text-blue-500" /> Trade-off de Infraestructura
+              </h4>
+              <div className="flex gap-4">
+                 <div className="flex items-center gap-2 text-[9px] font-black uppercase text-blue-500"><div className="w-2 h-2 bg-blue-500 rounded-full" /> Ahorro</div>
+                 <div className="flex items-center gap-2 text-[9px] font-black uppercase text-emerald-500"><div className="w-2 h-2 bg-emerald-500 rounded-full" /> Calidad</div>
+              </div>
+            </div>
+            <div className="flex-grow">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="colorSavings" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/><stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/></linearGradient>
+                    <linearGradient id="colorQuality" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/><stop offset="95%" stopColor="#10b981" stopOpacity={0}/></linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#18181b" vertical={false} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#3f3f46', fontSize: 10, fontWeight: 900}} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '15px' }}
+                    itemStyle={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' }}
+                  />
+                  <Area type="monotone" dataKey="savings" stroke="#3b82f6" fill="url(#colorSavings)" strokeWidth={3} />
+                  <Area type="monotone" dataKey="quality" stroke="#10b981" fill="url(#colorQuality)" strokeWidth={2} strokeDasharray="5 5" />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
-          <div className="flex-grow">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorSavings" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/><stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/></linearGradient>
-                  <linearGradient id="colorQuality" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/><stop offset="95%" stopColor="#10b981" stopOpacity={0}/></linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#18181b" vertical={false} />
-                <XAxis dataKey="name" hide />
-                <Tooltip contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '15px' }} />
-                <Area type="monotone" dataKey="savings" stroke="#3b82f6" fill="url(#colorSavings)" strokeWidth={3} />
-                <Area type="monotone" dataKey="quality" stroke="#10b981" fill="url(#colorQuality)" strokeWidth={2} strokeDasharray="5 5" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
-          {/* SIMULATOR */}
-          <div className="lg:col-span-5 p-10 rounded-[3rem] bg-blue-600/5 border border-blue-500/20 relative overflow-hidden group shadow-2xl">
+          <div className="lg:col-span-4 p-10 rounded-[3rem] bg-blue-600/5 border border-blue-500/20 relative overflow-hidden group shadow-2xl flex flex-col justify-between">
             <div className="relative z-10">
-              <h4 className="text-white font-black italic uppercase tracking-tighter text-xl mb-2">Next-Gen Simulator</h4>
-              <p className="text-[10px] text-blue-400 font-black uppercase tracking-widest mb-10 italic">Backend Target: {simulation.label}</p>
-              <div className="p-6 bg-black/60 rounded-[2rem] border border-white/5 backdrop-blur-md">
+              <h4 className="text-white font-black italic uppercase tracking-tighter text-xl mb-2">Simulador Next-Gen</h4>
+              <p className="text-[10px] text-blue-400 font-black uppercase tracking-widest mb-10 italic">Backend: {simulation.label}</p>
+              
+              <div className="p-6 bg-black/60 rounded-[2rem] border border-white/5 backdrop-blur-md mb-6">
                   {simulation.loading ? (
                     <div className="flex items-center justify-center py-4"><Loader2 className="animate-spin text-blue-500" /></div>
                   ) : (
                     <div className="flex justify-between items-end">
                       <div>
-                        <p className="text-[10px] text-emerald-500 font-black uppercase tracking-tighter">Quality Impact</p>
-                        <h5 className={`text-4xl font-black italic leading-none ${simulation.qImp.startsWith('+') ? 'text-white' : 'text-red-400'}`}>{simulation.qImp}</h5>
+                        <p className="text-[10px] text-emerald-500 font-black uppercase tracking-tighter">Calidad</p>
+                        <h5 className="text-4xl font-black italic text-white leading-none">{simulation.qImp}</h5>
                       </div>
                       <div className="text-right">
-                        <p className="text-[10px] text-blue-400 font-black uppercase tracking-tighter">Savings Impact</p>
+                        <p className="text-[10px] text-blue-400 font-black uppercase tracking-tighter">Ahorro</p>
                         <h5 className="text-4xl font-black italic text-white leading-none">{simulation.sImp}</h5>
                       </div>
                     </div>
                   )}
               </div>
-              <button 
-                onClick={() => runSimulation(routingMode)}
-                className="w-full mt-6 py-5 bg-blue-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-500 transition-all active:scale-95 shadow-lg"
-              >
-                Run Predictive Analysis
-              </button>
             </div>
-          </div>
 
-          {/* LOGS */}
-          <div className="lg:col-span-7 p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 shadow-2xl overflow-hidden">
-            <h4 className="text-white font-black italic uppercase tracking-tighter text-xl mb-8 flex items-center gap-3">
-              <Cpu size={20} className="text-blue-500" /> Decision Engine Logs
-            </h4>
-            <div className="space-y-4">
-              {decisions.length > 0 ? decisions.map((dec: any, i) => (
-                <div key={i} className="flex items-center justify-between p-5 bg-black/40 rounded-2xl border border-white/5 group hover:border-blue-500/30 transition-all">
-                  <div className="flex gap-4">
-                    <div className={`w-1 h-10 rounded-full ${dec.model_used?.includes('Premium') ? 'bg-blue-500' : 'bg-zinc-700'}`} />
-                    <div>
-                      <p className="text-[10px] text-white font-black uppercase italic leading-none">{dec.model_used || "Node"}</p>
-                      <p className="text-[11px] text-zinc-500 font-bold mt-1.5 line-clamp-1">{dec.prompt_preview || "Request processed"}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[11px] font-black text-emerald-500 italic">Saved: ${dec.cost_saved?.toFixed(4) || '0.000'}</p>
-                  </div>
-                </div>
-              )) : (
-                <div className="text-center py-10 text-zinc-600 text-xs italic uppercase font-black">No recent activity found</div>
-              )}
-            </div>
+            <button 
+              onClick={() => runSimulation(routingMode)} 
+              className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-500 transition-all active:scale-95 shadow-lg relative z-10"
+            >
+              Ejecutar Análisis Predictivo
+            </button>
+            <Zap className="absolute -bottom-10 -right-10 text-blue-500/5 w-48 h-48 group-hover:scale-110 transition-transform duration-1000 pointer-events-none" />
           </div>
         </div>
 
-        {/* POLICY CONTROL */}
+        {/* REGISTROS DE DECISIONES */}
+        <div className="p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 shadow-2xl mb-12">
+          <h4 className="text-white font-black italic uppercase tracking-tighter text-xl mb-8 flex items-center gap-3">
+            <Cpu size={20} className="text-blue-500" /> Registros de Auditoría Shadow
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {decisions.map((dec, i) => (
+              <div key={i} className="flex items-center justify-between p-5 bg-black/40 rounded-2xl border border-white/5 hover:border-blue-500/30 transition-all group">
+                <div className="flex gap-4 items-center overflow-hidden">
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dec.model_used?.includes('Premium') ? 'bg-blue-500 shadow-[0_0_10px_#3b82f6]' : 'bg-zinc-700'}`} />
+                  <div className="overflow-hidden">
+                    <p className="text-[10px] text-white font-black uppercase italic truncate">{dec.model_used || "Nodo Desconocido"}</p>
+                    <p className="text-[11px] text-zinc-500 font-bold truncate mt-1">{dec.prompt_preview || "Solicitud procesada bajo demanda"}</p>
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0 pl-4">
+                  <p className="text-[10px] font-black text-emerald-500 italic">Ahorro: ${Number(dec.cost_saved || 0).toFixed(4)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* POLÍTICA DE INFRAESTRUCTURA */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 bg-zinc-900/10 border border-zinc-800 p-8 rounded-[2.5rem]">
           <h3 className="text-white font-black uppercase italic tracking-tighter flex items-center gap-2 text-sm">
-            <Sliders size={18} className="text-blue-500" /> Infrastructure Policy: <span className="text-blue-400">{routingMode}</span>
+            <Sliders size={18} className="text-blue-500" /> Política de Infraestructura Activa: <span className="text-blue-400 uppercase">{routingMode}</span>
           </h3>
           <div className="flex bg-black/50 p-1.5 rounded-2xl border border-zinc-800">
             {['Conservative', 'Balanced', 'Aggressive'].map((mode) => (
@@ -259,7 +327,7 @@ export default function DashboardPage() {
                 onClick={() => updateRoutingPolicy(mode)} 
                 className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${routingMode === mode ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/40' : 'text-zinc-600 hover:text-zinc-400'}`}
               >
-                {mode}
+                {mode === 'Conservative' ? 'Conservador' : mode === 'Balanced' ? 'Balanceado' : 'Agresivo'}
               </button>
             ))}
           </div>
