@@ -82,7 +82,7 @@ export default function FullChatPage() {
       fetchSessions();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, user?.id]); // Watch for ID changes to sync logs
+  }, [isLoaded, user?.id]); // Escuchar cambios en el ID para sincronizar logs
 
   useEffect(() => {
     if (scrollRef.current && isTyping) {
@@ -186,14 +186,12 @@ export default function FullChatPage() {
     const userMsg: ChatMessage = { role: 'user', content: currentPrompt };
     const currentContext = [...messages, userMsg];
     
-    // Detect start of conversation to force sidebar visibility
+    // Check if this is the start of a conversation to force sidebar visibility
     const isFirstRealMessage = messages.length <= 1; 
 
     setMessages(prev => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
-
-    const userIdToSend = getTargetId(); //
 
     try {
       const response = await fetch('/api/chat', {
@@ -201,14 +199,13 @@ export default function FullChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: currentContext,
-          userId: userIdToSend,
+          userId: getTargetId(), //
           sessionId: sessionId
         }),
       });
 
       const data = await response.json();
-      const rawAnswer = data.content || "";
-      const aiAnswer = rawAnswer.replace(/^User:.*?\n/i, '').trim();
+      const aiAnswer = data.content?.replace(/^User:.*?\n/i, '').trim();
       const aiSuggestedTitle = data.suggested_title;
 
       if (aiAnswer) {
@@ -222,7 +219,7 @@ export default function FullChatPage() {
           }
         }]);
 
-        // FORCE TITLE SAVE: Ensure the session appears in the sidebar immediately
+        // FIX: Force a title update on the first message to make it visible in the sidebar
         if (isFirstRealMessage) {
           const finalTitle = aiSuggestedTitle || 
             (currentPrompt.substring(0, 25) + "...");

@@ -41,7 +41,7 @@ export default function App() {
     return "text-red-500";
   };
 
-  // 🧠 SIMULADOR (mock realista)
+  // 🧠 SIMULADOR
   const runSimulation = async (targetMode) => {
     setSimulation({
       qImp: targetMode === 'Conservative' ? "+2.1%" : "-1.5%",
@@ -58,17 +58,32 @@ export default function App() {
     runSimulation(mode);
   };
 
-  // 🧠 CONEXIÓN REAL CON BACKEND
+  // 🔥 CONEXIÓN REAL + DEBUG
   useEffect(() => {
     async function loadDashboardData() {
-      if (!isLoaded || !user?.id) return;
+      console.log("🔥 useEffect triggered");
+      console.log("👤 user:", user);
+      console.log("📦 isLoaded:", isLoaded);
+
+      if (!isLoaded) {
+        console.log("⏳ Clerk not ready");
+        return;
+      }
+
+      // 🔥 fallback para probar aunque user falle
+      const userId = user?.id || "test-user-123";
+
+      console.log("🚀 Fetching stats for:", userId);
 
       try {
-        const response = await fetch(`${API_BASE}/v1/user-stats/${user.id}`, {
+        const response = await fetch(`${API_BASE}/v1/user-stats/${userId}`, {
           headers: { 'X-API-KEY': API_KEY }
         });
 
+        console.log("📡 Status:", response.status);
+
         const data = await response.json();
+        console.log("📊 Data:", data);
 
         if (data && !data.error) {
           setStats({
@@ -82,7 +97,6 @@ export default function App() {
             recommended_threshold: data.recommended_threshold_increase || 5
           });
 
-          // gráfico mínimo basado en datos reales
           setChartData([
             {
               name: "Now",
@@ -91,12 +105,11 @@ export default function App() {
             }
           ]);
 
-          setDecisions([]); // backend aún no expone logs
-
+          setDecisions([]);
         }
 
       } catch (e) {
-        console.error("Dashboard Sync Error:", e);
+        console.error("❌ Dashboard Error:", e);
       } finally {
         setLoading(false);
       }

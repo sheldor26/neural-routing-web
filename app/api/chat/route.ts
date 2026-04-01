@@ -4,21 +4,21 @@ export async function POST(req: Request) {
   try {
     const { messages, sessionId } = await req.json();
 
-    // ✅ ID fijo sincronizado con tu tabla api_keys de Supabase para desarrollo
+    // ✅ ID sincronizado con el registro de desarrollador en Supabase
     const FINAL_USER_ID = "juan_dev_34";
 
     const RAILWAY_URL = "https://web-production-4f439.up.railway.app/v1/dispatch";
-    // Cache busting para asegurar ruteo neuronal fresco
+    // Timestamp para forzar frescura en el ruteo neuronal
     const FINAL_URL = `${RAILWAY_URL}?t=${Date.now()}`;
 
-    console.log("🚀 Enviando Uplink a Railway:", { user_id: FINAL_USER_ID, session_id: sessionId });
+    console.log("🚀 Iniciando Uplink a Railway:", { user_id: FINAL_USER_ID, session_id: sessionId });
 
     // Enlace al Nodo Neuronal en Railway
     const response = await fetch(FINAL_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // Clave de producción verificada en tu backend
+        // Clave secreta validada en la tabla api_keys
         'X-API-KEY': 'nr-dev-secret-123',
       },
       body: JSON.stringify({
@@ -30,15 +30,15 @@ export async function POST(req: Request) {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("❌ Railway Status:", response.status);
-      console.error("❌ Railway Error Detail:", JSON.stringify(errorData));
+      console.error("❌ Railway Status Error:", response.status);
+      console.error("❌ Railway Detail:", JSON.stringify(errorData));
       throw new Error(errorData.detail || `Neural Error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log("✅ Respuesta de Nodo Neuronal recibida");
+    console.log("✅ Sincronización con Nodo Neuronal exitosa");
 
-    // Respuesta formateada para el Frontend del Chat
+    // Respuesta optimizada para el Frontend
     return NextResponse.json({
       role: 'assistant',
       content: data.output?.ai_answer || data.content,
