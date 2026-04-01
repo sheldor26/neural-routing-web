@@ -60,16 +60,18 @@ export default function App() {
   // 3. Dynamic Multi-tenant Data Loading
   useEffect(() => {
     async function loadDashboardData() {
-      // ✅ Critical: Only fetch if Clerk is loaded and we have a valid user.id
+      // ✅ Critical: Use the Clerk user.id dynamically
       if (!isLoaded || !user?.id) {
         if (isLoaded && !user) setLoading(false);
         return;
       }
 
       try {
-        // ✅ Using dynamic user.id from Clerk to ensure independent dashboards
         const response = await fetch(`${API_BASE}/v1/user-stats/${user.id}`, {
-          headers: { 'X-API-KEY': API_KEY }
+          headers: { 
+            'X-API-KEY': API_KEY,
+            'Content-Type': 'application/json'
+          }
         });
         const data = await response.json();
         
@@ -94,7 +96,6 @@ export default function App() {
               quality: Number(item.quality || 0) * 100 
             })));
           } else {
-            // Placeholder for new accounts
             setChartData([
                 { name: 'Mon', savings: 0, quality: 0 },
                 { name: 'Tue', savings: 0, quality: 0 },
@@ -109,18 +110,17 @@ export default function App() {
       }
     }
     loadDashboardData();
-  }, [isLoaded, user?.id]); // ✅ Dependency array ensures reload on login/switch
+  }, [isLoaded, user?.id]);
 
   if (!isLoaded || loading) return (
     <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center">
       <Loader2 className="animate-spin text-blue-500 mb-4" size={40}/>
-      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 italic">Establishing Neural Node link...</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 italic">Syncing Neural Telemetry...</p>
     </div>
   );
 
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans selection:bg-blue-500/30 overflow-x-hidden relative">
-      {/* NAVIGATION */}
       <nav className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between text-white">
           <Link href="/" className="flex items-center gap-3 group">
@@ -150,14 +150,14 @@ export default function App() {
             Intelligence <span className="text-blue-500">Command Center</span>
           </h1>
           <p className="text-zinc-500 max-w-2xl text-sm font-medium mb-10">
-            Current session analytics for <span className="text-zinc-300 font-bold">{user?.firstName || 'User Node'}</span>. 
+            Real-time infrastructure analytics for <span className="text-zinc-200 font-bold">{user?.firstName || 'Node User'}</span>. 
             The engine detected <span className="text-white">${stats.opt_opportunity_usd.toFixed(2)}</span> in uncaptured savings.
           </p>
 
           {/* ✅ DOMINANT ACTION BUTTON */}
           <Link href="/chat" className="group relative">
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-emerald-500 rounded-2xl blur opacity-30 group-hover:opacity-70 transition duration-1000 group-hover:duration-200"></div>
-            <button className="relative flex items-center gap-4 px-12 py-6 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-500 transition-all active:scale-95 shadow-2xl shadow-blue-500/20">
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-emerald-500 rounded-2xl blur opacity-30 group-hover:opacity-70 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
+            <button className="relative flex items-center gap-4 px-12 py-6 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-500 transition-all active:scale-95 shadow-2xl">
               <Rocket size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
               Start Capturing Opportunities
             </button>
@@ -170,7 +170,7 @@ export default function App() {
             <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20"><Target size={28} className="text-emerald-500" /></div>
             <div>
               <h3 className="text-white font-black uppercase italic tracking-tighter text-xl leading-none">Unrealized Revenue Opportunity</h3>
-              <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-widest mt-2">Maximum optimization potential detected by the routing engine.</p>
+              <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-widest mt-2">Maximum optimization potential detected for your current account.</p>
             </div>
           </div>
           <div className="text-right">
@@ -195,7 +195,7 @@ export default function App() {
                 </>
             ) : (
                 <div className="flex flex-col gap-1">
-                  <h2 className="text-xl font-black italic text-zinc-600 uppercase tracking-tighter">New Node</h2>
+                  <h2 className="text-xl font-black italic text-zinc-600 uppercase tracking-tighter">Syncing...</h2>
                   <p className="text-[8px] font-bold text-zinc-500 uppercase">Awaiting audits</p>
                 </div>
             )}
@@ -289,14 +289,14 @@ export default function App() {
             {decisions.length > 0 ? decisions.map((dec, i) => (
               <div key={i} className="flex items-center justify-between p-5 bg-black/40 rounded-2xl border border-white/5 hover:border-blue-500/30 transition-all group">
                 <div className="flex gap-4 items-center overflow-hidden">
-                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dec.model_used?.includes('Premium') ? 'bg-blue-500 shadow-[0_0_10px_#3b82f6]' : 'bg-zinc-700'}`} />
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dec.is_at_risk ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : 'bg-blue-500 shadow-[0_0_10px_#3b82f6]'}`} />
                   <div className="overflow-hidden">
-                    <p className="text-[10px] text-white font-black uppercase italic truncate">{dec.model_used || "Neural Node"}</p>
-                    <p className="text-[11px] text-zinc-500 font-bold truncate mt-1">{dec.prompt_preview || "Request audited"}</p>
+                    <p className="text-[10px] text-white font-black uppercase italic truncate">Neural Audit Node</p>
+                    <p className="text-[11px] text-zinc-500 font-bold truncate mt-1">{dec.prompt_preview || "Request successfully audited"}</p>
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0 pl-4">
-                  <p className="text-[10px] font-black text-emerald-500 italic">Saved: ${Number(dec.cost_saved || 0).toFixed(4)}</p>
+                  <p className="text-[10px] font-black text-emerald-500 italic">Score: {((dec.quality_score || 0.98) * 100).toFixed(1)}%</p>
                 </div>
               </div>
             )) : (
