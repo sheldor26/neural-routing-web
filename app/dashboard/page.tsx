@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Zap, Activity, Cpu, Sliders, TrendingUp, Home, Loader2, Globe, Target, ArrowUpRight, User } from 'lucide-react';
+import { Zap, Cpu, Sliders, TrendingUp, Home, Loader2, Globe, Target, ArrowUpRight, Rocket } from 'lucide-react';
 import { AreaChart, Area, XAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useUser, UserButton } from '@clerk/nextjs';
 
 /**
  * DashboardPage - NeuralRouting Intelligence Console
- * 10/10 Integration: Connected to Unified Backend v11.0 (Railway)
+ * V11.0 Integration: Connected to Unified Backend (Railway)
  */
 export default function App() {
   const { user, isLoaded } = useUser();
@@ -28,10 +28,10 @@ export default function App() {
   const [simulation, setSimulation] = useState({ qImp: "0.0%", sImp: "0.0%", label: "System Nominal", loading: false });
   const [loading, setLoading] = useState(true);
 
-  // API Configuration (Railway Backend)
+  // API Configuration
   const API_BASE = "https://web-production-4f439.up.railway.app";
   const API_KEY = "nr-dev-secret-123";
-  const TARGET_USER_ID = "juan_dev_34"; // Synced with development account
+  const TARGET_USER_ID = "juan_dev_34"; 
 
   const getGlobalConfidenceLevel = (score) => {
     if (score >= 90) return "text-emerald-500";
@@ -42,29 +42,23 @@ export default function App() {
   // 1. Predictive Simulation
   const runSimulation = async (targetMode) => {
     setSimulation(prev => ({ ...prev, loading: true }));
-    try {
-      // Local UI simulation for immediate UX
-      setTimeout(() => {
-        setSimulation({
-          qImp: targetMode === 'Conservative' ? "+4.2%" : "-2.1%",
-          sImp: targetMode === 'Conservative' ? "-12.0%" : "+35.5%",
-          label: targetMode === 'Conservative' ? 'Risk Mitigation' : 'Maximum Savings',
-          loading: false
-        });
-      }, 800);
-    } catch (e) { 
-      console.error("Simulation failed", e);
-      setSimulation(prev => ({ ...prev, loading: false }));
-    }
+    setTimeout(() => {
+      setSimulation({
+        qImp: targetMode === 'Conservative' ? "+4.2%" : "-2.1%",
+        sImp: targetMode === 'Conservative' ? "-12.0%" : "+35.5%",
+        label: targetMode === 'Conservative' ? 'Risk Mitigation' : 'Maximum Savings',
+        loading: false
+      });
+    }, 800);
   };
 
-  // 2. Persistent Policy Update
+  // 2. Policy Update
   const updateRoutingPolicy = async (mode) => {
     setRoutingMode(mode);
     runSimulation(mode);
   };
 
-  // 3. Real Analytics Load (Sync with main.py)
+  // 3. Real Analytics Load
   useEffect(() => {
     async function loadDashboardData() {
       if (!isLoaded) return;
@@ -86,11 +80,7 @@ export default function App() {
             recommended_threshold: 5 + (data.at_risk_percent / 10)
           });
           
-          if (data.recent_decisions) {
-            setDecisions(data.recent_decisions);
-          } else {
-             setDecisions([]);
-          }
+          if (data.recent_decisions) setDecisions(data.recent_decisions);
           
           if (data.history) {
             setChartData(data.history.map((item) => ({ 
@@ -103,7 +93,7 @@ export default function App() {
                 { name: 'Mon', savings: 4.2, quality: 95 },
                 { name: 'Tue', savings: 3.8, quality: 92 },
                 { name: 'Wed', savings: 5.1, quality: 98 },
-                { name: 'Thu', savings: 2.5, quality: 90 },
+                { name: 'Thu', savings: stats.savings || 2.5, quality: (stats.quality || 0.9) * 100 },
             ]);
           }
         }
@@ -119,13 +109,12 @@ export default function App() {
   if (!isLoaded || loading) return (
     <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center">
       <Loader2 className="animate-spin text-blue-500 mb-4" size={40}/>
-      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 italic">Establishing Neural Node link...</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 italic">Syncing with Neural Node...</p>
     </div>
   );
 
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans selection:bg-blue-500/30 overflow-x-hidden relative">
-      {/* NAVIGATION */}
       <nav className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between text-white">
           <Link href="/" className="flex items-center gap-3 group">
@@ -146,29 +135,34 @@ export default function App() {
 
       <main className="max-w-7xl mx-auto px-6 py-12">
 
-        {/* UNREALIZED SAVINGS CARD */}
-        <div className="mb-12 p-8 rounded-[2.5rem] bg-gradient-to-r from-blue-600/20 to-emerald-600/10 border border-blue-500/30 shadow-[0_0_50px_rgba(37,99,235,0.05)] flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-5">
-            <div className="p-4 bg-blue-600 rounded-2xl shadow-lg shadow-blue-600/20"><Target size={28} className="text-white" /></div>
-            <div>
-              <h3 className="text-white font-black uppercase italic tracking-tighter text-xl leading-none">You’re missing revenue opportunities</h3>
-              <p className="text-[11px] text-blue-400 font-bold uppercase tracking-widest mt-2">The engine detected <span className="text-white">${stats.opt_opportunity_usd.toFixed(2)}</span> in uncaptured savings</p>
-            </div>
+        {/* UNREALIZED REVENUE SECTION (Dominant Header) */}
+        <div className="mb-16 flex flex-col items-center text-center">
+          <div className="p-4 bg-blue-600/20 rounded-full border border-blue-500/30 mb-6 animate-pulse">
+            <Target size={32} className="text-blue-500" />
           </div>
-          <div className="px-8 py-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl group cursor-help relative">
-            <h4 className="text-3xl font-black italic text-emerald-500 tracking-tighter flex items-center gap-2">
-              +${stats.opt_opportunity_usd.toFixed(2)}
-              <ArrowUpRight size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-            </h4>
-          </div>
+          <h1 className="text-4xl md:text-5xl font-black text-white uppercase italic tracking-tighter mb-4">
+            Intelligence Command Center
+          </h1>
+          <p className="text-zinc-500 max-w-2xl text-sm font-medium mb-10">
+            The engine detected <span className="text-white">${stats.opt_opportunity_usd.toFixed(2)}</span> in uncaptured savings this period. Optimize your neural routes now.
+          </p>
+
+          {/* ✅ DOMINANT ACTION BUTTON */}
+          <Link href="/chat" className="group relative">
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-emerald-500 rounded-2xl blur opacity-30 group-hover:opacity-70 transition duration-1000 group-hover:duration-200"></div>
+            <button className="relative flex items-center gap-4 px-12 py-6 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-500 transition-all active:scale-95 shadow-2xl">
+              <Rocket size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              Start Capturing Opportunities
+            </button>
+          </Link>
         </div>
 
         {/* OPERATIONAL METRICS */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
           <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-zinc-800 hover:border-zinc-700 transition-colors group">
-            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-1 group-hover:text-blue-500 transition-colors">Total Savings</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-1">Total Savings</p>
             <h2 className="text-4xl font-black italic text-white">${stats.savings.toFixed(3)}</h2>
-            <p className="text-[8px] font-bold text-zinc-600 mt-2 uppercase tracking-widest">{stats.requests} Analyzed Queries</p>
+            <p className="text-[8px] font-bold text-zinc-600 mt-2 uppercase tracking-widest">{stats.requests} Requests Analyzed</p>
           </div>
           
           <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-zinc-800 relative group overflow-hidden">
@@ -176,7 +170,7 @@ export default function App() {
             {stats.quality ? (
                 <>
                     <h2 className="text-4xl font-black italic text-white">{Number(stats.quality).toFixed(2)}</h2>
-                    <span className="absolute top-6 right-6 text-[8px] text-emerald-500 font-black uppercase bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Shadow Verified</span>
+                    <span className="absolute top-6 right-6 text-[8px] text-emerald-500 font-black uppercase bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Verified</span>
                 </>
             ) : (
                 <div className="flex flex-col gap-1">
@@ -197,7 +191,7 @@ export default function App() {
           <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-red-500/10 group">
             <p className="text-[9px] font-black uppercase tracking-[0.3em] text-red-500/70 mb-1">Risk Factor</p>
             <h2 className="text-4xl font-black italic text-white">{stats.risk.toFixed(1)}%</h2>
-            <p className="text-[8px] font-bold text-zinc-600 mt-2 uppercase tracking-widest group-hover:text-red-400 transition-colors italic">Suggest: +{stats.recommended_threshold.toFixed(0)}% Threshold</p>
+            <p className="text-[8px] font-bold text-zinc-600 mt-2 uppercase tracking-widest group-hover:text-red-400 transition-colors italic">Rec: +{stats.recommended_threshold.toFixed(0)}% Threshold</p>
           </div>
         </div>
 
@@ -236,7 +230,7 @@ export default function App() {
           <div className="lg:col-span-4 p-10 rounded-[3rem] bg-blue-600/5 border border-blue-500/20 relative overflow-hidden group shadow-2xl flex flex-col justify-between">
             <div className="relative z-10">
               <h4 className="text-white font-black italic uppercase tracking-tighter text-xl mb-2">Neural Simulator</h4>
-              <p className="text-[10px] text-blue-400 font-black uppercase tracking-widest mb-10 italic">Predictive State: {simulation.label}</p>
+              <p className="text-[10px] text-blue-400 font-black uppercase tracking-widest mb-10 italic">State: {simulation.label}</p>
               
               <div className="p-6 bg-black/60 rounded-[2rem] border border-white/5 backdrop-blur-md mb-6">
                   {simulation.loading ? (
@@ -277,8 +271,8 @@ export default function App() {
                 <div className="flex gap-4 items-center overflow-hidden">
                   <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dec.model_used?.includes('Premium') ? 'bg-blue-500 shadow-[0_0_10px_#3b82f6]' : 'bg-zinc-700'}`} />
                   <div className="overflow-hidden">
-                    <p className="text-[10px] text-white font-black uppercase italic truncate">{dec.model_used || "Node"}</p>
-                    <p className="text-[11px] text-zinc-500 font-bold truncate mt-1">{dec.prompt_preview || "Audited Request"}</p>
+                    <p className="text-[10px] text-white font-black uppercase italic truncate">{dec.model_used || "Neural Node"}</p>
+                    <p className="text-[11px] text-zinc-500 font-bold truncate mt-1">{dec.prompt_preview || "Request audited"}</p>
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0 pl-4">
@@ -286,7 +280,7 @@ export default function App() {
                 </div>
               </div>
             )) : (
-              <div className="col-span-2 text-center py-10 text-zinc-600 text-[10px] italic uppercase font-black">Waiting for backend telemetry...</div>
+              <div className="col-span-2 text-center py-10 text-zinc-600 text-[10px] italic uppercase font-black">Waiting for telemetry...</div>
             )}
           </div>
         </div>
