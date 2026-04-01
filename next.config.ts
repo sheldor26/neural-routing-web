@@ -1,12 +1,23 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
-    // Esto permite que el build termine aunque haya advertencias de variables sin usar
+    // Allows the build to finish even with linting warnings
     ignoreDuringBuilds: true,
   },
   typescript: {
-    // También podés ignorar errores de tipos en el build si estás muy apurado
+    // Ignores type errors during build for faster deployment
     ignoreBuildErrors: true,
+  },
+  // --- ADD THIS SECTION TO FIX THE 404 ---
+  async rewrites() {
+    return [
+      {
+        // When the frontend calls /v1/dispatch...
+        source: '/v1/:path*',
+        // ...forward the request to your FastAPI backend:
+        destination: 'https://web-production-4f439.up.railway.app/v1/:path*',
+      },
+    ]
   },
 };
 

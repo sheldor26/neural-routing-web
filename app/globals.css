@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Forzamos el esquema oscuro como base para NeuralRouting */
+  --background: #09090b;
+  --foreground: #ececec;
+  --zinc-800: #27272a;
+  --zinc-900: #18181b;
 }
 
 @theme inline {
@@ -12,15 +15,45 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* --- NEURAL SCROLLBAR GLOBAL FIX --- */
+/* Personalización para Chrome, Safari y Edge */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--zinc-800);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46; /* zinc-700 */
+}
+
+/* Personalización para Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--zinc-800) transparent;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  /* Evitamos el rebote elástico en móviles para que se sienta como una App */
+  overscroll-behavior-y: none; 
+}
+
+/* Utility para ocultar scrollbars si fuera necesario */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

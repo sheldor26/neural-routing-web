@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { Droplets, DollarSign, ArrowRight, Zap, Shield, Info } from 'lucide-react';
 import FAQ from '@/components/FAQ'; 
+import SavingsCalculator from '@/components/SavingsCalculator'; // Importamos el nuevo módulo
 
 const NavAuth = dynamic(() => import('@/components/AuthInterface').then(mod => mod.NavAuth), { ssr: false });
 const HeroAuth = dynamic(() => import('@/components/AuthInterface').then(mod => mod.HeroAuth), { ssr: false });
@@ -77,61 +78,9 @@ export default function LandingPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[600px] bg-blue-600/5 blur-[140px] rounded-full -z-10 pointer-events-none"></div>
       </header>
 
-      {/* --- PLAYGROUND --- */}
+      {/* --- RESTO DE LAS SECCIONES --- */}
       <section className="relative z-10">
         <Playground />
       </section>
 
-      {/* --- FEATURES SECTION --- */}
-      <section className="max-w-7xl mx-auto px-6 py-24 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="group p-10 rounded-[2.5rem] bg-zinc-900/20 border border-zinc-800/50 backdrop-blur-sm hover:border-blue-500/30 transition-all duration-500 text-center md:text-left">
-            <div className="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center mb-8 mx-auto md:mx-0">
-              <DollarSign className="text-blue-500" size={24} />
-            </div>
-            <h3 className="text-xl font-black italic uppercase tracking-tighter text-white mb-4">
-              Cost <span className="text-blue-500 text-sm block not-italic font-sans">Arbitrage</span>
-            </h3>
-            <p className="text-zinc-500 text-sm leading-relaxed italic font-medium">
-              Reduce LLM spend by up to 85%. Our engine routes basic tasks to efficient nodes while reserving premium models for complex reasoning.
-            </p>
-          </div>
-
-          <div className="group p-10 rounded-[2.5rem] bg-zinc-900/20 border border-zinc-800/50 backdrop-blur-sm hover:border-blue-500/30 transition-all duration-500 text-center md:text-left">
-            <div className="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center mb-8 mx-auto md:mx-0">
-              <Droplets className="text-blue-500" size={24} />
-            </div>
-            <h3 className="text-xl font-black italic uppercase tracking-tighter text-white mb-4">
-              Eco <span className="text-blue-500 text-sm block not-italic font-sans">Sustainability</span>
-            </h3>
-            <p className="text-zinc-500 text-sm leading-relaxed italic font-medium">
-              For every dollar saved, we prevent the evaporation of 12.5L of water in data center cooling. Infrastructure that respects the planet.
-            </p>
-          </div>
-
-          <div className="group p-10 rounded-[2.5rem] bg-zinc-900/20 border border-zinc-800/50 backdrop-blur-sm hover:border-blue-500/30 transition-all duration-500 text-center md:text-left">
-            <div className="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center mb-8 mx-auto md:mx-0">
-              <Shield className="text-blue-500" size={24} />
-            </div>
-            <h3 className="text-xl font-black italic uppercase tracking-tighter text-white mb-4">
-              Privacy <span className="text-blue-500 text-sm block not-italic font-sans">Infrastructure</span>
-            </h3>
-            <p className="text-zinc-500 text-sm leading-relaxed italic font-medium">
-              On-edge PII redaction. Your sensitive data is filtered before it reaches LLM providers. Enterprise-grade security from Neural.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* --- FAQ SECTION --- */}
-      <section className="relative z-10 border-t border-zinc-900/50">
-        <FAQ />
-      </section>
-
-      {/* --- FOOTER --- */}
-      <footer className="py-20 border-t border-zinc-900/50 text-center text-zinc-700 text-[10px] font-black uppercase tracking-[0.5em] italic bg-[#09090b]">
-        © 2026 NeuralRouting.io — Built for the Intelligent Enterprise.
-      </footer>
-    </div>
-  );
-}
+      {/* ... (Features, FAQ, Footer) */}

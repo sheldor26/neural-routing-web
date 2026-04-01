@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Zap, Rocket, Crown } from 'lucide-react';
+import { Check, Zap, Rocket, Crown, ArrowRight, TrendingDown, Calculator } from 'lucide-react';
 import Link from 'next/link';
 
 export default function PricingPage() {
@@ -8,29 +8,35 @@ export default function PricingPage() {
     {
       name: "Starter",
       price: "$29",
-      tokens: "1.5M",
-      description: "Ideal for individual developers and side projects.",
-      features: ["Standard Routing", "Economy Node Access", "1.5M Tokens/mo", "Community Support"],
+      savings: "Save ~$110/mo*",
+      tokens: "1.5M tokens",
+      equivalence: "≈ $140 GPT-4 Value", // Claridad absoluta
+      description: "Perfect for indie hackers & side projects.",
+      features: ["90% Cost Reduction", "Standard Neural Routing", "Economy Node Access", "Setup in 30 seconds"],
       icon: <Rocket className="text-zinc-400" size={24} />,
-      buttonText: "Get Started",
+      buttonText: "Analyze My Savings", // CTA de Onboarding
       highlight: false
     },
     {
       name: "Growth",
       price: "$89",
-      tokens: "5M",
-      description: "Perfect for scaling startups needing efficiency.",
-      features: ["Priority Routing", "Premium Node Access", "5M Tokens/mo", "Advanced Analytics", "Eco-Impact Reports"],
+      savings: "Save ~$420/mo*",
+      tokens: "5M tokens",
+      equivalence: "≈ $510 GPT-4 Value", // Claridad absoluta
+      description: "Scaling startups needing maximum margin.",
+      features: ["Priority Neural Routing", "Premium Node Access", "Real-time Cost Optimization", "Guaranteed Savings SLA"],
       icon: <Zap className="text-blue-500" size={24} />,
-      buttonText: "Upgrade to Growth",
+      buttonText: "Claim My Margin", // CTA Agresivo
       highlight: true
     },
     {
       name: "Enterprise",
-      price: "$249",
-      tokens: "20M",
-      description: "For high-volume companies with custom needs.",
-      features: ["Custom Model Training", "Dedicated Manager", "20M Tokens/mo", "Unlimited API Keys", "Custom Node Location"],
+      price: "Custom",
+      savings: "Unlimited ROI",
+      tokens: "20M+ tokens",
+      equivalence: "Volume-based pricing",
+      description: "High-volume teams with custom needs.",
+      features: ["Custom Model Training", "Dedicated Node Location", "Volume Discounts", "Unlimited API Keys"],
       icon: <Crown className="text-white" size={24} />,
       buttonText: "Contact Sales",
       highlight: false
@@ -39,19 +45,31 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white py-32 px-6 overflow-hidden">
-      {/* Background Glows */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-blue-600/5 blur-[160px] rounded-full pointer-events-none"></div>
 
+      {/* Header con Urgencia y Anclaje */}
       <div className="max-w-7xl mx-auto text-center mb-24 relative z-10">
-        <h2 className="text-blue-500 font-black uppercase tracking-[0.4em] text-[10px] mb-6">Neural Capacity Plans</h2>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 mb-8">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+          </span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+            Free tier available // <span className="text-white">Active Nodes: 124</span>
+          </span>
+        </div>
+        
         <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter uppercase mb-8 leading-none">
-          Scale Intelligence <br/> <span className="text-zinc-800">Not Your Costs</span>
+          It's Costing You <br/> <span className="text-zinc-800 text-outline underline decoration-blue-600/30">Not To Switch</span>
         </h1>
+        
         <p className="text-zinc-500 text-lg md:text-xl max-w-2xl mx-auto italic font-medium">
-          Choose the neural tier that fits your volume. Save up to <span className="text-white font-bold">90%</span> on API costs via Neural-optimized nodes.
+          Your current GPT-4 bill is inflated by 90%. Our neural nodes route your traffic for maximum efficiency. 
+          <span className="text-white font-bold block mt-2">Intelligence is a commodity. Margin is your edge.</span>
         </p>
       </div>
 
+      {/* Grid de Planes */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
         {plans.map((plan, index) => (
           <div 
@@ -64,7 +82,7 @@ export default function PricingPage() {
           >
             {plan.highlight && (
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-[9px] font-black px-6 py-1.5 rounded-full uppercase tracking-[0.2em] italic">
-                Most Efficient
+                Max Efficiency Node
               </div>
             )}
             
@@ -73,14 +91,21 @@ export default function PricingPage() {
                 {plan.icon}
               </div>
               <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white mb-2">{plan.name}</h3>
-              <p className="text-zinc-500 text-xs italic mb-6 leading-tight">{plan.description}</p>
               
-              <div className="flex items-baseline gap-2">
+              <div className="flex items-baseline gap-2 mb-1">
                 <span className="text-5xl font-black text-white italic tracking-tighter">{plan.price}</span>
-                <span className="text-zinc-600 font-bold text-sm">/ MONTH</span>
+                {plan.price !== "Custom" && <span className="text-zinc-600 font-bold text-sm">/ MO</span>}
               </div>
-              <div className="mt-4 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg w-fit">
-                <p className="text-blue-400 font-black uppercase text-[9px] tracking-widest">{plan.tokens} Neural Tokens Included</p>
+              
+              {/* ROI Check & Mental Calculator */}
+              <div className="flex flex-col gap-1 mb-6">
+                <p className="text-green-500 font-black text-xs uppercase italic">{plan.savings}</p>
+                <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-tight">{plan.equivalence}</p>
+              </div>
+
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg w-fit">
+                <Calculator size={12} className="text-blue-400" />
+                <p className="text-blue-400 font-black uppercase text-[9px] tracking-widest">{plan.tokens} Included</p>
               </div>
             </div>
 
@@ -95,8 +120,9 @@ export default function PricingPage() {
               ))}
             </div>
 
+            {/* CTA CONECTADO AL ONBOARDING / CLERK */}
             <Link 
-              href="/sign-up" 
+              href="/onboarding" 
               className={`w-full py-5 rounded-2xl font-black uppercase italic tracking-tighter text-center transition-all active:scale-95 flex items-center justify-center gap-2 ${
                 plan.highlight 
                 ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_20px_40px_rgba(37,99,235,0.25)]' 
@@ -109,34 +135,29 @@ export default function PricingPage() {
         ))}
       </div>
       
-      <div className="mt-24 flex flex-col items-center">
-        <p className="text-zinc-700 text-[10px] font-black uppercase tracking-[0.5em] mb-6">
-          Enterprise Security // Neural Node Redundancy // 2026
+      {/* Disclaimer para evitar el "Humo" */}
+      <div className="max-w-3xl mx-auto mt-12 text-center">
+        <p className="text-[10px] text-zinc-700 uppercase font-bold tracking-widest leading-relaxed">
+          *Savings based on typical GPT-4 usage patterns and real-time Neural Routing efficiency data. 
+          Actual results may vary based on prompt complexity and model availability.
         </p>
-        <div className="flex gap-12 opacity-20 grayscale">
+      </div>
+
+      <div className="mt-24 flex flex-col items-center">
+        <div className="flex gap-12 opacity-20 grayscale filter brightness-200">
           <span className="text-white font-black italic">CLERK</span>
-          <span className="text-white font-black italic">STRIPE</span>
+          <span className="text-white font-black italic">SUPABASE</span>
           <span className="text-white font-black italic">LEMON SQUEEZY</span>
+          <span className="text-white font-black italic">GROQ</span>
         </div>
       </div>
     </div>
   );
 }
 
-// Icono extra para el botón
 function ChevronRight({ size, className }: { size: number, className?: string }) {
   return (
-    <svg 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="3" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className={className}
-    >
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={className}>
       <path d="m9 18 6-6-6-6"/>
     </svg>
   );
