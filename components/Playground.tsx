@@ -3,13 +3,13 @@ import { useState } from 'react';
 import { Loader2, CheckCircle2, AlertCircle, Zap } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 
-// ✅ REPARACIÓN 1: La interface debe coincidir con el JSON aplanado del Backend
+// ✅ REPARACIÓN 1: Definimos la interface según el nuevo JSON del Backend
 interface RoutingResult {
   status: string;
-  model_used: string;    // Antes estaba anidado en routing
-  tier: string;          // Antes estaba anidado en routing
-  latency_ms: number;    // Antes estaba anidado en routing
-  confidence: number;    // Antes estaba anidado en routing
+  model_used: string;    // Raíz
+  tier: string;          // Raíz
+  latency_ms: number;    // Raíz
+  confidence: number;    // Raíz
   output: {
     ai_answer: string;
   };
@@ -40,7 +40,6 @@ export default function Playground() {
           messages: [
             { role: "user", content: prompt.trim() }
           ],
-          // ✅ REPARACIÓN 2: Usamos el ID real del usuario si existe, sino el fallback
           user_id: user?.id || "juan_dev_34", 
           session_id: "playground_live_session" 
         })
@@ -103,7 +102,7 @@ export default function Playground() {
           </div>
         )}
 
-        {/* ✅ REPARACIÓN 3: Cambiamos result.routing.X por result.X */}
+        {/* ✅ REPARACIÓN 2: Acceso directo a las propiedades sin .routing */}
         {result && (
           <div className="mt-10 p-8 bg-black border border-blue-500/20 rounded-[2rem] animate-in fade-in zoom-in duration-500 shadow-2xl">
              <div className="flex flex-wrap justify-between items-center gap-4 mb-6 pb-6 border-b border-zinc-800">
@@ -138,7 +137,7 @@ export default function Playground() {
                    Latency: {result.latency_ms}ms
                  </p>
                  <p className="text-center text-[9px] text-zinc-700 font-bold uppercase tracking-[0.3em]">
-                   {/* ✅ Aquí se arregla el NaN% */}
+                   {/* ✅ REPARACIÓN 3: Formateo de Confidence seguro */}
                    Confidence: {(Number(result.confidence || 0) * 100).toFixed(0)}%
                  </p>
                </div>
