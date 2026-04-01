@@ -2,41 +2,39 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    // 1. Receive data from the React component
-    const { messages, userId, sessionId } = await req.json();
+    const { messages, sessionId } = await req.json();
 
-    // Use the registered ID if the user is not logged in via Clerk
-    const FINAL_USER_ID = userId === "guest_user" ? "juan_dev_34" : userId;
+    // ✅ ID fijo que existe en tu tabla api_keys de Supabase
+    const FINAL_USER_ID = "juan_dev_34";
 
     const RAILWAY_URL = "https://web-production-4f439.up.railway.app/v1/dispatch";
-    // Cache busting timestamp to ensure fresh neural routing
     const FINAL_URL = `${RAILWAY_URL}?t=${Date.now()}`;
 
-    // 2. Uplink to Railway Neural Node
+    console.log("🚀 Enviando a Railway:", { user_id: FINAL_USER_ID, session_id: sessionId });
+
     const response = await fetch(FINAL_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // UPDATED: Using your production secret key
-        'X-API-KEY': 'nr-dev-secret-123', 
+        'X-API-KEY': 'nr-dev-secret-123',
       },
       body: JSON.stringify({
-        messages: messages, 
-        // UPDATED: Ensuring the ID matches the one in your Supabase 'api_keys' table
+        messages: messages,
         user_id: FINAL_USER_ID,
-        session_id: sessionId || "default_session" 
+        session_id: sessionId || "default_session"
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("Railway Node Error Detail:", errorData);
+      console.error("❌ Railway Status:", response.status);
+      console.error("❌ Railway Error Detail:", JSON.stringify(errorData));
       throw new Error(errorData.detail || `Neural Error: ${response.status}`);
     }
 
     const data = await response.json();
+    console.log("✅ Railway Response:", JSON.stringify(data));
 
-    // 3. Formatted Response for the Frontend
     return NextResponse.json({
       role: 'assistant',
       content: data.output?.ai_answer || data.content,

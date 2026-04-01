@@ -171,6 +171,7 @@ export default function FullChatPage() {
   };
 
   const handleSendMessage = async () => {
+ const handleSendMessage = async () => {
     if (!input.trim() || isTyping) return;
 
     if (!user) {
@@ -189,14 +190,18 @@ export default function FullChatPage() {
     setInput("");
     setIsTyping(true);
 
+    // ✅ console.log FUERA del objeto, antes del fetch
+    const userIdToSend = user?.primaryEmailAddress?.emailAddress || "juan_dev_34";
+    console.log("userId enviado:", userIdToSend);
+    console.log("sessionId:", sessionId);
+
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           messages: currentContext, 
-          // IDENTITY FIX: Default to 'juan_dev_34' to match your backend api_keys table
-          userId: user?.primaryEmailAddress?.emailAddress || "juan_dev_34",
+          userId: userIdToSend,  // ✅ limpio
           sessionId: sessionId 
         }),
       });
