@@ -65,7 +65,7 @@ export default function FullChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Unifica el ID de destino para lectura y escritura
+  // Helper para mantener consistencia con el backend de Railway
   const getTargetId = () => user?.primaryEmailAddress?.emailAddress || "juan_dev_34";
 
   useEffect(() => {
@@ -82,7 +82,7 @@ export default function FullChatPage() {
       fetchSessions();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, user?.id]); // Recargar sesiones cuando el ID del usuario cambie
+  }, [isLoaded, user?.id]); // Recargar cada vez que el ID cambie
 
   useEffect(() => {
     if (scrollRef.current && isTyping) {
@@ -95,9 +95,10 @@ export default function FullChatPage() {
   }, [messages, isTyping]);
 
   const fetchSessions = async () => {
-    const targetId = getTargetId(); 
+    const targetId = getTargetId(); // Sincronizado
     try {
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${targetId}`);
+      if (!response.ok) return;
       const data = await response.json();
       if (Array.isArray(data)) setSessions(data);
     } catch (e) { console.error("Session Fetch Error", e); }
@@ -186,7 +187,7 @@ export default function FullChatPage() {
     const userMsg: ChatMessage = { role: 'user', content: currentPrompt };
     const currentContext = [...messages, userMsg];
     
-    // El sidebar solo muestra chats con título, por lo que forzamos guardado inicial
+    // Identificar primer mensaje para forzar visibilidad
     const isFirstRealMessage = messages.length <= 1; 
 
     setMessages(prev => [...prev, userMsg]);
@@ -199,14 +200,13 @@ export default function FullChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: currentContext,
-          userId: getTargetId(), // Sincronizado con fetchSessions
+          userId: getTargetId(), // Coherencia de ID
           sessionId: sessionId
         }),
       });
 
       const data = await response.json();
       const aiAnswer = data.content?.replace(/^User:.*?\n/i, '').trim();
-      const aiSuggestedTitle = data.suggested_title;
 
       if (aiAnswer) {
         setMessages(prev => [...prev, {
@@ -219,12 +219,11 @@ export default function FullChatPage() {
           }
         }]);
 
-        // FORZADO DE VISIBILIDAD: Rename hace que la sesión aparezca en el sidebar
+        // FORZADO DE TÍTULO: Sin título no aparece en Infrastructure Logs
         if (isFirstRealMessage) {
-          const finalTitle = aiSuggestedTitle || 
-            (currentPrompt.substring(0, 25) + "...");
+          const finalTitle = data.suggested_title || (currentPrompt.substring(0, 25) + "...");
           await renameSession(sessionId, finalTitle);
-          fetchSessions();
+          fetchSessions(); // Recarga sidebar
         } else {
           fetchSessions();
         }
