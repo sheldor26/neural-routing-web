@@ -3,20 +3,20 @@ import { useState } from 'react';
 import { Loader2, CheckCircle2, AlertCircle, Zap } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 
+// ✅ REPARACIÓN 1: La interface debe coincidir con el JSON aplanado del Backend
 interface RoutingResult {
-  routing: {
-    tier: string;
-    model_used: string;
-    latency_ms: number;
-    confidence: number;
-  };
+  status: string;
+  model_used: string;    // Antes estaba anidado en routing
+  tier: string;          // Antes estaba anidado en routing
+  latency_ms: number;    // Antes estaba anidado en routing
+  confidence: number;    // Antes estaba anidado en routing
   output: {
     ai_answer: string;
   };
 }
 
 export default function Playground() {
-  const { isLoaded } = useUser();
+  const { isLoaded, user } = useUser();
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState<RoutingResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -30,7 +30,6 @@ export default function Playground() {
     setResult(null);
 
     try {
-      // Direct connection to your production endpoint
       const response = await fetch(`/v1/dispatch`, {
         method: "POST",
         headers: {
@@ -41,18 +40,15 @@ export default function Playground() {
           messages: [
             { role: "user", content: prompt.trim() }
           ],
-          // Hardcoded to match your Supabase 'api_keys' table entry
-          user_id: "juan_dev_34", 
+          // ✅ REPARACIÓN 2: Usamos el ID real del usuario si existe, sino el fallback
+          user_id: user?.id || "juan_dev_34", 
           session_id: "playground_live_session" 
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const detail = Array.isArray(errorData.detail) 
-          ? errorData.detail[0].msg 
-          : errorData.detail;
-        throw new Error(detail || `Neural Node Error: ${response.status}`);
+        throw new Error(errorData.detail || `Neural Node Error: ${response.status}`);
       }
       
       const data = await response.json();
@@ -69,7 +65,7 @@ export default function Playground() {
     <section id="playground" className="max-w-4xl mx-auto px-6 py-20 relative z-30">
       <div className="bg-zinc-900/50 border border-zinc-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl backdrop-blur-md">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold mb-4 italic tracking-tight uppercase">Live Routing Simulator</h2>
+          <h2 className="text-3xl font-bold mb-4 italic tracking-tight uppercase text-white">Live Routing Simulator</h2>
           <p className="text-zinc-500 max-w-md mx-auto italic text-sm">
             Experience how the engine selects the most efficient model for your query in real-time.
           </p>
@@ -79,7 +75,7 @@ export default function Playground() {
           <textarea 
             className="w-full bg-black border border-zinc-700 rounded-2xl p-6 text-white focus:border-blue-500 outline-none transition placeholder:text-zinc-800 text-lg resize-none shadow-inner"
             rows={3}
-            placeholder="Type something complex (e.g., Write a React hook for Supabase auth)..."
+            placeholder="Type something complex..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
           />
@@ -87,7 +83,7 @@ export default function Playground() {
           <button 
             onClick={(e) => { e.preventDefault(); testRoute(); }}
             disabled={loading || !prompt || !isLoaded}
-            className="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 disabled:opacity-30 py-5 rounded-2xl font-black text-xl transition-all flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(37,99,235,0.3)] cursor-pointer"
+            className="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 disabled:opacity-30 py-5 rounded-2xl font-black text-xl text-white transition-all flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(37,99,235,0.3)] cursor-pointer"
           >
             {loading ? (
               <>
@@ -107,6 +103,7 @@ export default function Playground() {
           </div>
         )}
 
+        {/* ✅ REPARACIÓN 3: Cambiamos result.routing.X por result.X */}
         {result && (
           <div className="mt-10 p-8 bg-black border border-blue-500/20 rounded-[2rem] animate-in fade-in zoom-in duration-500 shadow-2xl">
              <div className="flex flex-wrap justify-between items-center gap-4 mb-6 pb-6 border-b border-zinc-800">
@@ -117,7 +114,7 @@ export default function Playground() {
                  </span>
                </div>
                <div className="px-4 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 text-[9px] font-black uppercase">
-                 Tier: {result.routing.tier}
+                 Tier: {result.tier}
                </div>
              </div>
 
@@ -128,20 +125,21 @@ export default function Playground() {
                     <p className="text-[10px] font-black uppercase tracking-[0.2em]">Model Selected</p>
                   </div>
                   <p className="text-blue-400 font-mono bg-blue-500/5 w-fit px-3 py-1 rounded-md text-[11px] border border-blue-500/20 uppercase">
-                    {result.routing.model_used}
+                    {result.model_used}
                   </p>
                </div>
 
                <div className="p-6 bg-zinc-900/30 rounded-2xl text-zinc-100 text-sm leading-relaxed border border-zinc-800/50 font-medium italic text-center">
-                 "{result.output.ai_answer}"
+                 "{result.output?.ai_answer}"
                </div>
 
                <div className="flex justify-center gap-8">
                  <p className="text-center text-[9px] text-zinc-700 font-bold uppercase tracking-[0.3em]">
-                   Latency: {result.routing.latency_ms}ms
+                   Latency: {result.latency_ms}ms
                  </p>
                  <p className="text-center text-[9px] text-zinc-700 font-bold uppercase tracking-[0.3em]">
-                   Confidence: {(result.routing.confidence * 100).toFixed(0)}%
+                   {/* ✅ Aquí se arregla el NaN% */}
+                   Confidence: {(Number(result.confidence || 0) * 100).toFixed(0)}%
                  </p>
                </div>
              </div>
