@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { Zap, Shield, BarChart3, ArrowRight, CheckCircle2, AlertCircle, Code, Cpu, TrendingDown, Lock, ZapOff, Timer, Activity } from 'lucide-center';
+import { Zap, Shield, BarChart3, ArrowRight, CheckCircle2, AlertCircle, Code, Cpu, TrendingDown, Lock, ZapOff, Timer, Activity } from 'lucide-react';
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import FAQ from '@/components/FAQ'; 
 import SavingsCalculator from '@/components/SavingsCalculator';
