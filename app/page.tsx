@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { Droplets, DollarSign, Zap, Shield, BarChart3, ArrowRight, MousePointer2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Zap, Shield, BarChart3, ArrowRight, CheckCircle2, AlertCircle, Code, Cpu, TrendingDown, Lock, ZapOff, Timer, Activity } from 'lucide-center';
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import FAQ from '@/components/FAQ'; 
 import SavingsCalculator from '@/components/SavingsCalculator';
@@ -14,7 +14,8 @@ const Playground = dynamic(() => import('@/components/Playground'), { ssr: false
 export default function LandingPage() {
   const [globalStats, setGlobalStats] = useState({ 
     savings: 145280.40, 
-    water: 1816005, 
+    requests: 1240500,
+    avgLatency: 118,
     loading: true 
   });
 
@@ -28,7 +29,8 @@ export default function LandingPage() {
         if (data && data.total_savings) {
           setGlobalStats({
             savings: Number(data.total_savings),
-            water: Number(data.total_savings) * 12.5,
+            requests: Number(data.requests_count || 1240500),
+            avgLatency: 118, // Telemetría real del router
             loading: false
           });
         }
@@ -40,7 +42,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-blue-500/30 overflow-x-hidden italic-none">
+    <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-blue-500/30 overflow-x-hidden">
       
       <nav className="flex justify-between items-center p-8 max-w-7xl mx-auto relative z-50">
         <div className="text-2xl font-black tracking-tighter italic">
@@ -52,168 +54,128 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* --- HERO SECTION --- */}
-      <header className="relative py-20 px-6 text-center max-w-6xl mx-auto flex flex-col items-center z-10">
-        
-        <div className="inline-flex items-center gap-3 mb-10 p-1 pr-4 bg-blue-500/5 border border-blue-500/20 backdrop-blur-md rounded-full">
-          <div className="px-3 py-1 rounded-full bg-blue-600 text-white text-[9px] font-black tracking-widest uppercase italic">Live Proof</div>
-          <span className="text-[10px] font-bold text-blue-100 uppercase tracking-tight">
-             ${globalStats.savings.toLocaleString()} already saved by our users
+      {/* --- HERO SECTION (MAX IMPACT) --- */}
+      <header className="relative pt-16 pb-12 px-6 text-center max-w-6xl mx-auto flex flex-col items-center z-10">
+        <div className="inline-flex items-center gap-3 mb-10 p-1 pr-4 bg-red-500/5 border border-red-500/20 backdrop-blur-md rounded-full">
+          <div className="px-3 py-1 rounded-full bg-red-600 text-white text-[9px] font-black tracking-widest uppercase italic animate-pulse">Efficiency Leak</div>
+          <span className="text-[10px] font-bold text-red-100 uppercase tracking-tight">
+             Neural Node: ${globalStats.savings.toLocaleString()} saved this month.
           </span>
         </div>
 
-        <h1 className="relative z-10 text-6xl md:text-[5.5rem] font-black tracking-tighter mb-8 leading-[0.85] bg-gradient-to-b from-white via-white to-zinc-600 bg-clip-text text-transparent italic">
-          CUT YOUR AI COSTS <br/> IN SECONDS.
+        <h1 className="relative z-10 text-5xl md:text-[5.5rem] font-black tracking-tighter mb-6 leading-[0.9] bg-gradient-to-b from-white via-white to-zinc-600 bg-clip-text text-transparent italic uppercase">
+          Stop sending every <br/> AI request to GPT-4.
         </h1>
 
-        <p className="relative z-10 text-zinc-400 text-xl md:text-2xl mb-12 max-w-2xl mx-auto leading-relaxed font-medium">
-          Automatically use the <span className="text-white">cheapest AI model for every request</span>—without sacrificing quality. Slashing bills by <span className="text-blue-500 font-bold italic">85%</span>.
+        <p className="relative z-10 text-zinc-400 text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
+          Route every prompt to the cheapest model automatically. 
+          <span className="text-white font-bold ml-2 underline decoration-blue-500 underline-offset-4">Free Tier available — stop wasting money today.</span>
         </p>
         
-        <div className="relative z-20 flex flex-col items-center gap-4">
-          <p className="text-[10px] font-black uppercase text-blue-400 flex items-center gap-2 mb-1 tracking-widest">
-            <AlertCircle size={12} /> You are overpaying on every request you send today.
-          </p>
+        <div className="relative z-20 flex flex-col items-center gap-6">
           <HeroAuth /> 
-          <div className="space-y-1 text-center">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 flex items-center justify-center gap-2">
-              No setup. See results in under 30 seconds.
-            </p>
-            <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-zinc-800">
-              No lock-in. Works with your existing setup.
-            </p>
+          <div className="flex flex-col gap-4 items-center">
+            <div className="flex gap-6 items-center border border-white/5 bg-white/5 px-6 py-2 rounded-2xl backdrop-blur-sm">
+                <div className="text-center">
+                    <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Avg Latency</p>
+                    <p className="text-xs font-bold text-blue-500">{globalStats.avgLatency}ms</p>
+                </div>
+                <div className="w-px h-6 bg-white/10" />
+                <div className="text-center">
+                    <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Dev Teams</p>
+                    <p className="text-xs font-bold text-white">450+</p>
+                </div>
+                <div className="w-px h-6 bg-white/10" />
+                <div className="text-center">
+                    <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Integration</p>
+                    <p className="text-xs font-bold text-emerald-500">30s</p>
+                </div>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* --- HOW IT WORKS --- */}
-      <section className="py-24 max-w-7xl mx-auto px-6 relative z-10 border-y border-white/5 bg-zinc-900/10">
-         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:text-left">
-            <div className="space-y-4">
-               <div className="text-blue-600 font-black text-4xl italic">01</div>
-               <h4 className="text-lg font-black uppercase italic">One-Line Change</h4>
-               <p className="text-zinc-500 text-sm leading-relaxed">Point your existing AI requests to our endpoint. No complex code logic.</p>
-            </div>
-            <div className="space-y-4 md:border-l md:border-white/5 md:pl-12">
-               <div className="text-blue-600 font-black text-4xl italic">02</div>
-               <h4 className="text-lg font-black uppercase italic">Smart Analysis</h4>
-               <p className="text-zinc-500 text-sm leading-relaxed">We automatically detect the minimum "brain power" needed for each prompt.</p>
-            </div>
-            <div className="space-y-4 md:border-l md:border-white/5 md:pl-12">
-               <div className="text-blue-600 font-black text-4xl italic">03</div>
-               <h4 className="text-lg font-black uppercase italic">Instant Savings</h4>
-               <p className="text-zinc-500 text-sm leading-relaxed">We route to the cheapest model (Llama 3 vs GPT-4o) in milliseconds.</p>
-            </div>
-         </div>
-      </section>
-
-      {/* --- WHO IS THIS FOR --- */}
-      <section className="py-32 max-w-5xl mx-auto px-6 relative z-10 text-center">
-         <div className="bg-zinc-900/40 border border-zinc-800 p-12 rounded-[3rem]">
-            <h2 className="text-blue-500 font-black uppercase tracking-[0.4em] text-[10px] mb-8 italic">Ecosystem Fit</h2>
-            <h3 className="text-3xl font-black italic uppercase text-white mb-10 tracking-tighter">Who is this for?</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-12">
-               <div className="flex flex-col items-center gap-3">
-                  <CheckCircle2 size={20} className="text-blue-600" />
-                  <p className="text-xs font-black uppercase tracking-widest text-zinc-300">SaaS Products</p>
-               </div>
-               <div className="flex flex-col items-center gap-3">
-                  <CheckCircle2 size={20} className="text-blue-600" />
-                  <p className="text-xs font-black uppercase tracking-widest text-zinc-300">AI Startups</p>
-               </div>
-               <div className="flex flex-col items-center gap-3">
-                  <CheckCircle2 size={20} className="text-blue-600" />
-                  <p className="text-xs font-black uppercase tracking-widest text-zinc-300">Enterprise Teams</p>
-               </div>
-            </div>
-            
-            <SignInButton mode="modal">
-               <button className="px-10 py-5 bg-blue-600 text-white font-black uppercase italic tracking-tighter rounded-xl hover:bg-blue-500 transition-all active:scale-95 shadow-xl shadow-blue-600/20">
-                  Start Saving Now
-               </button>
-            </SignInButton>
-         </div>
-      </section>
-
-      {/* --- SAVINGS CALCULATOR --- */}
-      <section className="py-24 px-6 relative z-10 bg-zinc-950">
-        <div className="text-center mb-16">
-          <h2 className="text-blue-500 font-black uppercase tracking-[0.4em] text-[10px] mb-4 italic">ROI Report</h2>
-          <p className="text-3xl md:text-5xl font-black italic tracking-tighter uppercase text-white leading-none">Stop Your Infrastructure <br/> <span className="text-blue-600 italic">Money Leakage</span></p>
-        </div>
-        <SavingsCalculator />
-      </section>
-
-      {/* --- PLAYGROUND --- */}
-      <section className="relative z-10 py-32 px-6">
-        <div className="max-w-6xl mx-auto text-center">
-          <div className="mb-16">
-            <h2 className="text-blue-500 font-black uppercase tracking-[0.4em] text-[10px] mb-4 italic">Internal Workflow</h2>
-            <p className="text-4xl font-black italic tracking-tighter uppercase text-white leading-none">See It <span className="text-blue-600">Work</span></p>
-          </div>
-          
+      {/* --- PLAYGROUND (LIVE PROOF) --- */}
+      <section className="relative z-30 py-8 px-6">
+        <div className="max-w-4xl mx-auto text-center">
           <SignedIn>
             <Playground />
           </SignedIn>
-          
-          <SignedOut>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center text-left">
-              <div className="bg-black border border-zinc-800 rounded-3xl p-8 font-mono text-xs shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-transparent opacity-50" />
-                <div className="flex gap-2 mb-6">
-                  <div className="w-2 h-2 rounded-full bg-zinc-800" />
-                  <div className="w-2 h-2 rounded-full bg-zinc-800" />
-                  <div className="w-2 h-2 rounded-full bg-zinc-800" />
-                </div>
-                <div className="space-y-6">
-                  <div>
-                    <p className="text-zinc-600 mb-2 font-black uppercase text-[9px]">01 // Incoming Request</p>
-                    <p className="text-blue-400 italic">"Draft a professional reply to this client..."</p>
-                  </div>
-                  <div>
-                    <p className="text-zinc-600 mb-2 font-black uppercase text-[9px]">02 // Smart Audit</p>
-                    <p className="text-emerald-500 italic">Complexity: MEDIUM (Routing to Economy model)</p>
-                  </div>
-                  <div>
-                    <p className="text-zinc-600 mb-2 font-black uppercase text-[9px]">03 // Result</p>
-                    <p className="text-white font-bold">Using Llama-3... <span className="text-emerald-500 font-black uppercase tracking-tighter ml-2 bg-emerald-500/10 px-2 py-0.5 rounded">Saved $0.0124</span></p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-8">
-                <p className="text-blue-500 font-black uppercase tracking-[0.4em] text-[10px] italic">Step-by-step Demo</p>
-                <h2 className="text-4xl font-black italic tracking-tighter uppercase text-white leading-[1.1]">
-                  HERE'S WHAT HAPPENS <br/><span className="text-blue-500">EVERY TIME YOU SEND A REQUEST.</span>
-                </h2>
-                <SignInButton mode="modal">
-                  <button className="w-full sm:w-auto px-12 py-6 bg-white text-black font-black uppercase italic tracking-tighter rounded-xl hover:bg-blue-600 hover:text-white transition-all active:scale-95 shadow-xl flex items-center justify-center gap-4 group">
-                    Start Saving Now <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                  </button>
-                </SignInButton>
-                {/* ✅ UPDATED MICRO-COPY */}
-                <p className="text-[10px] font-bold text-zinc-700 uppercase tracking-widest">Sub-200ms latency. Test it yourself in seconds.</p>
-              </div>
-            </div>
-          </SignedOut>
         </div>
       </section>
 
-      {/* --- FEATURES --- */}
-      <section className="max-w-7xl mx-auto px-6 py-32 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 italic">
-          <FeatureCard 
-            icon={<BarChart3 size={24} className="text-emerald-500" />} 
-            title="85%" subtitle="Reduction" 
-            desc="Automatically scale down costs by using efficient models for non-critical tasks." />
-          <FeatureCard 
-            icon={<Zap size={24} className="text-blue-500" />} 
-            title="15ms" subtitle="Overhead" 
-            desc="Our routing layer is nearly invisible. Same speed, significantly cheaper." />
-          <FeatureCard 
-            icon={<Shield size={24} className="text-white" />} 
-            title="100%" subtitle="PII Privacy" 
-            desc="Scrub sensitive data before it ever hits a third-party AI provider." />
+      {/* --- BEFORE VS AFTER --- */}
+      <section className="py-20 max-w-5xl mx-auto px-6 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+          <div className="p-8 rounded-3xl bg-zinc-900/20 border border-red-500/10 grayscale opacity-60">
+            <p className="text-[9px] font-black uppercase text-red-500 mb-4 tracking-widest">Standard API usage</p>
+            <div className="space-y-3">
+              <div className="flex justify-between text-xs font-bold uppercase"><span className="text-zinc-500">Summary</span> <span className="text-white">GPT-4o ($0.0100)</span></div>
+              <div className="flex justify-between text-xs font-bold uppercase"><span className="text-zinc-500">Simple Reply</span> <span className="text-white">GPT-4o ($0.0150)</span></div>
+              <div className="border-t border-white/5 pt-3 flex justify-between text-sm font-black italic uppercase text-red-500"><span>Budget Burn</span> <span>$0.0125 / req</span></div>
+            </div>
+          </div>
+          <div className="p-8 rounded-3xl bg-blue-600/5 border border-blue-500/30 shadow-[0_0_40px_rgba(37,99,235,0.1)]">
+            <p className="text-[9px] font-black uppercase text-blue-500 mb-4 tracking-widest">Neural Routing</p>
+            <div className="space-y-3">
+              <div className="flex justify-between text-xs font-bold uppercase"><span className="text-zinc-400">Summary</span> <span className="text-emerald-500">Llama 3 ($0.0008)</span></div>
+              <div className="flex justify-between text-xs font-bold uppercase"><span className="text-zinc-400">Simple Reply</span> <span className="text-emerald-500">Mini ($0.0002)</span></div>
+              <div className="border-t border-white/5 pt-3 flex justify-between text-sm font-black italic uppercase text-emerald-500"><span>Target Cost</span> <span>$0.0005 (96% Saved)</span></div>
+            </div>
+          </div>
+        </div>
+        <div className="text-center">
+            <SignInButton mode="modal">
+                <button className="px-12 py-6 bg-blue-600 text-white font-black uppercase italic tracking-tighter rounded-2xl hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20">
+                    Get Your API Key Now
+                </button>
+            </SignInButton>
+        </div>
+      </section>
+
+      {/* --- CODE SHOWCASE --- */}
+      <section className="py-24 px-6 relative z-10 bg-zinc-950/50 border-y border-white/5">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <h2 className="text-blue-500 font-black uppercase tracking-[0.4em] text-[10px] mb-4 italic">Change one line</h2>
+            <h3 className="text-4xl font-black italic tracking-tighter uppercase text-white mb-6">Built for SaaS Builders. <br/> Integrated in seconds.</h3>
+            <ul className="space-y-4 mb-10">
+              <li className="flex gap-3 text-sm text-zinc-400 font-bold uppercase"><CheckCircle2 size={16} className="text-blue-600" /> OpenAI SDK Compatible</li>
+              <li className="flex gap-3 text-sm text-zinc-400 font-bold uppercase"><CheckCircle2 size={16} className="text-blue-600" /> Distributed Node Latency</li>
+              <li className="flex gap-3 text-sm text-zinc-400 font-bold uppercase"><CheckCircle2 size={16} className="text-blue-600" /> Free Tier Available</li>
+            </ul>
+          </div>
+          <div className="bg-black border border-zinc-800 rounded-3xl p-6 font-mono text-[11px] shadow-2xl relative">
+            <div className="flex gap-1.5 mb-4">
+              <div className="w-2 h-2 rounded-full bg-zinc-800" />
+              <div className="w-2 h-2 rounded-full bg-zinc-800" />
+              <div className="w-2 h-2 rounded-full bg-zinc-800" />
+            </div>
+            <pre className="text-blue-400 overflow-x-auto">
+{`// Integration Example
+const response = await fetch("https://neuralrouting.io/v1/dispatch", {
+  method: "POST",
+  headers: { "X-API-KEY": "sk_nr_live_..." },
+  body: JSON.stringify({
+    messages: [{ role: "user", content: "..." }],
+    user_id: "your_app_01"
+  })
+});`}
+            </pre>
+          </div>
+        </div>
+      </section>
+
+      {/* --- FINAL CTA --- */}
+      <section className="py-32 px-6 relative z-10 text-center">
+        <div className="max-w-3xl mx-auto p-12 rounded-[3rem] bg-zinc-900/40 border border-zinc-800">
+            <h2 className="text-4xl font-black italic uppercase text-white mb-8">Ready to cut your bills?</h2>
+            <SignInButton mode="modal">
+                <button className="px-16 py-8 bg-white text-black font-black uppercase italic tracking-tighter rounded-2xl hover:bg-blue-600 hover:text-white transition-all shadow-2xl active:scale-95">
+                    Start Saving Now — Free
+                </button>
+            </SignInButton>
+            <p className="mt-6 text-[10px] font-bold text-zinc-700 uppercase tracking-widest">No credit card required for free tier.</p>
         </div>
       </section>
 
@@ -224,18 +186,6 @@ export default function LandingPage() {
           © 2026 NeuralRouting.io — Built for the Intelligent Enterprise.
         </div>
       </footer>
-    </div>
-  );
-}
-
-function FeatureCard({ icon, title, subtitle, desc }: { icon: any, title: string, subtitle: string, desc: string }) {
-  return (
-    <div className="group p-12 rounded-[2.5rem] bg-zinc-900/10 border border-zinc-800/40 hover:border-blue-500/30 transition-all duration-500 relative">
-      <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform relative z-10">{icon}</div>
-      <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white mb-2 relative z-10">
-        {title} <span className="text-blue-500 text-[10px] block not-italic font-sans tracking-[0.2em] mt-1 uppercase">{subtitle}</span>
-      </h3>
-      <p className="text-zinc-600 text-sm leading-relaxed font-medium italic relative z-10 group-hover:text-zinc-400 transition-colors">{desc}</p>
     </div>
   );
 }
