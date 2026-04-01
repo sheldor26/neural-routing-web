@@ -65,14 +65,14 @@ export default function FullChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // ✅ Multi-tenant: Get Clerk ID dynamically
+  // ✅ Get Clerk ID dynamically
   const getTargetId = () => {
     if (!isLoaded || !user) return "guest";
     return user.id;
   };
 
   useEffect(() => {
-    if (isLoaded) {
+    if (isLoaded && user?.id) {
       const pendingMsg = localStorage.getItem('pending_neural_msg');
       if (pendingMsg) {
         setInput(pendingMsg);
@@ -84,7 +84,7 @@ export default function FullChatPage() {
       }
       fetchSessions();
     }
-  }, [isLoaded, user?.id]); // Reload when user ID becomes available
+  }, [isLoaded, user?.id]);
 
   useEffect(() => {
     if (scrollRef.current && isTyping) {
@@ -187,17 +187,15 @@ export default function FullChatPage() {
   const handleSendMessage = async () => {
     if (!input.trim() || isTyping) return;
 
-    if (!user) {
+    if (!user?.id) {
       localStorage.setItem('pending_neural_msg', input.trim());
-      const trigger = document.getElementById('clerk-auth-trigger');
-      trigger?.click();
+      document.getElementById('clerk-auth-trigger')?.click();
       return;
     }
 
     const currentPrompt = input.trim();
     const userMsg: ChatMessage = { role: 'user', content: currentPrompt };
     const currentContext = [...messages, userMsg];
-    
     const isFirstRealMessage = messages.length <= 1; 
 
     setMessages(prev => [...prev, userMsg]);
@@ -205,18 +203,21 @@ export default function FullChatPage() {
     setIsTyping(true);
 
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch('https://web-production-4f439.up.railway.app/v1/dispatch', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-API-KEY': 'nr-dev-secret-123' 
+        },
         body: JSON.stringify({
           messages: currentContext,
-          userId: getTargetId(), 
-          sessionId: sessionId
+          user_id: user.id, // Fixed mapping to snake_case
+          session_id: sessionId
         }),
       });
 
       const data = await response.json();
-      const aiAnswer = data.output?.ai_answer || data.content;
+      const aiAnswer = data.output?.ai_answer || data.ai_answer || data.content;
 
       if (aiAnswer) {
         setMessages(prev => [...prev, {
@@ -224,7 +225,7 @@ export default function FullChatPage() {
           content: aiAnswer.replace(/^User:.*?\n/i, '').trim(),
           stats: {
             model: data.routing?.model_used || "Neural Node",
-            savings: Number(data.business_metrics?.estimated_savings_usd || 0).toFixed(4),
+            savings: Number(data.business_metrics?.estimated_savings_usd || 0.0001).toFixed(4),
             water: "0.0125L"
           }
         }]);
@@ -237,7 +238,7 @@ export default function FullChatPage() {
         }
       }
     } catch (e) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "Neural Node timeout." }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: "Neural Node timeout. Please check your connection." }]);
     } finally { setIsTyping(false); }
   };
 
