@@ -53,6 +53,7 @@ export default function App() {
         });
       }, 800);
     } catch (e) { 
+      console.error("Simulation failed", e);
       setSimulation(prev => ({ ...prev, loading: false }));
     }
   };
@@ -61,7 +62,6 @@ export default function App() {
   const updateRoutingPolicy = async (mode) => {
     setRoutingMode(mode);
     runSimulation(mode);
-    // Trigger POST /v1/update-policy here if needed
   };
 
   // 3. Real Analytics Load (Sync with main.py)
@@ -75,7 +75,6 @@ export default function App() {
         const data = await response.json();
         
         if (data && !data.error) {
-          // Direct mapping of Shadow Engine Backend telemetry
           setStats({
             savings: Number(data.total_savings || 0),
             requests: Number(data.requests_count || 0),
@@ -94,14 +93,17 @@ export default function App() {
           }
           
           if (data.history) {
-            setChartData(data.history);
+            setChartData(data.history.map((item) => ({ 
+              name: item.name, 
+              savings: Number(item.savings || 0),
+              quality: Number(item.quality || 0) * 100 
+            })));
           } else {
-            // Default data to prevent empty chart
             setChartData([
                 { name: 'Mon', savings: 4.2, quality: 95 },
                 { name: 'Tue', savings: 3.8, quality: 92 },
                 { name: 'Wed', savings: 5.1, quality: 98 },
-                { name: 'Thu', savings: stats.savings || 2.5, quality: (stats.quality || 0.9) * 100 },
+                { name: 'Thu', savings: 2.5, quality: 90 },
             ]);
           }
         }
@@ -112,12 +114,12 @@ export default function App() {
       }
     }
     loadDashboardData();
-  }, [isLoaded, stats.savings, stats.quality]);
+  }, [isLoaded]);
 
   if (!isLoaded || loading) return (
     <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center">
       <Loader2 className="animate-spin text-blue-500 mb-4" size={40}/>
-      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 italic">Establishing link with Neural Node...</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 italic">Establishing Neural Node link...</p>
     </div>
   );
 
@@ -144,13 +146,13 @@ export default function App() {
 
       <main className="max-w-7xl mx-auto px-6 py-12">
 
-        {/* UNREALIZED REVENUE CARD (SALES DRIVER) */}
+        {/* UNREALIZED SAVINGS CARD */}
         <div className="mb-12 p-8 rounded-[2.5rem] bg-gradient-to-r from-blue-600/20 to-emerald-600/10 border border-blue-500/30 shadow-[0_0_50px_rgba(37,99,235,0.05)] flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-5">
             <div className="p-4 bg-blue-600 rounded-2xl shadow-lg shadow-blue-600/20"><Target size={28} className="text-white" /></div>
             <div>
-              <h3 className="text-white font-black uppercase italic tracking-tighter text-xl leading-none">You’re missing revenue opportunities</h3>
-              <p className="text-[11px] text-blue-400 font-bold uppercase tracking-widest mt-2">The engine detected <span className="text-white">${stats.opt_opportunity_usd.toFixed(2)}</span> in uncaptured optimization</p>
+              <h3 className="text-white font-black uppercase italic tracking-tighter text-xl leading-none">Unrealized Revenue Opportunities</h3>
+              <p className="text-[11px] text-blue-400 font-bold uppercase tracking-widest mt-2">The engine detected <span className="text-white">${stats.opt_opportunity_usd.toFixed(2)}</span> in uncaptured savings</p>
             </div>
           </div>
           <div className="px-8 py-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl group cursor-help relative">
@@ -170,7 +172,7 @@ export default function App() {
           </div>
           
           <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-zinc-800 relative group overflow-hidden">
-            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-1">Average Quality</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-1">Quality Index</p>
             {stats.quality ? (
                 <>
                     <h2 className="text-4xl font-black italic text-white">{Number(stats.quality).toFixed(2)}</h2>
@@ -195,11 +197,11 @@ export default function App() {
           <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-red-500/10 group">
             <p className="text-[9px] font-black uppercase tracking-[0.3em] text-red-500/70 mb-1">Risk Factor</p>
             <h2 className="text-4xl font-black italic text-white">{stats.risk.toFixed(1)}%</h2>
-            <p className="text-[8px] font-bold text-zinc-600 mt-2 uppercase tracking-widest group-hover:text-red-400 transition-colors italic">Suggestion: +{stats.recommended_threshold.toFixed(0)}% Threshold</p>
+            <p className="text-[8px] font-bold text-zinc-600 mt-2 uppercase tracking-widest group-hover:text-red-400 transition-colors italic">Suggest: +{stats.recommended_threshold.toFixed(0)}% Threshold</p>
           </div>
         </div>
 
-        {/* PERFORMANCE TRADE-OFF & SIMULATOR */}
+        {/* PERFORMANCE ANALYSIS & SIMULATOR */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
           <div className="lg:col-span-8 p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 flex flex-col h-[400px] shadow-2xl relative overflow-hidden group">
             <div className="flex items-center justify-between mb-8 relative z-10">
@@ -264,7 +266,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* DECISION AUDIT LOG */}
+        {/* SHADOW AUDIT LOG */}
         <div className="p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 shadow-2xl mb-12">
           <h4 className="text-white font-black italic uppercase tracking-tighter text-xl mb-8 flex items-center gap-3">
             <Cpu size={20} className="text-blue-500" /> Shadow Audit Log
@@ -273,23 +275,23 @@ export default function App() {
             {decisions.length > 0 ? decisions.map((dec, i) => (
               <div key={i} className="flex items-center justify-between p-5 bg-black/40 rounded-2xl border border-white/5 hover:border-blue-500/30 transition-all group">
                 <div className="flex gap-4 items-center overflow-hidden">
-                  <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-blue-500 shadow-[0_0_10px_#3b82f6]" />
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dec.model_used?.includes('Premium') ? 'bg-blue-500 shadow-[0_0_10px_#3b82f6]' : 'bg-zinc-700'}`} />
                   <div className="overflow-hidden">
-                    <p className="text-[10px] text-white font-black uppercase italic truncate">{dec.model_used || "Neural Node"}</p>
-                    <p className="text-[11px] text-zinc-500 font-bold truncate mt-1">{dec.prompt_preview || "Query successfully audited"}</p>
+                    <p className="text-[10px] text-white font-black uppercase italic truncate">{dec.model_used || "Node"}</p>
+                    <p className="text-[11px] text-zinc-500 font-bold truncate mt-1">{dec.prompt_preview || "Audited Request"}</p>
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0 pl-4">
-                  <p className="text-[10px] font-black text-emerald-500 italic">Similarity: {((dec.quality_score || 0.98) * 100).toFixed(1)}%</p>
+                  <p className="text-[10px] font-black text-emerald-500 italic">Saved: ${Number(dec.cost_saved || 0).toFixed(4)}</p>
                 </div>
               </div>
             )) : (
-              <div className="col-span-2 text-center py-10 text-zinc-600 text-[10px] italic uppercase font-black">Waiting for Shadow Engine telemetry...</div>
+              <div className="col-span-2 text-center py-10 text-zinc-600 text-[10px] italic uppercase font-black">Waiting for backend telemetry...</div>
             )}
           </div>
         </div>
 
-        {/* ACTIVE POLICY */}
+        {/* ACTIVE POLICY CONTROL */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 bg-zinc-900/10 border border-zinc-800 p-8 rounded-[2.5rem]">
           <h3 className="text-white font-black uppercase italic tracking-tighter flex items-center gap-2 text-sm">
             <Sliders size={18} className="text-blue-500" /> Active Policy: <span className="text-blue-400 uppercase">{routingMode}</span>
