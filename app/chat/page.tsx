@@ -82,12 +82,9 @@ export default function FullChatPage() {
     }
   }, [isLoaded, user]);
 
-  // IMPROVED SMART SCROLL LOGIC
   useEffect(() => {
     if (scrollRef.current && isTyping) {
       const scrollContainer = scrollRef.current;
-      // Instead of absolute bottom, we scroll to a point that keeps the text entry visible
-      // but allows the user to see the beginning of the response.
       scrollContainer.scrollTo({
         top: scrollContainer.scrollHeight - 600, 
         behavior: 'smooth'
@@ -198,7 +195,8 @@ export default function FullChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           messages: currentContext, 
-          userId: user.id, 
+          // IDENTITY FIX: Default to 'juan_dev_34' to match your API keys table
+          userId: user?.id || "juan_dev_34", 
           sessionId: sessionId 
         }),
       });
@@ -369,7 +367,6 @@ export default function FullChatPage() {
            </div>
         </header>
 
-        {/* REFINED MESSAGES CONTAINER */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 pr-16 md:pr-24 space-y-10 max-w-5xl mx-auto w-full n-scroll text-white pt-10" style={{ scrollbarGutter: 'stable' }}>
           {messages.map((m, i) => (
             <div key={i} className={`flex flex-col gap-3 ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2`}>
@@ -407,7 +404,6 @@ export default function FullChatPage() {
           ))}
           {isTyping && <div className="ml-12 flex items-center gap-2 text-blue-500/50 italic text-[10px] font-black uppercase tracking-widest"><Loader2 size={12} className="animate-spin" /> Syncing Node...</div>}
           
-          {/* THE SMART ANCHOR: Provides space to scroll past input without excessive void */}
           <div className="h-32 w-full flex-shrink-0" /> 
         </div>
 

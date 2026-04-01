@@ -5,6 +5,9 @@ export async function POST(req: Request) {
     // 1. Receive data from the React component
     const { messages, userId, sessionId } = await req.json();
 
+    // Use the registered ID if the user is not logged in via Clerk
+    const FINAL_USER_ID = userId === "guest_user" ? "juan_dev_34" : userId;
+
     const RAILWAY_URL = "https://web-production-4f439.up.railway.app/v1/dispatch";
     // Cache busting timestamp to ensure fresh neural routing
     const FINAL_URL = `${RAILWAY_URL}?t=${Date.now()}`;
@@ -14,11 +17,13 @@ export async function POST(req: Request) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-KEY': 'key_demo_user', 
+        // UPDATED: Using your production secret key
+        'X-API-KEY': 'nr-dev-secret-123', 
       },
       body: JSON.stringify({
         messages: messages, 
-        user_id: userId || "guest_user",
+        // UPDATED: Ensuring the ID matches the one in your Supabase 'api_keys' table
+        user_id: FINAL_USER_ID,
         session_id: sessionId || "default_session" 
       }),
     });
@@ -32,14 +37,14 @@ export async function POST(req: Request) {
     const data = await response.json();
 
     // 3. Formatted Response for the Frontend
-    // We now include 'suggested_title' which comes from your Python AI logic
     return NextResponse.json({
       role: 'assistant',
       content: data.output?.ai_answer || data.content,
-      suggested_title: data.suggested_title || null, // Capture the AI's title suggestion
+      suggested_title: data.suggested_title || null,
       routing: {
         model_used: data.routing?.model_used || "Neural Node",
-        tier: data.routing?.tier || "Standard"
+        tier: data.routing?.tier || "Standard",
+        confidence: data.routing?.confidence || 1.0
       },
       business_metrics: {
         estimated_savings_usd: data.business_metrics?.estimated_savings_usd || 0,
