@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Zap, Cpu, Sliders, TrendingUp, Home, Loader2, Globe, Target, ArrowUpRight, Rocket } from 'lucide-react';
-import { AreaChart, Area, XAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Zap, Cpu, Sliders, TrendingUp, Home, Loader2, Globe, Target, ArrowUpRight, Rocket, HelpCircle } from 'lucide-react';
+import { AreaChart, Area, XAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { useUser, UserButton } from '@clerk/nextjs';
 
 /**
  * DashboardPage - NeuralRouting Intelligence Console
- * V12.0 Integration: Multi-tenant enabled (Independent data per user)
+ * V12.1 Integration: Independent data per user + Educational Tooltips
  */
 export default function App() {
   const { user, isLoaded } = useUser();
@@ -28,7 +28,6 @@ export default function App() {
   const [simulation, setSimulation] = useState({ qImp: "0.0%", sImp: "0.0%", label: "System Nominal", loading: false });
   const [loading, setLoading] = useState(true);
 
-  // API Configuration
   const API_BASE = "https://web-production-4f439.up.railway.app";
   const API_KEY = "nr-dev-secret-123";
 
@@ -38,7 +37,6 @@ export default function App() {
     return "text-red-500";
   };
 
-  // 1. Predictive Simulation
   const runSimulation = async (targetMode) => {
     setSimulation(prev => ({ ...prev, loading: true }));
     setTimeout(() => {
@@ -51,21 +49,17 @@ export default function App() {
     }, 800);
   };
 
-  // 2. Policy Update
   const updateRoutingPolicy = async (mode) => {
     setRoutingMode(mode);
     runSimulation(mode);
   };
 
-  // 3. Dynamic Multi-tenant Data Loading
   useEffect(() => {
     async function loadDashboardData() {
-      // ✅ Critical: Use the Clerk user.id dynamically
       if (!isLoaded || !user?.id) {
         if (isLoaded && !user) setLoading(false);
         return;
       }
-
       try {
         const response = await fetch(`${API_BASE}/v1/user-stats/${user.id}`, {
           headers: { 
@@ -74,7 +68,6 @@ export default function App() {
           }
         });
         const data = await response.json();
-        
         if (data && !data.error) {
           setStats({
             savings: Number(data.total_savings || 0),
@@ -86,9 +79,7 @@ export default function App() {
             opt_opportunity_usd: data.optimization_opportunity_usd || 0,
             recommended_threshold: 5 + (data.at_risk_percent / 10)
           });
-          
           if (data.recent_decisions) setDecisions(data.recent_decisions);
-          
           if (data.history) {
             setChartData(data.history.map((item) => ({ 
               name: item.name, 
@@ -112,10 +103,21 @@ export default function App() {
     loadDashboardData();
   }, [isLoaded, user?.id]);
 
+  // Simple Tooltip Component to keep code clean
+  const InfoTag = ({ text }: { text: string }) => (
+    <div className="group relative ml-2 inline-block align-middle">
+      <HelpCircle size={10} className="text-zinc-600 hover:text-blue-500 transition-colors cursor-help" />
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-48 p-2 bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl z-50 text-[10px] font-medium leading-relaxed text-zinc-300 normal-case tracking-normal">
+        {text}
+        <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-zinc-900"></div>
+      </div>
+    </div>
+  );
+
   if (!isLoaded || loading) return (
     <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center">
       <Loader2 className="animate-spin text-blue-500 mb-4" size={40}/>
-      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 italic">Syncing Neural Telemetry...</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 italic">Establishing Neural Node link...</p>
     </div>
   );
 
@@ -150,14 +152,13 @@ export default function App() {
             Intelligence <span className="text-blue-500">Command Center</span>
           </h1>
           <p className="text-zinc-500 max-w-2xl text-sm font-medium mb-10">
-            Real-time infrastructure analytics for <span className="text-zinc-200 font-bold">{user?.firstName || 'Node User'}</span>. 
+            Current session analytics for <span className="text-zinc-200 font-bold">{user?.firstName || 'User Node'}</span>. 
             The engine detected <span className="text-white">${stats.opt_opportunity_usd.toFixed(2)}</span> in uncaptured savings.
           </p>
 
-          {/* ✅ DOMINANT ACTION BUTTON */}
           <Link href="/chat" className="group relative">
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-emerald-500 rounded-2xl blur opacity-30 group-hover:opacity-70 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
-            <button className="relative flex items-center gap-4 px-12 py-6 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-500 transition-all active:scale-95 shadow-2xl">
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-emerald-500 rounded-2xl blur opacity-30 group-hover:opacity-70 transition duration-1000 group-hover:duration-200"></div>
+            <button className="relative flex items-center gap-4 px-12 py-6 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-500 transition-all active:scale-95 shadow-2xl shadow-blue-500/20">
               <Rocket size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
               Start Capturing Opportunities
             </button>
@@ -169,7 +170,10 @@ export default function App() {
           <div className="flex items-center gap-5">
             <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20"><Target size={28} className="text-emerald-500" /></div>
             <div>
-              <h3 className="text-white font-black uppercase italic tracking-tighter text-xl leading-none">Unrealized Revenue Opportunity</h3>
+              <h3 className="text-white font-black uppercase italic tracking-tighter text-xl leading-none">
+                Unrealized Revenue Opportunity
+                <InfoTag text="Money you could have saved if you used cheaper AI models for simpler tasks instead of expensive ones." />
+              </h3>
               <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-widest mt-2">Maximum optimization potential detected for your current account.</p>
             </div>
           </div>
@@ -181,13 +185,19 @@ export default function App() {
         {/* OPERATIONAL METRICS */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
           <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-zinc-800 hover:border-zinc-700 transition-colors group">
-            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-1">Total Savings</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-1 flex items-center">
+                Total Savings
+                <InfoTag text="Total amount of money saved by automatically routing requests to more efficient AI models." />
+            </p>
             <h2 className="text-4xl font-black italic text-white">${stats.savings.toFixed(3)}</h2>
             <p className="text-[8px] font-bold text-zinc-600 mt-2 uppercase tracking-widest">{stats.requests} Requests Analyzed</p>
           </div>
           
           <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-zinc-800 relative group overflow-hidden">
-            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-1">Quality Index</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-1 flex items-center">
+                Quality Index
+                <InfoTag text="A score from 0 to 1 comparing cheap model answers against premium ones. Higher is better." />
+            </p>
             {stats.quality ? (
                 <>
                     <h2 className="text-4xl font-black italic text-white">{Number(stats.quality).toFixed(2)}</h2>
@@ -195,7 +205,7 @@ export default function App() {
                 </>
             ) : (
                 <div className="flex flex-col gap-1">
-                  <h2 className="text-xl font-black italic text-zinc-600 uppercase tracking-tighter">Syncing...</h2>
+                  <h2 className="text-xl font-black italic text-zinc-600 uppercase tracking-tighter">New Node</h2>
                   <p className="text-[8px] font-bold text-zinc-500 uppercase">Awaiting audits</p>
                 </div>
             )}
@@ -203,14 +213,20 @@ export default function App() {
 
           <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-zinc-800">
             <div className="flex justify-between items-start mb-1">
-              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500">Global Confidence</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 flex items-center">
+                Global Confidence
+                <InfoTag text="How sure the system is that it's making the right choice between models." />
+              </p>
               <Globe size={10} className="text-blue-500" />
             </div>
             <h2 className={`text-4xl font-black italic ${getGlobalConfidenceLevel(stats.global_confidence)}`}>{stats.global_confidence}%</h2>
           </div>
 
           <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-red-500/10 group">
-            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-red-500/70 mb-1">Risk Factor</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-red-500/70 mb-1 flex items-center">
+                Risk Factor
+                <InfoTag text="Percentage of requests where the cheap model's answer wasn't good enough compared to a premium one." />
+            </p>
             <h2 className="text-4xl font-black italic text-white">{stats.risk.toFixed(1)}%</h2>
             <p className="text-[8px] font-bold text-zinc-600 mt-2 uppercase tracking-widest group-hover:text-red-400 transition-colors italic">Threshold Rec: +{stats.recommended_threshold.toFixed(0)}%</p>
           </div>
@@ -221,7 +237,9 @@ export default function App() {
           <div className="lg:col-span-8 p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 flex flex-col h-[400px] shadow-2xl relative overflow-hidden group">
             <div className="flex items-center justify-between mb-8 relative z-10">
               <h4 className="text-white font-black italic uppercase tracking-tighter text-xl flex items-center gap-3">
-                <TrendingUp size={20} className="text-blue-500" /> Performance Analysis
+                <TrendingUp size={20} className="text-blue-500" /> 
+                Performance Analysis
+                <InfoTag text="Visual timeline showing how your savings grow while maintaining high response quality." />
               </h4>
               <div className="flex gap-4">
                  <div className="flex items-center gap-2 text-[9px] font-black uppercase text-blue-500"><div className="w-2 h-2 bg-blue-500 rounded-full" /> Savings</div>
@@ -237,7 +255,7 @@ export default function App() {
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#18181b" vertical={false} />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#3f3f46', fontSize: 10, fontWeight: 900}} />
-                  <Tooltip 
+                  <RechartsTooltip 
                     contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '15px' }}
                     itemStyle={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' }}
                   />
@@ -250,7 +268,10 @@ export default function App() {
 
           <div className="lg:col-span-4 p-10 rounded-[3rem] bg-blue-600/5 border border-blue-500/20 relative overflow-hidden group shadow-2xl flex flex-col justify-between">
             <div className="relative z-10">
-              <h4 className="text-white font-black italic uppercase tracking-tighter text-xl mb-2">Neural Simulator</h4>
+              <h4 className="text-white font-black italic uppercase tracking-tighter text-xl mb-2 flex items-center">
+                Neural Simulator
+                <InfoTag text="Predicts how changing your routing strategy will affect your costs and quality." />
+              </h4>
               <p className="text-[10px] text-blue-400 font-black uppercase tracking-widest mb-10 italic">State: {simulation.label}</p>
               
               <div className="p-6 bg-black/60 rounded-[2rem] border border-white/5 backdrop-blur-md mb-6">
@@ -283,7 +304,9 @@ export default function App() {
         {/* SHADOW AUDIT LOG */}
         <div className="p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 shadow-2xl mb-12">
           <h4 className="text-white font-black italic uppercase tracking-tighter text-xl mb-8 flex items-center gap-3">
-            <Cpu size={20} className="text-blue-500" /> Shadow Audit Log
+            <Cpu size={20} className="text-blue-500" /> 
+            Shadow Audit Log
+            <InfoTag text="Live feed of internal checks where the system validates if the cheap model output matches premium standards." />
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {decisions.length > 0 ? decisions.map((dec, i) => (
@@ -308,7 +331,9 @@ export default function App() {
         {/* ACTIVE POLICY CONTROL */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 bg-zinc-900/10 border border-zinc-800 p-8 rounded-[2.5rem]">
           <h3 className="text-white font-black uppercase italic tracking-tighter flex items-center gap-2 text-sm">
-            <Sliders size={18} className="text-blue-500" /> Active Policy: <span className="text-blue-400 uppercase">{routingMode}</span>
+            <Sliders size={18} className="text-blue-500" /> 
+            Active Policy: <span className="text-blue-400 uppercase">{routingMode}</span>
+            <InfoTag text="Choose your strategy: Conservative (High Quality), Balanced, or Aggressive (Maximum Savings)." />
           </h3>
           <div className="flex bg-black/50 p-1.5 rounded-2xl border border-zinc-800">
             {['Conservative', 'Balanced', 'Aggressive'].map((mode) => (
