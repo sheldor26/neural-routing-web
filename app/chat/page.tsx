@@ -121,7 +121,6 @@ export default function FullChatPage() {
       });
       const data = await response.json();
       
-      // ✅ FIX: Backend now returns objects with 'role' and 'content' keys directly.
       if (Array.isArray(data)) {
         setMessages(data);
       }
@@ -184,8 +183,10 @@ export default function FullChatPage() {
 
     const currentPrompt = input.trim();
     const userMsg: ChatMessage = { role: 'user', content: currentPrompt };
-    const currentContext = [...messages, userMsg];
-    const isFirstRealMessage = messages.length <= 1; 
+    
+    // ✅ FIX MEMORIA: Limpiamos los stats de los mensajes anteriores para no ensuciar el contexto que va a la IA
+    const cleanContext = messages.map(({ role, content }) => ({ role, content }));
+    const contextWithNewMsg = [...cleanContext, { role: userMsg.role, content: userMsg.content }];
 
     setMessages(prev => [...prev, userMsg]);
     setInput("");
@@ -199,7 +200,8 @@ export default function FullChatPage() {
           'X-API-KEY': 'nr-dev-secret-123' 
         },
         body: JSON.stringify({
-          messages: currentContext,
+          // ✅ Enviamos el contexto completo (historial) para que el backend lo pase al LLM
+          messages: contextWithNewMsg,
           user_id: user.id,
           session_id: sessionId
         }),
@@ -214,12 +216,13 @@ export default function FullChatPage() {
           content: aiAnswer.replace(/^User:.*?\n/i, '').trim(),
           stats: {
             model: data.routing?.model_used || "Neural Node",
-            savings: Number(data.business_metrics?.estimated_savings_usd || 0.0001).toFixed(4),
+            savings: data.routing?.cost_saved?.toString() || "0.0001",
             water: "0.0125L"
           }
         }]);
 
-        if (isFirstRealMessage) {
+        // Si es el primer mensaje real, renombramos la sesión
+        if (messages.length <= 1) {
           const finalTitle = currentPrompt.substring(0, 25) + "...";
           await renameSession(sessionId, finalTitle);
         } else {
@@ -231,6 +234,7 @@ export default function FullChatPage() {
     } finally { setIsTyping(false); }
   };
 
+  // ... (El resto del return se mantiene igual, no necesita cambios)
   return (
     <div className="flex h-screen bg-[#09090b] text-zinc-300 overflow-hidden font-sans relative">
       <style jsx global>{`
