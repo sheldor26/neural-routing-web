@@ -65,8 +65,11 @@ export default function FullChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Helper to get the correct ID for DB queries
+  const getTargetId = () => user?.primaryEmailAddress?.emailAddress || "juan_dev_34";
+
   useEffect(() => {
-    if (isLoaded && user) {
+    if (isLoaded) {
       const pendingMsg = localStorage.getItem('pending_neural_msg');
       if (pendingMsg) {
         setInput(pendingMsg);
@@ -85,16 +88,16 @@ export default function FullChatPage() {
     if (scrollRef.current && isTyping) {
       const scrollContainer = scrollRef.current;
       scrollContainer.scrollTo({
-        top: scrollContainer.scrollHeight - 600,
+        top: scrollContainer.scrollHeight - 600, 
         behavior: 'smooth'
       });
     }
   }, [messages, isTyping]);
 
   const fetchSessions = async () => {
-    if (!user?.id) return;
+    const targetId = getTargetId(); // Sync ID with backend logic
     try {
-      const response = await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${user.id}`);
+      const response = await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${targetId}`);
       const data = await response.json();
       if (Array.isArray(data)) setSessions(data);
     } catch (e) { console.error("Session Fetch Error", e); }
@@ -169,7 +172,6 @@ export default function FullChatPage() {
     setIsSidebarOpen(false);
   };
 
-  // ✅ CORREGIDO: sin duplicado, sin console.log dentro del objeto
   const handleSendMessage = async () => {
     if (!input.trim() || isTyping) return;
 
@@ -189,9 +191,7 @@ export default function FullChatPage() {
     setInput("");
     setIsTyping(true);
 
-    const userIdToSend = user?.primaryEmailAddress?.emailAddress || "juan_dev_34";
-    console.log("userId enviado:", userIdToSend);
-    console.log("sessionId:", sessionId);
+    const userIdToSend = getTargetId(); // Ensure consistency with sidebar
 
     try {
       const response = await fetch('/api/chat', {
@@ -254,13 +254,13 @@ export default function FullChatPage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setIsDeleteModalOpen(false)} />
           <div className="relative w-full max-sm bg-[#050505] border border-zinc-800 rounded-[2rem] p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 text-center text-white">
-            <Trash2 size={28} className="text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-black uppercase italic mb-2">Delete Log</h3>
-            <p className="text-xs text-zinc-500 mb-6">Are you sure? This action is irreversible.</p>
-            <div className="flex gap-3">
-              <button onClick={() => setIsDeleteModalOpen(false)} className="flex-1 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-[10px] font-black uppercase tracking-widest">Cancel</button>
-              <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest text-white">Delete</button>
-            </div>
+             <Trash2 size={28} className="text-red-500 mx-auto mb-4" />
+             <h3 className="text-lg font-black uppercase italic mb-2">Delete Log</h3>
+             <p className="text-xs text-zinc-500 mb-6">Are you sure? This action is irreversible.</p>
+             <div className="flex gap-3">
+               <button onClick={() => setIsDeleteModalOpen(false)} className="flex-1 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-[10px] font-black uppercase tracking-widest">Cancel</button>
+               <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest text-white">Delete</button>
+             </div>
           </div>
         </div>
       )}
