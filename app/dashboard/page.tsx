@@ -8,7 +8,7 @@ import { useUser, UserButton } from '@clerk/nextjs';
 
 /**
  * DashboardPage - NeuralRouting Intelligence Console
- * V12.2 Integration: Fixed Tooltip Clipping & Multi-tenant Data
+ * V12.3 Integration: Dynamic Multi-tenant Sync & Real-time Telemetry
  */
 export default function App() {
   const { user, isLoaded } = useUser();
@@ -54,20 +54,27 @@ export default function App() {
     runSimulation(mode);
   };
 
+  // ✅ FIXED: Dynamic Multi-tenant Data Loading
   useEffect(() => {
     async function loadDashboardData() {
+      // Wait for Clerk to load the user profile
       if (!isLoaded || !user?.id) {
         if (isLoaded && !user) setLoading(false);
         return;
       }
+
       try {
+        setLoading(true);
+        // ✅ Pointing to specific user stats
         const response = await fetch(`${API_BASE}/v1/user-stats/${user.id}`, {
           headers: { 
             'X-API-KEY': API_KEY,
             'Content-Type': 'application/json'
           }
         });
+        
         const data = await response.json();
+        
         if (data && !data.error) {
           setStats({
             savings: Number(data.total_savings || 0),
@@ -79,18 +86,22 @@ export default function App() {
             opt_opportunity_usd: data.optimization_opportunity_usd || 0,
             recommended_threshold: 5 + (data.at_risk_percent / 10)
           });
+          
           if (data.recent_decisions) setDecisions(data.recent_decisions);
-          if (data.history) {
+          
+          // ✅ Robust chart data mapping
+          if (data.history && data.history.length > 0) {
             setChartData(data.history.map((item) => ({ 
               name: item.name, 
               savings: Number(item.savings || 0),
-              quality: Number(item.quality || 0) * 100 
+              quality: Number(item.quality || 0) 
             })));
           } else {
+            // Initial state for new users
             setChartData([
                 { name: 'Mon', savings: 0, quality: 0 },
                 { name: 'Tue', savings: 0, quality: 0 },
-                { name: 'Wed', savings: stats.savings, quality: (stats.quality || 0) * 100 },
+                { name: 'Wed', savings: 0, quality: 0 },
             ]);
           }
         }
@@ -101,9 +112,8 @@ export default function App() {
       }
     }
     loadDashboardData();
-  }, [isLoaded, user?.id]);
+  }, [isLoaded, user?.id]); // Re-run when user changes (multi-tenant support)
 
-  // FIXED Tooltip Component: Removed centering and added high z-index
   const InfoTag = ({ text }: { text: string }) => (
     <div className="group relative ml-2 inline-block align-middle">
       <HelpCircle size={10} className="text-zinc-600 hover:text-blue-500 transition-colors cursor-help" />
@@ -165,7 +175,7 @@ export default function App() {
           </Link>
         </div>
 
-        {/* UNREALIZED SAVINGS CARD - Removed overflow-hidden */}
+        {/* UNREALIZED SAVINGS CARD */}
         <div className="mb-12 p-8 rounded-[2.5rem] bg-zinc-900/40 border border-white/5 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 relative">
           <div className="flex items-center gap-5">
             <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20"><Target size={28} className="text-emerald-500" /></div>
@@ -182,7 +192,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* OPERATIONAL METRICS - Removed overflow-hidden from all cards */}
+        {/* OPERATIONAL METRICS */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
           <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-zinc-800 hover:border-zinc-700 transition-colors group relative">
             <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-1 flex items-center">
@@ -269,7 +279,7 @@ export default function App() {
           <div className="lg:col-span-4 p-10 rounded-[3rem] bg-blue-600/5 border border-blue-500/20 relative group shadow-2xl flex flex-col justify-between">
             <div className="relative z-10">
               <h4 className="text-white font-black italic uppercase tracking-tighter text-xl mb-2 flex items-center">
-                Neural Simulator
+                Simulator
                 <InfoTag text="Predicts how changing your routing strategy will affect your costs and quality." />
               </h4>
               <p className="text-[10px] text-blue-400 font-black uppercase tracking-widest mb-10 italic">State: {simulation.label}</p>
@@ -305,7 +315,7 @@ export default function App() {
         <div className="p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 shadow-2xl mb-12 relative">
           <h4 className="text-white font-black italic uppercase tracking-tighter text-xl mb-8 flex items-center">
             <Cpu size={20} className="text-blue-500 mr-3" /> 
-            Shadow Audit Log
+            Audit Log
             <InfoTag text="Live feed of internal checks where the system validates if the cheap model output matches premium standards." />
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
