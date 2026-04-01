@@ -8,7 +8,7 @@ import { useUser, UserButton } from '@clerk/nextjs';
 
 /**
  * DashboardPage - NeuralRouting Intelligence Console
- * V11.0 Integration: Connected to Unified Backend (Railway)
+ * V12.0 Integration: Multi-tenant enabled (Independent data per user)
  */
 export default function App() {
   const { user, isLoaded } = useUser();
@@ -31,7 +31,6 @@ export default function App() {
   // API Configuration
   const API_BASE = "https://web-production-4f439.up.railway.app";
   const API_KEY = "nr-dev-secret-123";
-  const TARGET_USER_ID = "juan_dev_34"; 
 
   const getGlobalConfidenceLevel = (score) => {
     if (score >= 90) return "text-emerald-500";
@@ -58,12 +57,18 @@ export default function App() {
     runSimulation(mode);
   };
 
-  // 3. Real Analytics Load
+  // 3. Dynamic Multi-tenant Data Loading
   useEffect(() => {
     async function loadDashboardData() {
-      if (!isLoaded) return;
+      // ✅ Critical: Only fetch if Clerk is loaded and we have a valid user.id
+      if (!isLoaded || !user?.id) {
+        if (isLoaded && !user) setLoading(false);
+        return;
+      }
+
       try {
-        const response = await fetch(`${API_BASE}/v1/user-stats/${TARGET_USER_ID}`, {
+        // ✅ Using dynamic user.id from Clerk to ensure independent dashboards
+        const response = await fetch(`${API_BASE}/v1/user-stats/${user.id}`, {
           headers: { 'X-API-KEY': API_KEY }
         });
         const data = await response.json();
@@ -89,11 +94,11 @@ export default function App() {
               quality: Number(item.quality || 0) * 100 
             })));
           } else {
+            // Placeholder for new accounts
             setChartData([
-                { name: 'Mon', savings: 4.2, quality: 95 },
-                { name: 'Tue', savings: 3.8, quality: 92 },
-                { name: 'Wed', savings: 5.1, quality: 98 },
-                { name: 'Thu', savings: stats.savings || 2.5, quality: (stats.quality || 0.9) * 100 },
+                { name: 'Mon', savings: 0, quality: 0 },
+                { name: 'Tue', savings: 0, quality: 0 },
+                { name: 'Wed', savings: stats.savings, quality: (stats.quality || 0) * 100 },
             ]);
           }
         }
@@ -104,17 +109,18 @@ export default function App() {
       }
     }
     loadDashboardData();
-  }, [isLoaded]);
+  }, [isLoaded, user?.id]); // ✅ Dependency array ensures reload on login/switch
 
   if (!isLoaded || loading) return (
     <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center">
       <Loader2 className="animate-spin text-blue-500 mb-4" size={40}/>
-      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 italic">Syncing with Neural Node...</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 italic">Establishing Neural Node link...</p>
     </div>
   );
 
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans selection:bg-blue-500/30 overflow-x-hidden relative">
+      {/* NAVIGATION */}
       <nav className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between text-white">
           <Link href="/" className="flex items-center gap-3 group">
@@ -135,26 +141,41 @@ export default function App() {
 
       <main className="max-w-7xl mx-auto px-6 py-12">
 
-        {/* UNREALIZED REVENUE SECTION (Dominant Header) */}
+        {/* DOMINANT HEADER SECTION */}
         <div className="mb-16 flex flex-col items-center text-center">
           <div className="p-4 bg-blue-600/20 rounded-full border border-blue-500/30 mb-6 animate-pulse">
             <Target size={32} className="text-blue-500" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-white uppercase italic tracking-tighter mb-4">
-            Intelligence Command Center
+          <h1 className="text-4xl md:text-5xl font-black text-white uppercase italic tracking-tighter mb-4 leading-none">
+            Intelligence <span className="text-blue-500">Command Center</span>
           </h1>
           <p className="text-zinc-500 max-w-2xl text-sm font-medium mb-10">
-            The engine detected <span className="text-white">${stats.opt_opportunity_usd.toFixed(2)}</span> in uncaptured savings this period. Optimize your neural routes now.
+            Current session analytics for <span className="text-zinc-300 font-bold">{user?.firstName || 'User Node'}</span>. 
+            The engine detected <span className="text-white">${stats.opt_opportunity_usd.toFixed(2)}</span> in uncaptured savings.
           </p>
 
           {/* ✅ DOMINANT ACTION BUTTON */}
           <Link href="/chat" className="group relative">
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-emerald-500 rounded-2xl blur opacity-30 group-hover:opacity-70 transition duration-1000 group-hover:duration-200"></div>
-            <button className="relative flex items-center gap-4 px-12 py-6 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-500 transition-all active:scale-95 shadow-2xl">
+            <button className="relative flex items-center gap-4 px-12 py-6 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-500 transition-all active:scale-95 shadow-2xl shadow-blue-500/20">
               <Rocket size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
               Start Capturing Opportunities
             </button>
           </Link>
+        </div>
+
+        {/* UNREALIZED SAVINGS CARD */}
+        <div className="mb-12 p-8 rounded-[2.5rem] bg-zinc-900/40 border border-white/5 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-5">
+            <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20"><Target size={28} className="text-emerald-500" /></div>
+            <div>
+              <h3 className="text-white font-black uppercase italic tracking-tighter text-xl leading-none">Unrealized Revenue Opportunity</h3>
+              <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-widest mt-2">Maximum optimization potential detected by the routing engine.</p>
+            </div>
+          </div>
+          <div className="text-right">
+             <h4 className="text-3xl font-black italic text-emerald-500 tracking-tighter">+${stats.opt_opportunity_usd.toFixed(2)}</h4>
+          </div>
         </div>
 
         {/* OPERATIONAL METRICS */}
@@ -174,8 +195,8 @@ export default function App() {
                 </>
             ) : (
                 <div className="flex flex-col gap-1">
-                  <h2 className="text-xl font-black italic text-zinc-600 uppercase tracking-tighter">Syncing...</h2>
-                  <p className="text-[8px] font-bold text-zinc-500 uppercase">{stats.validated_samples}/10 Audits</p>
+                  <h2 className="text-xl font-black italic text-zinc-600 uppercase tracking-tighter">New Node</h2>
+                  <p className="text-[8px] font-bold text-zinc-500 uppercase">Awaiting audits</p>
                 </div>
             )}
           </div>
@@ -191,11 +212,11 @@ export default function App() {
           <div className="p-6 rounded-[2rem] bg-zinc-900/20 border border-red-500/10 group">
             <p className="text-[9px] font-black uppercase tracking-[0.3em] text-red-500/70 mb-1">Risk Factor</p>
             <h2 className="text-4xl font-black italic text-white">{stats.risk.toFixed(1)}%</h2>
-            <p className="text-[8px] font-bold text-zinc-600 mt-2 uppercase tracking-widest group-hover:text-red-400 transition-colors italic">Rec: +{stats.recommended_threshold.toFixed(0)}% Threshold</p>
+            <p className="text-[8px] font-bold text-zinc-600 mt-2 uppercase tracking-widest group-hover:text-red-400 transition-colors italic">Threshold Rec: +{stats.recommended_threshold.toFixed(0)}%</p>
           </div>
         </div>
 
-        {/* PERFORMANCE ANALYSIS & SIMULATOR */}
+        {/* PERFORMANCE ANALYSIS */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
           <div className="lg:col-span-8 p-10 rounded-[3rem] bg-zinc-900/10 border border-zinc-800 flex flex-col h-[400px] shadow-2xl relative overflow-hidden group">
             <div className="flex items-center justify-between mb-8 relative z-10">
@@ -256,7 +277,6 @@ export default function App() {
             >
               Simulate Impact
             </button>
-            <Zap size={180} className="absolute -bottom-10 -right-10 text-blue-500/5 group-hover:scale-110 transition-transform duration-1000 pointer-events-none opacity-20" />
           </div>
         </div>
 
@@ -280,7 +300,7 @@ export default function App() {
                 </div>
               </div>
             )) : (
-              <div className="col-span-2 text-center py-10 text-zinc-600 text-[10px] italic uppercase font-black">Waiting for telemetry...</div>
+              <div className="col-span-2 text-center py-10 text-zinc-600 text-[10px] italic uppercase font-black">No telemetry data available for this account yet.</div>
             )}
           </div>
         </div>
