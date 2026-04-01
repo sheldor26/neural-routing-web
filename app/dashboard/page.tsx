@@ -82,6 +82,7 @@ export default function App() {
           
           if (data.recent_decisions) setDecisions(data.recent_decisions);
           
+          // ✅ FIX: Evitar history vacío para prevenir error de Recharts width(-1)
           if (data.history && data.history.length > 0) {
             setChartData(data.history.map((item) => ({ 
               name: item.name, 
@@ -89,10 +90,10 @@ export default function App() {
               quality: Number(item.quality || 0) 
             })));
           } else {
+            // Estado inicial para cuentas nuevas sin registros
             setChartData([
-                { name: 'Mon', savings: 0, quality: 0 },
-                { name: 'Tue', savings: 0, quality: 0 },
-                { name: 'Wed', savings: 0, quality: 0 },
+                { name: 'Start', savings: 0, quality: 0 },
+                { name: 'Active', savings: 0, quality: 0 },
             ]);
           }
         }
