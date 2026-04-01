@@ -72,7 +72,6 @@ export default function FullChatPage() {
         setInput(pendingMsg);
         localStorage.removeItem('pending_neural_msg');
       }
-
       if (!sessionId) {
         const newId = crypto.randomUUID();
         setSessionId(newId);
@@ -86,7 +85,7 @@ export default function FullChatPage() {
     if (scrollRef.current && isTyping) {
       const scrollContainer = scrollRef.current;
       scrollContainer.scrollTo({
-        top: scrollContainer.scrollHeight - 600, 
+        top: scrollContainer.scrollHeight - 600,
         behavior: 'smooth'
       });
     }
@@ -104,9 +103,9 @@ export default function FullChatPage() {
   const loadChatHistory = async (sId: string) => {
     if (!sId || editingId) return;
     setIsTyping(true);
-    setMessages([]); 
+    setMessages([]);
     setIsSidebarOpen(false);
-    setSessionId(sId); 
+    setSessionId(sId);
     try {
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/messages/${sId}`);
       const data = await response.json();
@@ -115,8 +114,8 @@ export default function FullChatPage() {
         data.forEach((msg: any) => {
           if (msg.prompt) history.push({ role: 'user', content: msg.prompt });
           if (msg.ai_response) {
-            history.push({ 
-              role: 'assistant', 
+            history.push({
+              role: 'assistant',
               content: msg.ai_response.replace(/^User:.*?\n/i, '').trim(),
               stats: {
                 model: msg.model_selected || "Neural Node",
@@ -170,8 +169,8 @@ export default function FullChatPage() {
     setIsSidebarOpen(false);
   };
 
+  // ✅ CORREGIDO: sin duplicado, sin console.log dentro del objeto
   const handleSendMessage = async () => {
- const handleSendMessage = async () => {
     if (!input.trim() || isTyping) return;
 
     if (!user) {
@@ -190,7 +189,6 @@ export default function FullChatPage() {
     setInput("");
     setIsTyping(true);
 
-    // ✅ console.log FUERA del objeto, antes del fetch
     const userIdToSend = user?.primaryEmailAddress?.emailAddress || "juan_dev_34";
     console.log("userId enviado:", userIdToSend);
     console.log("sessionId:", sessionId);
@@ -199,38 +197,38 @@ export default function FullChatPage() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          messages: currentContext, 
-          userId: userIdToSend,  // ✅ limpio
-          sessionId: sessionId 
+        body: JSON.stringify({
+          messages: currentContext,
+          userId: userIdToSend,
+          sessionId: sessionId
         }),
       });
-      
+
       const data = await response.json();
       const rawAnswer = data.content || "";
       const aiAnswer = rawAnswer.replace(/^User:.*?\n/i, '').trim();
       const aiSuggestedTitle = data.suggested_title;
-      
+
       const modelName = data.routing?.model_used || "Neural Node";
       const savingsVal = data.business_metrics?.estimated_savings_usd || 0;
 
       if (aiAnswer) {
-        setMessages(prev => [...prev, { 
-          role: 'assistant', 
-          content: aiAnswer, 
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: aiAnswer,
           stats: {
             model: modelName,
             savings: Number(savingsVal).toFixed(4),
             water: "0.0125L"
-          } 
+          }
         }]);
 
         if (isFirstMessage) {
-            const finalTitle = aiSuggestedTitle || 
-                               (currentPrompt.split(' ').slice(0, 4).join(' ') + (currentPrompt.split(' ').length > 4 ? "..." : ""));
-            await renameSession(sessionId, finalTitle);
+          const finalTitle = aiSuggestedTitle ||
+            (currentPrompt.split(' ').slice(0, 4).join(' ') + (currentPrompt.split(' ').length > 4 ? "..." : ""));
+          await renameSession(sessionId, finalTitle);
         } else {
-            fetchSessions();
+          fetchSessions();
         }
       }
     } catch (e) {
@@ -256,13 +254,13 @@ export default function FullChatPage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setIsDeleteModalOpen(false)} />
           <div className="relative w-full max-sm bg-[#050505] border border-zinc-800 rounded-[2rem] p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 text-center text-white">
-             <Trash2 size={28} className="text-red-500 mx-auto mb-4" />
-             <h3 className="text-lg font-black uppercase italic mb-2">Delete Log</h3>
-             <p className="text-xs text-zinc-500 mb-6">Are you sure? This action is irreversible.</p>
-             <div className="flex gap-3">
-               <button onClick={() => setIsDeleteModalOpen(false)} className="flex-1 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-[10px] font-black uppercase tracking-widest">Cancel</button>
-               <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest text-white">Delete</button>
-             </div>
+            <Trash2 size={28} className="text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-black uppercase italic mb-2">Delete Log</h3>
+            <p className="text-xs text-zinc-500 mb-6">Are you sure? This action is irreversible.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setIsDeleteModalOpen(false)} className="flex-1 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-[10px] font-black uppercase tracking-widest">Cancel</button>
+              <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest text-white">Delete</button>
+            </div>
           </div>
         </div>
       )}
@@ -326,7 +324,7 @@ export default function FullChatPage() {
               </div>
               {editingId !== sess.session_id && (
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm p-1 rounded-lg">
-                   <button onClick={(e) => { e.stopPropagation(); setEditingId(sess.session_id); setEditValue(sess.custom_title || ""); }} className="p-1 hover:text-blue-500 text-zinc-600 transition-colors"><Edit3 size={12} /></button>
+                  <button onClick={(e) => { e.stopPropagation(); setEditingId(sess.session_id); setEditValue(sess.custom_title || ""); }} className="p-1 hover:text-blue-500 text-zinc-600 transition-colors"><Edit3 size={12} /></button>
                   <button onClick={(e) => { e.stopPropagation(); openDeleteModal(sess.session_id); }} className="p-1 hover:text-red-500 text-zinc-600 transition-colors"><Trash2 size={12} /></button>
                 </div>
               )}
@@ -337,39 +335,38 @@ export default function FullChatPage() {
 
       <main className="flex-1 flex flex-col bg-[#09090b] relative w-full">
         <header className="h-20 border-b border-zinc-800 flex items-center justify-between px-4 md:px-8 bg-[#09090b]/50 backdrop-blur-xl z-10 text-white">
-           <div className="flex items-center gap-3">
-             <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 md:hidden hover:text-white transition-colors"><Menu size={20} /></button>
-             <div className="p-2 bg-blue-600/10 rounded-lg border border-blue-500/20 shadow-[0_0_15px_rgba(37,99,235,0.1)]">
-               <Bot className="text-blue-500" size={20} />
-             </div>
-             <div className="hidden sm:block">
-               <h2 className="text-sm font-black uppercase italic text-white tracking-tight leading-none">Neural Assistant v1.0</h2>
-               <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest mt-1 italic">{isTyping ? 'Syncing...' : 'Neural Link: Active'}</p>
-             </div>
-           </div>
+          <div className="flex items-center gap-3">
+            <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 md:hidden hover:text-white transition-colors"><Menu size={20} /></button>
+            <div className="p-2 bg-blue-600/10 rounded-lg border border-blue-500/20 shadow-[0_0_15px_rgba(37,99,235,0.1)]">
+              <Bot className="text-blue-500" size={20} />
+            </div>
+            <div className="hidden sm:block">
+              <h2 className="text-sm font-black uppercase italic text-white tracking-tight leading-none">Neural Assistant v1.0</h2>
+              <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest mt-1 italic">{isTyping ? 'Syncing...' : 'Neural Link: Active'}</p>
+            </div>
+          </div>
 
-           <div className="flex items-center gap-6">
-             <Link href="/" className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-blue-400 transition-colors hidden md:block">
-               Pricing
-             </Link>
-             
-             <div className="flex items-center bg-[#0d0d0f] border border-zinc-800 rounded-full pl-5 pr-2 py-1.5 gap-4 shadow-2xl">
-                <Link href="/dashboard" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-200 hover:text-blue-400 transition-all group">
-                  Dashboard
-                  <LayoutDashboard size={14} className="text-zinc-600 group-hover:text-blue-500 transition-colors" />
-                </Link>
-                <div className="w-[1px] h-4 bg-zinc-800" />
-                <div className="scale-90 opacity-90 hover:opacity-100 transition-opacity">
-                  {user ? (
-                    <UserButton afterSignOutUrl="/" />
-                  ) : (
-                    <SignInButton mode="modal">
-                      <button className="text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors">Sign In</button>
-                    </SignInButton>
-                  )}
-                </div>
-             </div>
-           </div>
+          <div className="flex items-center gap-6">
+            <Link href="/" className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-blue-400 transition-colors hidden md:block">
+              Pricing
+            </Link>
+            <div className="flex items-center bg-[#0d0d0f] border border-zinc-800 rounded-full pl-5 pr-2 py-1.5 gap-4 shadow-2xl">
+              <Link href="/dashboard" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-200 hover:text-blue-400 transition-all group">
+                Dashboard
+                <LayoutDashboard size={14} className="text-zinc-600 group-hover:text-blue-500 transition-colors" />
+              </Link>
+              <div className="w-[1px] h-4 bg-zinc-800" />
+              <div className="scale-90 opacity-90 hover:opacity-100 transition-opacity">
+                {user ? (
+                  <UserButton afterSignOutUrl="/" />
+                ) : (
+                  <SignInButton mode="modal">
+                    <button className="text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors">Sign In</button>
+                  </SignInButton>
+                )}
+              </div>
+            </div>
+          </div>
         </header>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 pr-16 md:pr-24 space-y-10 max-w-5xl mx-auto w-full n-scroll text-white pt-10" style={{ scrollbarGutter: 'stable' }}>
@@ -381,17 +378,17 @@ export default function FullChatPage() {
                 </div>
                 <div className={`p-4 md:p-5 rounded-[1.5rem] md:rounded-[1.8rem] ${m.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none shadow-blue-900/20' : 'bg-zinc-900/50 border border-zinc-800 text-zinc-300 rounded-tl-none backdrop-blur-sm shadow-xl'}`}>
                   <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
-                      code({ node, inline, className, children, ...props }: any) {
-                        const match = /language-(\w+)/.exec(className || '');
-                        return !inline && match ? (
-                          <SyntaxHighlighter style={vscDarkPlus as any} language={match[1]} PreTag="div" className="rounded-lg my-4 border border-zinc-800 text-[11px] md:text-sm" {...props}>
-                            {String(children).replace(/\n$/, '')}
-                          </SyntaxHighlighter>
-                        ) : (
-                          <code className="bg-zinc-800 px-1.5 py-0.5 rounded text-blue-400 font-mono" {...props}>{children}</code>
-                        );
-                      },
-                    }}
+                    code({ node, inline, className, children, ...props }: any) {
+                      const match = /language-(\w+)/.exec(className || '');
+                      return !inline && match ? (
+                        <SyntaxHighlighter style={vscDarkPlus as any} language={match[1]} PreTag="div" className="rounded-lg my-4 border border-zinc-800 text-[11px] md:text-sm" {...props}>
+                          {String(children).replace(/\n$/, '')}
+                        </SyntaxHighlighter>
+                      ) : (
+                        <code className="bg-zinc-800 px-1.5 py-0.5 rounded text-blue-400 font-mono" {...props}>{children}</code>
+                      );
+                    },
+                  }}
                     className="text-xs md:text-sm font-medium leading-relaxed prose prose-invert max-w-none"
                   >
                     {m.content}
@@ -407,23 +404,28 @@ export default function FullChatPage() {
               )}
             </div>
           ))}
-          {isTyping && <div className="ml-12 flex items-center gap-2 text-blue-500/50 italic text-[10px] font-black uppercase tracking-widest"><Loader2 size={12} className="animate-spin" /> Syncing Node...</div>}
-          
-          <div className="h-32 w-full flex-shrink-0" /> 
+          {isTyping && (
+            <div className="ml-12 flex items-center gap-2 text-blue-500/50 italic text-[10px] font-black uppercase tracking-widest">
+              <Loader2 size={12} className="animate-spin" /> Syncing Node...
+            </div>
+          )}
+          <div className="h-32 w-full flex-shrink-0" />
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-[#09090b] via-[#09090b] via-80% to-transparent z-10 text-white">
           <div className="max-w-4xl mx-auto relative group">
-            <textarea 
-              ref={textareaRef} 
-              value={input} 
-              onChange={(e) => setInput(e.target.value)} 
-              onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}} 
-              placeholder={user ? "Execute neural command..." : "Type command and Sign In to execute..."} 
-              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-6 pr-16 md:pr-20 text-xs md:text-sm focus:border-blue-500 outline-none resize-none n-scroll shadow-2xl backdrop-blur-xl transition-all" 
-              rows={1} 
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
+              placeholder={user ? "Execute neural command..." : "Type command and Sign In to execute..."}
+              className="w-full bg-zinc-950/80 border border-zinc-800 rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-6 pr-16 md:pr-20 text-xs md:text-sm focus:border-blue-500 outline-none resize-none n-scroll shadow-2xl backdrop-blur-xl transition-all"
+              rows={1}
             />
-            <button onClick={handleSendMessage} disabled={isTyping || !input.trim()} className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 p-2.5 md:p-3 bg-blue-600 rounded-xl md:rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 transition-all cursor-pointer shadow-lg shadow-blue-500/20 text-white"><Send size={18} /></button>
+            <button onClick={handleSendMessage} disabled={isTyping || !input.trim()} className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 p-2.5 md:p-3 bg-blue-600 rounded-xl md:rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 transition-all cursor-pointer shadow-lg shadow-blue-500/20 text-white">
+              <Send size={18} />
+            </button>
           </div>
         </div>
       </main>
