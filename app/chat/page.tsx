@@ -65,7 +65,7 @@ export default function FullChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Consistent ID helper
+  // FIX 1: Identificador consistente con tu tabla api_keys de Supabase
   const getTargetId = () => user?.primaryEmailAddress?.emailAddress || "juan_dev_34";
 
   useEffect(() => {
@@ -81,7 +81,8 @@ export default function FullChatPage() {
       }
       fetchSessions();
     }
-  }, [isLoaded, user?.id]); // Watch for ID changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, user?.id]); // Escuchar cambios en el ID del usuario
 
   useEffect(() => {
     if (scrollRef.current && isTyping) {
@@ -94,7 +95,7 @@ export default function FullChatPage() {
   }, [messages, isTyping]);
 
   const fetchSessions = async () => {
-    const targetId = getTargetId(); 
+    const targetId = getTargetId(); //
     try {
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${targetId}`);
       const data = await response.json();
@@ -185,12 +186,14 @@ export default function FullChatPage() {
     const userMsg: ChatMessage = { role: 'user', content: currentPrompt };
     const currentContext = [...messages, userMsg];
     
-    // Check if this is the first interaction to force a title save
-    const isFirstMessage = messages.length <= 1; 
+    // FIX 2: Detectar el inicio real para forzar visibilidad en el sidebar
+    const isFirstRealMessage = messages.length <= 1; 
 
     setMessages(prev => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
+
+    const userIdToSend = getTargetId(); //
 
     try {
       const response = await fetch('/api/chat', {
@@ -198,7 +201,7 @@ export default function FullChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: currentContext,
-          userId: getTargetId(), // Sync with DB logic
+          userId: userIdToSend,
           sessionId: sessionId
         }),
       });
@@ -217,11 +220,11 @@ export default function FullChatPage() {
           }
         }]);
 
-        // CRITICAL FIX: Force title creation to make session visible in sidebar
-        if (isFirstMessage) {
+        // FIX 3: Forzar guardado de título para que aparezca en el sidebar inmediatamente
+        if (isFirstRealMessage) {
           const generatedTitle = currentPrompt.substring(0, 30) + "...";
           await renameSession(sessionId, generatedTitle);
-          await fetchSessions(); // Refresh list immediately
+          fetchSessions();
         } else {
           fetchSessions();
         }
