@@ -195,7 +195,7 @@ export default function FullChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           messages: currentContext, 
-          // IDENTITY FIX: Default to 'juan_dev_34' to match your API keys table
+          // IDENTITY SYNC: Using Clerk ID or falling back to registered test ID
           userId: user?.id || "juan_dev_34", 
           sessionId: sessionId 
         }),
