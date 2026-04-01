@@ -65,7 +65,6 @@ export default function FullChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // ✅ Get Clerk ID dynamically
   const getTargetId = () => {
     if (!isLoaded || !user) return "guest";
     return user.id;
@@ -87,7 +86,7 @@ export default function FullChatPage() {
   }, [isLoaded, user?.id]);
 
   useEffect(() => {
-    if (scrollRef.current && isTyping) {
+    if (scrollRef.current && (isTyping || messages.length > 0)) {
       const scrollContainer = scrollRef.current;
       scrollContainer.scrollTo({
         top: scrollContainer.scrollHeight, 
@@ -104,9 +103,7 @@ export default function FullChatPage() {
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${targetId}`, {
         headers: { 'X-API-KEY': 'nr-dev-secret-123' }
       });
-      
       if (!response.ok) return;
-
       const data = await response.json();
       if (Array.isArray(data)) setSessions(data);
     } catch (e) { console.error("Session Fetch Error", e); }
@@ -124,17 +121,9 @@ export default function FullChatPage() {
       });
       const data = await response.json();
       
-      if (Array.isArray(data) && data.length > 0) {
-        const history: ChatMessage[] = data.map((msg: any) => ({
-          role: msg.prompt ? 'user' : 'assistant',
-          content: msg.prompt || msg.ai_response,
-          stats: msg.ai_response ? {
-            model: msg.model_selected || "Neural Node",
-            savings: msg.cost_saved || "0.0000",
-            water: "0.0125L"
-          } : undefined
-        }));
-        setMessages(history);
+      // ✅ FIX: Backend now returns objects with 'role' and 'content' keys directly.
+      if (Array.isArray(data)) {
+        setMessages(data);
       }
     } catch (e) { console.error("Sync Error:", e); }
     finally { setIsTyping(false); }
@@ -211,7 +200,7 @@ export default function FullChatPage() {
         },
         body: JSON.stringify({
           messages: currentContext,
-          user_id: user.id, // Fixed mapping to snake_case
+          user_id: user.id,
           session_id: sessionId
         }),
       });
