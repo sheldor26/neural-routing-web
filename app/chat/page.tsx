@@ -65,7 +65,7 @@ export default function FullChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // ✅ FIX: Forzamos el ID de desarrollo para que coincida con tu tabla api_keys de Supabase
+  // ✅ Sincronizado con el dueño de la API KEY en Supabase
   const getTargetId = () => "juan_dev_34";
 
   useEffect(() => {
@@ -81,14 +81,13 @@ export default function FullChatPage() {
       }
       fetchSessions();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded]); // Cargamos al iniciar basándonos en juan_dev_34
+  }, [isLoaded]);
 
   useEffect(() => {
     if (scrollRef.current && isTyping) {
       const scrollContainer = scrollRef.current;
       scrollContainer.scrollTo({
-        top: scrollContainer.scrollHeight - 600, 
+        top: scrollContainer.scrollHeight, 
         behavior: 'smooth'
       });
     }
@@ -97,13 +96,11 @@ export default function FullChatPage() {
   const fetchSessions = async () => {
     const targetId = getTargetId(); 
     try {
-      const response = await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${targetId}`);
+      const response = await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${targetId}`, {
+        headers: { 'X-API-KEY': 'nr-dev-secret-123' }
+      });
       
-      // Si recibimos 404 o error, detenemos para no romper el estado
-      if (!response.ok) {
-        console.warn(`No se encontraron sesiones para ${targetId} (Status: ${response.status})`);
-        return;
-      }
+      if (!response.ok) return;
 
       const data = await response.json();
       if (Array.isArray(data)) setSessions(data);
@@ -117,24 +114,21 @@ export default function FullChatPage() {
     setIsSidebarOpen(false);
     setSessionId(sId);
     try {
-      const response = await fetch(`https://web-production-4f439.up.railway.app/v1/messages/${sId}`);
+      const response = await fetch(`https://web-production-4f439.up.railway.app/v1/messages/${sId}`, {
+        headers: { 'X-API-KEY': 'nr-dev-secret-123' }
+      });
       const data = await response.json();
+      
       if (Array.isArray(data) && data.length > 0) {
-        const history: ChatMessage[] = [];
-        data.forEach((msg: any) => {
-          if (msg.prompt) history.push({ role: 'user', content: msg.prompt });
-          if (msg.ai_response) {
-            history.push({
-              role: 'assistant',
-              content: msg.ai_response.replace(/^User:.*?\n/i, '').trim(),
-              stats: {
-                model: msg.model_selected || "Neural Node",
-                savings: msg.cost_saved ? Number(msg.cost_saved).toFixed(4) : "0.0000",
-                water: "0.0125L"
-              }
-            });
-          }
-        });
+        const history: ChatMessage[] = data.map((msg: any) => ({
+          role: msg.prompt ? 'user' : 'assistant',
+          content: msg.prompt || msg.ai_response,
+          stats: msg.ai_response ? {
+            model: msg.model_selected || "Neural Node",
+            savings: msg.cost_saved || "0.0000",
+            water: "0.0125L"
+          } : undefined
+        }));
         setMessages(history);
       }
     } catch (e) { console.error("Sync Error:", e); }
@@ -149,7 +143,10 @@ export default function FullChatPage() {
   const confirmDelete = async () => {
     if (!sessionToDelete) return;
     try {
-      await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${sessionToDelete}`, { method: 'DELETE' });
+      await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${sessionToDelete}`, { 
+        method: 'DELETE',
+        headers: { 'X-API-KEY': 'nr-dev-secret-123' }
+      });
       if (sessionToDelete === sessionId) handleNewSession();
       fetchSessions();
     } catch (e) { console.error("Delete Error", e); }
@@ -163,7 +160,10 @@ export default function FullChatPage() {
     try {
       await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${sId}/rename`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-API-KEY': 'nr-dev-secret-123'
+        },
         body: JSON.stringify({ new_title: newTitle })
       });
       setEditingId(null);
@@ -211,13 +211,12 @@ export default function FullChatPage() {
       });
 
       const data = await response.json();
-      const aiAnswer = data.content?.replace(/^User:.*?\n/i, '').trim();
-      const aiSuggestedTitle = data.suggested_title;
+      const aiAnswer = data.output?.ai_answer || data.content;
 
       if (aiAnswer) {
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: aiAnswer,
+          content: aiAnswer.replace(/^User:.*?\n/i, '').trim(),
           stats: {
             model: data.routing?.model_used || "Neural Node",
             savings: Number(data.business_metrics?.estimated_savings_usd || 0).toFixed(4),
@@ -225,11 +224,9 @@ export default function FullChatPage() {
           }
         }]);
 
-        // ✅ FORZADO DE VISIBILIDAD: El sidebar requiere un título para mostrar la sesión
         if (isFirstRealMessage) {
-          const finalTitle = aiSuggestedTitle || (currentPrompt.substring(0, 25) + "...");
+          const finalTitle = currentPrompt.substring(0, 25) + "...";
           await renameSession(sessionId, finalTitle);
-          fetchSessions(); 
         } else {
           fetchSessions();
         }
