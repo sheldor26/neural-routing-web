@@ -4,22 +4,21 @@ export async function POST(req: Request) {
   try {
     const { messages, sessionId } = await req.json();
 
-    // ✅ ID unificado: Debe ser el mismo que usa el sidebar (page.tsx)
-    // Usamos juan_dev_34 porque es el dueño de la API KEY en Supabase
+    // ✅ ID unificado: Coincide con el dueño de la API KEY en tu Supabase
     const FINAL_USER_ID = "juan_dev_34";
 
     const RAILWAY_URL = "https://web-production-4f439.up.railway.app/v1/dispatch";
-    // Cache busting con timestamp para asegurar un ruteo neuronal fresco
+    // Cache busting para asegurar ruteo fresco
     const FINAL_URL = `${RAILWAY_URL}?t=${Date.now()}`;
 
-    console.log("🚀 Iniciando Uplink a Railway:", { user_id: FINAL_USER_ID, session_id: sessionId });
+    console.log("🚀 Enviando Uplink a Railway:", { user_id: FINAL_USER_ID, session_id: sessionId });
 
     // Llamada al motor neuronal en Railway
     const response = await fetch(FINAL_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // Clave de producción verificada en la tabla api_keys de tu backend
+        // Clave verificada en tu tabla public.api_keys
         'X-API-KEY': 'nr-dev-secret-123',
       },
       body: JSON.stringify({
@@ -32,14 +31,13 @@ export async function POST(req: Request) {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error("❌ Railway Status Error:", response.status);
-      console.error("❌ Railway Detail:", JSON.stringify(errorData));
       throw new Error(errorData.detail || `Neural Error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log("✅ Sincronización con Nodo Neuronal exitosa");
+    console.log("✅ Respuesta de Nodo Neuronal recibida");
 
-    // Formateo de respuesta para el componente de chat del frontend
+    // Formateo para el componente de chat
     return NextResponse.json({
       role: 'assistant',
       content: data.output?.ai_answer || data.content,

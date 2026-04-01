@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Send, User, Bot, History, Home, Zap, DollarSign, Loader2, Trash2, Edit3, Check, X, Menu, LayoutDashboard } from 'lucide-react';
+import { Plus, Send, User, Bot, History, Home, Zap, DollarSign, Loader2, Trash2, Edit3, Check, X, Menu, LayoutDashboard } from 'lucide-center';
 import Link from 'next/link';
 import { useUser, UserButton, SignInButton } from "@clerk/nextjs";
 import ReactMarkdown from 'react-markdown';
@@ -65,8 +65,8 @@ export default function FullChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Helper para mantener consistencia con el backend de Railway
-  const getTargetId = () => user?.primaryEmailAddress?.emailAddress || "juan_dev_34";
+  // ✅ FIX: Forzamos el ID de desarrollo para que coincida con tu tabla api_keys de Supabase
+  const getTargetId = () => "juan_dev_34";
 
   useEffect(() => {
     if (isLoaded) {
@@ -82,7 +82,7 @@ export default function FullChatPage() {
       fetchSessions();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, user?.id]); // Recargar cada vez que el ID cambie
+  }, [isLoaded]); // Cargamos al iniciar basándonos en juan_dev_34
 
   useEffect(() => {
     if (scrollRef.current && isTyping) {
@@ -95,10 +95,16 @@ export default function FullChatPage() {
   }, [messages, isTyping]);
 
   const fetchSessions = async () => {
-    const targetId = getTargetId(); // Sincronizado
+    const targetId = getTargetId(); 
     try {
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${targetId}`);
-      if (!response.ok) return;
+      
+      // Si recibimos 404 o error, detenemos para no romper el estado
+      if (!response.ok) {
+        console.warn(`No se encontraron sesiones para ${targetId} (Status: ${response.status})`);
+        return;
+      }
+
       const data = await response.json();
       if (Array.isArray(data)) setSessions(data);
     } catch (e) { console.error("Session Fetch Error", e); }
@@ -187,7 +193,6 @@ export default function FullChatPage() {
     const userMsg: ChatMessage = { role: 'user', content: currentPrompt };
     const currentContext = [...messages, userMsg];
     
-    // Identificar primer mensaje para forzar visibilidad
     const isFirstRealMessage = messages.length <= 1; 
 
     setMessages(prev => [...prev, userMsg]);
@@ -200,13 +205,14 @@ export default function FullChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: currentContext,
-          userId: getTargetId(), // Coherencia de ID
+          userId: getTargetId(), 
           sessionId: sessionId
         }),
       });
 
       const data = await response.json();
       const aiAnswer = data.content?.replace(/^User:.*?\n/i, '').trim();
+      const aiSuggestedTitle = data.suggested_title;
 
       if (aiAnswer) {
         setMessages(prev => [...prev, {
@@ -219,11 +225,11 @@ export default function FullChatPage() {
           }
         }]);
 
-        // FORZADO DE TÍTULO: Sin título no aparece en Infrastructure Logs
+        // ✅ FORZADO DE VISIBILIDAD: El sidebar requiere un título para mostrar la sesión
         if (isFirstRealMessage) {
-          const finalTitle = data.suggested_title || (currentPrompt.substring(0, 25) + "...");
+          const finalTitle = aiSuggestedTitle || (currentPrompt.substring(0, 25) + "...");
           await renameSession(sessionId, finalTitle);
-          fetchSessions(); // Recarga sidebar
+          fetchSessions(); 
         } else {
           fetchSessions();
         }
