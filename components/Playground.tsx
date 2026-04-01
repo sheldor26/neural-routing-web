@@ -31,7 +31,7 @@ export default function Playground() {
 
     try {
       // Direct connection to your production endpoint
-      const response = await fetch(`https://neuralrouting.io/v1/dispatch`, {
+      const response = await fetch(`/v1/dispatch`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
