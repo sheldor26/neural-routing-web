@@ -196,7 +196,7 @@ export default function FullChatPage() {
         body: JSON.stringify({ 
           messages: currentContext, 
           // IDENTITY FIX: Default to 'juan_dev_34' to match your backend api_keys table
-          userId: user?.id || "juan_dev_34", 
+          userId: "juan_dev_34",
           sessionId: sessionId 
         }),
       });
