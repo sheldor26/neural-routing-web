@@ -70,27 +70,25 @@ export default function App() {
         
         if (data && !data.error) {
           setStats({
-            savings: Number(data.total_savings || 0),
-            requests: Number(data.requests_count || 0),
-            quality: data.quality_score || null,
-            global_confidence: data.global_confidence || 0,
-            risk: data.at_risk_percent || 0,
-            validated_samples: data.validated_samples || 0,
-            opt_opportunity_usd: data.optimization_opportunity_usd || 0,
-            recommended_threshold: 5 + (data.at_risk_percent / 10)
+            savings: Number(data?.total_savings || 0),
+            requests: Number(data?.requests_count || 0),
+            quality: data?.quality_score || null,
+            global_confidence: data?.global_confidence || 0,
+            risk: data?.at_risk_percent || 0,
+            validated_samples: data?.validated_samples || 0,
+            opt_opportunity_usd: data?.optimization_opportunity_usd || 0,
+            recommended_threshold: 5 + ((data?.at_risk_percent || 0) / 10)
           });
           
-          if (data.recent_decisions) setDecisions(data.recent_decisions);
+          if (data?.recent_decisions) setDecisions(data.recent_decisions);
           
-          // ✅ FIX: Evitar history vacío para prevenir error de Recharts width(-1)
-          if (data.history && data.history.length > 0) {
+          if (data?.history && data.history.length > 0) {
             setChartData(data.history.map((item) => ({ 
-              name: item.name, 
-              savings: Number(item.savings || 0),
-              quality: Number(item.quality || 0) 
+              name: item?.name || 'Node', 
+              savings: Number(item?.savings || 0),
+              quality: Number(item?.quality || 0) 
             })));
           } else {
-            // Estado inicial para cuentas nuevas sin registros
             setChartData([
                 { name: 'Start', savings: 0, quality: 0 },
                 { name: 'Active', savings: 0, quality: 0 },
@@ -155,7 +153,7 @@ export default function App() {
           </h1>
           <p className="text-zinc-500 max-w-2xl text-xs md:text-sm font-medium mb-10">
             Current session analytics for <span className="text-zinc-200 font-bold">{user?.firstName || 'User Node'}</span>. 
-            The engine detected <span className="text-white">${stats.opt_opportunity_usd.toFixed(2)}</span> in uncaptured savings.
+            The engine detected <span className="text-white">${stats?.opt_opportunity_usd?.toFixed(2) || "0.00"}</span> in uncaptured savings.
           </p>
 
           <Link href="/chat" className="group relative w-full md:w-auto">
@@ -180,7 +178,7 @@ export default function App() {
             </div>
           </div>
           <div className="w-full md:w-auto text-center md:text-right border-t md:border-t-0 border-white/5 pt-4 md:pt-0">
-             <h4 className="text-2xl md:text-3xl font-black italic text-emerald-500 tracking-tighter">+${stats.opt_opportunity_usd.toFixed(2)}</h4>
+             <h4 className="text-2xl md:text-3xl font-black italic text-emerald-500 tracking-tighter">+${stats?.opt_opportunity_usd?.toFixed(2) || "0.00"}</h4>
           </div>
         </div>
 
@@ -191,8 +189,8 @@ export default function App() {
                 Total Savings
                 <InfoTag text="Total amount saved by routing requests to efficient models." />
             </p>
-            <h2 className="text-3xl md:text-4xl font-black italic text-white">${stats.savings.toFixed(3)}</h2>
-            <p className="text-[8px] font-bold text-zinc-600 mt-2 uppercase tracking-widest">{stats.requests} Requests</p>
+            <h2 className="text-3xl md:text-4xl font-black italic text-white">${stats?.savings?.toFixed(3) || "0.000"}</h2>
+            <p className="text-[8px] font-bold text-zinc-600 mt-2 uppercase tracking-widest">{stats?.requests || 0} Requests</p>
           </div>
           
           <div className="p-6 rounded-[1.5rem] md:rounded-[2rem] bg-zinc-900/20 border border-zinc-800 relative group">
@@ -201,8 +199,8 @@ export default function App() {
                 <InfoTag text="Comparison between cheap and premium model answers." />
             </p>
             <div className="flex items-center justify-between">
-                <h2 className="text-3xl md:text-4xl font-black italic text-white">{stats.quality ? Number(stats.quality).toFixed(2) : "0.00"}</h2>
-                {stats.quality && <span className="text-[7px] text-emerald-500 font-black uppercase bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">Verified</span>}
+                <h2 className="text-3xl md:text-4xl font-black italic text-white">{stats?.quality ? Number(stats.quality).toFixed(2) : "0.00"}</h2>
+                {stats?.quality && <span className="text-[7px] text-emerald-500 font-black uppercase bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">Verified</span>}
             </div>
           </div>
 
@@ -211,7 +209,7 @@ export default function App() {
               Global Confidence
               <InfoTag text="Certainty in current model selection choices." />
             </p>
-            <h2 className={`text-3xl md:text-4xl font-black italic ${getGlobalConfidenceLevel(stats.global_confidence)}`}>{stats.global_confidence}%</h2>
+            <h2 className={`text-3xl md:text-4xl font-black italic ${getGlobalConfidenceLevel(stats?.global_confidence || 0)}`}>{stats?.global_confidence || 0}%</h2>
           </div>
 
           <div className="p-6 rounded-[1.5rem] md:rounded-[2rem] bg-zinc-900/20 border border-red-500/10 group relative">
@@ -219,7 +217,7 @@ export default function App() {
                 Risk Factor
                 <InfoTag text="Percentage of suboptimal outputs from cheap models." />
             </p>
-            <h2 className="text-3xl md:text-4xl font-black italic text-white">{stats.risk.toFixed(1)}%</h2>
+            <h2 className="text-3xl md:text-4xl font-black italic text-white">{stats?.risk?.toFixed(1) || "0.0"}%</h2>
           </div>
         </div>
 
@@ -298,17 +296,17 @@ export default function App() {
             Audit Log
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-            {decisions.length > 0 ? decisions.map((dec, i) => (
+            {decisions?.length > 0 ? decisions.map((dec, i) => (
               <div key={i} className="flex items-center justify-between p-4 bg-black/40 rounded-xl border border-white/5 hover:border-blue-500/30 transition-all group overflow-hidden">
                 <div className="flex gap-3 items-center min-w-0">
-                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dec.is_at_risk ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : 'bg-blue-500 shadow-[0_0_10px_#3b82f6]'}`} />
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dec?.is_at_risk ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : 'bg-blue-500 shadow-[0_0_10px_#3b82f6]'}`} />
                   <div className="min-w-0">
                     <p className="text-[9px] text-white font-black uppercase italic truncate">Audit Node</p>
-                    <p className="text-[10px] text-zinc-500 font-bold truncate mt-1">{dec.prompt_preview || "Request audited"}</p>
+                    <p className="text-[10px] text-zinc-500 font-bold truncate mt-1">{dec?.prompt_preview || "Request audited"}</p>
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0 ml-2">
-                  <p className="text-[9px] font-black text-emerald-500 italic">Score: {((dec.quality_score || 0.98) * 100).toFixed(0)}%</p>
+                  <p className="text-[9px] font-black text-emerald-500 italic">Score: {((dec?.quality_score || 0.98) * 100).toFixed(0)}%</p>
                 </div>
               </div>
             )) : (
