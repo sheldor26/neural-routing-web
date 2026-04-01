@@ -149,7 +149,7 @@ export default function App() {
           <div className="flex items-center gap-5">
             <div className="p-4 bg-blue-600 rounded-2xl shadow-lg shadow-blue-600/20"><Target size={28} className="text-white" /></div>
             <div>
-              <h3 className="text-white font-black uppercase italic tracking-tighter text-xl leading-none">Unrealized Monthly Savings</h3>
+              <h3 className="text-white font-black uppercase italic tracking-tighter text-xl leading-none">You’re missing revenue opportunities</h3>
               <p className="text-[11px] text-blue-400 font-bold uppercase tracking-widest mt-2">The engine detected <span className="text-white">${stats.opt_opportunity_usd.toFixed(2)}</span> in uncaptured optimization</p>
             </div>
           </div>
