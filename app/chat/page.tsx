@@ -65,7 +65,7 @@ export default function FullChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // FIX 1: Identificador consistente con tu tabla api_keys de Supabase
+  // Helper to ensure target user ID consistency
   const getTargetId = () => user?.primaryEmailAddress?.emailAddress || "juan_dev_34";
 
   useEffect(() => {
@@ -82,7 +82,7 @@ export default function FullChatPage() {
       fetchSessions();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, user?.id]); // Escuchar cambios en el ID del usuario
+  }, [isLoaded, user?.id]); // Watch for ID changes to sync logs
 
   useEffect(() => {
     if (scrollRef.current && isTyping) {
@@ -186,7 +186,7 @@ export default function FullChatPage() {
     const userMsg: ChatMessage = { role: 'user', content: currentPrompt };
     const currentContext = [...messages, userMsg];
     
-    // FIX 2: Detectar el inicio real para forzar visibilidad en el sidebar
+    // Detect start of conversation to force sidebar visibility
     const isFirstRealMessage = messages.length <= 1; 
 
     setMessages(prev => [...prev, userMsg]);
@@ -207,7 +207,9 @@ export default function FullChatPage() {
       });
 
       const data = await response.json();
-      const aiAnswer = data.content?.replace(/^User:.*?\n/i, '').trim();
+      const rawAnswer = data.content || "";
+      const aiAnswer = rawAnswer.replace(/^User:.*?\n/i, '').trim();
+      const aiSuggestedTitle = data.suggested_title;
 
       if (aiAnswer) {
         setMessages(prev => [...prev, {
@@ -220,10 +222,11 @@ export default function FullChatPage() {
           }
         }]);
 
-        // FIX 3: Forzar guardado de título para que aparezca en el sidebar inmediatamente
+        // FORCE TITLE SAVE: Ensure the session appears in the sidebar immediately
         if (isFirstRealMessage) {
-          const generatedTitle = currentPrompt.substring(0, 30) + "...";
-          await renameSession(sessionId, generatedTitle);
+          const finalTitle = aiSuggestedTitle || 
+            (currentPrompt.substring(0, 25) + "...");
+          await renameSession(sessionId, finalTitle);
           fetchSessions();
         } else {
           fetchSessions();
