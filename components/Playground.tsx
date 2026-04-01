@@ -16,7 +16,7 @@ interface RoutingResult {
 }
 
 export default function Playground() {
-  const { user, isLoaded } = useUser();
+  const { isLoaded } = useUser();
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState<RoutingResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -30,26 +30,25 @@ export default function Playground() {
     setResult(null);
 
     try {
-      // 1. Conexión directa a tu dominio neuralrouting.io
-      const response = await fetch(`https://web-production-4f439.up.railway.app/v1/dispatch`, {
+      // Direct connection to your production endpoint
+      const response = await fetch(`https://neuralrouting.io/v1/dispatch`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-API-KEY": "nr-dev-secret-123" // Esta key debe existir en tu tabla api_keys
+          "X-API-KEY": "nr-dev-secret-123" 
         },
         body: JSON.stringify({ 
-          // 2. Estructura de mensajes compatible con Message(BaseModel) en main.py
           messages: [
             { role: "user", content: prompt.trim() }
           ],
-          user_id: user?.id || "guest_playground",
+          // Hardcoded to match your Supabase 'api_keys' table entry
+          user_id: "juan_dev_34", 
           session_id: "playground_live_session" 
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        // Manejo de errores de validación (Pydantic) o de red
         const detail = Array.isArray(errorData.detail) 
           ? errorData.detail[0].msg 
           : errorData.detail;
@@ -72,7 +71,7 @@ export default function Playground() {
         <div className="text-center mb-10">
           <h2 className="text-3xl font-bold mb-4 italic tracking-tight uppercase">Live Routing Simulator</h2>
           <p className="text-zinc-500 max-w-md mx-auto italic text-sm">
-            Prueba cómo el motor selecciona el modelo más eficiente para tu consulta.
+            Experience how the engine selects the most efficient model for your query in real-time.
           </p>
         </div>
         
@@ -80,7 +79,7 @@ export default function Playground() {
           <textarea 
             className="w-full bg-black border border-zinc-700 rounded-2xl p-6 text-white focus:border-blue-500 outline-none transition placeholder:text-zinc-800 text-lg resize-none shadow-inner"
             rows={3}
-            placeholder="Escribe algo complejo (ej: Escribe un hook de React para auth con Supabase)..."
+            placeholder="Type something complex (e.g., Write a React hook for Supabase auth)..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
           />
