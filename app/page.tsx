@@ -2,11 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { Droplets, DollarSign, Zap, Shield, ArrowRight, CheckCircle2, BarChart3 } from 'lucide-react';
+import { Droplets, DollarSign, Zap, Shield, BarChart3 } from 'lucide-react';
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import FAQ from '@/components/FAQ'; 
 import SavingsCalculator from '@/components/SavingsCalculator';
 
+// Dynamic Imports
 const NavAuth = dynamic(() => import('@/components/AuthInterface').then(mod => mod.NavAuth), { ssr: false });
 const HeroAuth = dynamic(() => import('@/components/AuthInterface').then(mod => mod.HeroAuth), { ssr: false });
 const Playground = dynamic(() => import('@/components/Playground'), { ssr: false });
@@ -21,16 +22,23 @@ export default function LandingPage() {
   useEffect(() => {
     async function fetchGlobalStats() {
       try {
-        const response = await fetch('https://web-production-4f439.up.railway.app/v1/global-stats'); // Updated to your real API
+        // ✅ Pointing to your production API
+        const response = await fetch('https://web-production-4f439.up.railway.app/v1/user-stats/global_stats', {
+           headers: { 'X-API-KEY': 'nr-dev-secret-123' }
+        });
         const data = await response.json();
-        if (data && data.total_savings_usd) {
+        
+        if (data && data.total_savings) {
           setGlobalStats({
-            savings: data.total_savings_usd,
-            water: data.total_savings_usd * 12.5,
+            savings: Number(data.total_savings),
+            water: Number(data.total_savings) * 12.5,
             loading: false
           });
+        } else {
+          setGlobalStats(prev => ({ ...prev, loading: false }));
         }
       } catch (error) {
+        console.error("Metrics sync error:", error);
         setGlobalStats(prev => ({ ...prev, loading: false }));
       }
     }
@@ -46,6 +54,7 @@ export default function LandingPage() {
           NEURAL<span className="text-blue-600">ROUTING</span>
         </div>
         <div className="flex items-center gap-8">
+          <Link href="/blog" className="hidden md:block text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 hover:text-white transition-all">Engineering</Link>
           <Link href="/pricing" className="hidden md:block text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 hover:text-white transition-all">Pricing</Link>
           <NavAuth />
         </div>
@@ -54,9 +63,9 @@ export default function LandingPage() {
       {/* --- HERO SECTION --- */}
       <header className="relative py-20 px-6 text-center max-w-6xl mx-auto flex flex-col items-center z-10">
         
-        {/* Social Proof Badge */}
-        <div className="inline-flex items-center gap-3 mb-10 p-1 pr-4 bg-blue-500/5 border border-blue-500/20 backdrop-blur-md rounded-full">
-          <div className="px-3 py-1 rounded-full bg-blue-600 text-white text-[9px] font-black tracking-widest uppercase">Live Proof</div>
+        {/* ✅ LIVE PROOF BADGE */}
+        <div className="inline-flex items-center gap-3 mb-10 p-1 pr-4 bg-blue-500/5 border border-blue-500/20 backdrop-blur-md rounded-full shadow-[0_0_20px_rgba(37,99,235,0.05)]">
+          <div className="px-3 py-1 rounded-full bg-blue-600 text-white text-[9px] font-black tracking-widest uppercase animate-pulse">Live Proof</div>
           <span className="text-[10px] font-bold text-blue-100 uppercase tracking-tight">
              ${globalStats.savings.toLocaleString()} already saved by our nodes
           </span>
@@ -71,39 +80,39 @@ export default function LandingPage() {
         </p>
         
         <div className="relative z-20 flex flex-col sm:flex-row items-center gap-6">
-          <HeroAuth /> {/* "Start Saving Now" logic inside here */}
-          <Link href="/pricing" className="group relative px-8 py-4 flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/30 text-zinc-400 text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:text-white">
+          <HeroAuth /> 
+          <Link href="/pricing" className="group relative px-8 py-4 flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/30 text-zinc-400 text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:border-zinc-700 hover:text-white">
              See How Much You Save
           </Link>
         </div>
       </header>
 
-      {/* --- HOW IT WORKS (NEW CRITICAL SECTION) --- */}
+      {/* --- HOW IT WORKS (SALES STEPS) --- */}
       <section className="py-24 max-w-7xl mx-auto px-6 relative z-10 border-y border-white/5 bg-zinc-900/10">
          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <div className="space-y-4">
                <div className="text-blue-600 font-black text-4xl italic">01</div>
                <h4 className="text-lg font-black uppercase italic">Connect API</h4>
-               <p className="text-zinc-500 text-sm leading-relaxed">Replace your OpenAI URL with our endpoint. Zero logic changes required.</p>
+               <p className="text-zinc-500 text-sm leading-relaxed">Replace your endpoint URL. Zero logic changes required.</p>
             </div>
             <div className="space-y-4">
                <div className="text-blue-600 font-black text-4xl italic">02</div>
                <h4 className="text-lg font-black uppercase italic">Smart Analysis</h4>
-               <p className="text-zinc-500 text-sm leading-relaxed">Our engine analyzes task complexity in milliseconds.</p>
+               <p className="text-zinc-500 text-sm leading-relaxed">Our engine analyzes complexity in milliseconds.</p>
             </div>
             <div className="space-y-4">
                <div className="text-blue-600 font-black text-4xl italic">03</div>
                <h4 className="text-lg font-black uppercase italic">Instant Savings</h4>
-               <p className="text-zinc-500 text-sm leading-relaxed">We route to the most cost-effective model (Llama 3, GPT-4o, etc) automatically.</p>
+               <p className="text-zinc-500 text-sm leading-relaxed">We route to the cheapest model (Llama 3, GPT-4o, etc).</p>
             </div>
          </div>
       </section>
 
-      {/* --- SAVINGS CALCULATOR (MOVED LOWER FOR TRUST) --- */}
+      {/* --- SAVINGS CALCULATOR --- */}
       <section className="py-32 px-6 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-blue-500 font-black uppercase tracking-[0.4em] text-[10px] mb-4">Neural ROI Analysis</h2>
-          <p className="text-3xl md:text-5xl font-black italic tracking-tighter uppercase text-white">Stop Your Infrastructure <br/> <span className="text-blue-600">Money Leakage</span></p>
+          <p className="text-3xl md:text-5xl font-black italic tracking-tighter uppercase text-white leading-none">Stop Your Infrastructure <br/> <span className="text-blue-600">Money Leakage</span></p>
         </div>
         <SavingsCalculator />
       </section>
@@ -126,10 +135,10 @@ export default function LandingPage() {
                   Unlock Neural Access
                 </h2>
                 <p className="text-zinc-500 mb-10 max-w-sm mx-auto italic text-sm">
-                  Join the beta to test our sub-200ms routing engine. Account required to prevent bot abuse.
+                  Authentication required to prevent token abuse. Join the beta to test our sub-200ms engine.
                 </p>
                 <SignInButton mode="modal">
-                  <button className="px-12 py-5 bg-white text-black font-black uppercase italic tracking-tighter rounded-xl hover:bg-blue-600 hover:text-white transition-all active:scale-95">
+                  <button className="px-12 py-5 bg-white text-black font-black uppercase italic tracking-tighter rounded-xl hover:bg-blue-600 hover:text-white transition-all active:scale-95 shadow-xl">
                     Get Instant Access
                   </button>
                 </SignInButton>
@@ -139,7 +148,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* --- UPDATED FEATURES --- */}
+      {/* --- FEATURES --- */}
       <section className="max-w-7xl mx-auto px-6 py-32 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <FeatureCard 
@@ -174,12 +183,12 @@ export default function LandingPage() {
 
 function FeatureCard({ icon, title, subtitle, desc }: { icon: any, title: string, subtitle: string, desc: string }) {
   return (
-    <div className="group p-12 rounded-[2.5rem] bg-zinc-900/20 border border-zinc-800 hover:border-blue-500/30 transition-all duration-500">
-      <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">{icon}</div>
-      <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white mb-4">
+    <div className="group p-12 rounded-[2.5rem] bg-zinc-900/20 border border-zinc-800 hover:border-blue-500/30 transition-all duration-500 relative">
+      <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform relative z-10">{icon}</div>
+      <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white mb-4 relative z-10">
         {title} <span className="text-blue-500 text-xs block not-italic font-sans tracking-widest mt-1">{subtitle}</span>
       </h3>
-      <p className="text-zinc-500 text-sm leading-relaxed font-medium italic">{desc}</p>
+      <p className="text-zinc-500 text-sm leading-relaxed font-medium italic relative z-10">{desc}</p>
     </div>
   );
 }
