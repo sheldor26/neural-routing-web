@@ -65,8 +65,11 @@ export default function FullChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // ✅ Sincronizado con el dueño de la API KEY en Supabase
-  const getTargetId = () => "juan_dev_34";
+  // ✅ Multi-tenant: Get Clerk ID dynamically
+  const getTargetId = () => {
+    if (!isLoaded || !user) return "guest";
+    return user.id;
+  };
 
   useEffect(() => {
     if (isLoaded) {
@@ -81,7 +84,7 @@ export default function FullChatPage() {
       }
       fetchSessions();
     }
-  }, [isLoaded]);
+  }, [isLoaded, user?.id]); // Reload when user ID becomes available
 
   useEffect(() => {
     if (scrollRef.current && isTyping) {
@@ -94,7 +97,9 @@ export default function FullChatPage() {
   }, [messages, isTyping]);
 
   const fetchSessions = async () => {
-    const targetId = getTargetId(); 
+    const targetId = getTargetId();
+    if (targetId === "guest") return;
+
     try {
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${targetId}`, {
         headers: { 'X-API-KEY': 'nr-dev-secret-123' }
