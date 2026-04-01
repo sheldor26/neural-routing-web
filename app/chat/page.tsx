@@ -185,13 +185,15 @@ export default function FullChatPage() {
     const currentPrompt = input.trim();
     const userMsg: ChatMessage = { role: 'user', content: currentPrompt };
     const currentContext = [...messages, userMsg];
-    const isFirstMessage = messages.length === 1;
+    
+    // Check if this is the start of a conversation to trigger a title save
+    const isFirstRealMessage = messages.length <= 1; 
 
     setMessages(prev => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
 
-    const userIdToSend = getTargetId(); // Ensure consistency with sidebar
+    const userIdToSend = getTargetId(); // Ensure consistency with backend security
 
     try {
       const response = await fetch('/api/chat', {
@@ -223,12 +225,13 @@ export default function FullChatPage() {
           }
         }]);
 
-        if (isFirstMessage) {
-          const finalTitle = aiSuggestedTitle ||
+        // FIX: Force a title update on the first message to make it visible in the sidebar
+        if (isFirstRealMessage) {
+          const finalTitle = aiSuggestedTitle || 
             (currentPrompt.split(' ').slice(0, 4).join(' ') + (currentPrompt.split(' ').length > 4 ? "..." : ""));
           await renameSession(sessionId, finalTitle);
         } else {
-          fetchSessions();
+          fetchSessions(); // Refresh list for subsequent messages
         }
       }
     } catch (e) {
