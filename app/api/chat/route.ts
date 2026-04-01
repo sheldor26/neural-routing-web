@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // Clave secreta validada en la tabla api_keys
+        // Clave secreta validada en la tabla api_keys de Supabase
         'X-API-KEY': 'nr-dev-secret-123',
       },
       body: JSON.stringify({

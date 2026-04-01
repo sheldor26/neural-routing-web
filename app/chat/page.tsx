@@ -65,7 +65,7 @@ export default function FullChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Helper to ensure target user ID consistency
+  // Unifica el ID de destino para lectura y escritura
   const getTargetId = () => user?.primaryEmailAddress?.emailAddress || "juan_dev_34";
 
   useEffect(() => {
@@ -82,7 +82,7 @@ export default function FullChatPage() {
       fetchSessions();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, user?.id]); // Escuchar cambios en el ID para sincronizar logs
+  }, [isLoaded, user?.id]); // Recargar sesiones cuando el ID del usuario cambie
 
   useEffect(() => {
     if (scrollRef.current && isTyping) {
@@ -95,7 +95,7 @@ export default function FullChatPage() {
   }, [messages, isTyping]);
 
   const fetchSessions = async () => {
-    const targetId = getTargetId(); //
+    const targetId = getTargetId(); 
     try {
       const response = await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${targetId}`);
       const data = await response.json();
@@ -186,7 +186,7 @@ export default function FullChatPage() {
     const userMsg: ChatMessage = { role: 'user', content: currentPrompt };
     const currentContext = [...messages, userMsg];
     
-    // Check if this is the start of a conversation to force sidebar visibility
+    // El sidebar solo muestra chats con título, por lo que forzamos guardado inicial
     const isFirstRealMessage = messages.length <= 1; 
 
     setMessages(prev => [...prev, userMsg]);
@@ -199,7 +199,7 @@ export default function FullChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: currentContext,
-          userId: getTargetId(), //
+          userId: getTargetId(), // Sincronizado con fetchSessions
           sessionId: sessionId
         }),
       });
@@ -219,7 +219,7 @@ export default function FullChatPage() {
           }
         }]);
 
-        // FIX: Force a title update on the first message to make it visible in the sidebar
+        // FORZADO DE VISIBILIDAD: Rename hace que la sesión aparezca en el sidebar
         if (isFirstRealMessage) {
           const finalTitle = aiSuggestedTitle || 
             (currentPrompt.substring(0, 25) + "...");
