@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
-import { Loader2, Zap, CheckCircle2, ArrowRight, Copy, Terminal, Activity, TrendingDown, Clock, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Loader2, Zap, CheckCircle2, ArrowRight, Copy, Activity, AlertTriangle, ShieldCheck } from 'lucide-react';
 
 const AnimatedCounter = ({ value }: { value: number }) => {
   const [displayValue, setDisplayValue] = useState(0);
@@ -11,7 +11,7 @@ const AnimatedCounter = ({ value }: { value: number }) => {
   useEffect(() => {
     let start = 0;
     const end = value;
-    const duration = 2000; // Un poco más lento para generar suspenso
+    const duration = 2000; 
     const increment = end / (duration / 16);
 
     const timer = setInterval(() => {
@@ -72,6 +72,10 @@ export default function OnboardingPage() {
 
   if (!isLoaded) return null;
 
+  // Calculamos el valor de ahorro de forma segura para evitar el NaN
+  const rawSavings = result?.business_metrics?.savings_generated_usd || 0;
+  const savingsValue = rawSavings * 100000;
+
   return (
     <div className="min-h-screen bg-[#050505] text-white flex flex-col items-center justify-center px-6 py-20">
       <div className="max-w-2xl w-full">
@@ -124,7 +128,7 @@ export default function OnboardingPage() {
           <div className="space-y-8 animate-in zoom-in-95 fade-in duration-500">
             <div className="text-center">
                 <div className="inline-flex px-4 py-1.5 bg-emerald-500 text-black text-[10px] font-black uppercase tracking-tighter italic rounded-full mb-4">
-                    ↓ 94.2% cheaper than direct GPT-4
+                    ↓ {rawSavings > 0 ? '94.2%' : '0%'} cheaper than direct GPT-4
                 </div>
                 <h2 className="text-3xl font-black italic uppercase tracking-tighter">Routing Audit <span className="text-blue-500">Complete.</span></h2>
                 <p className="text-[10px] text-zinc-500 font-bold uppercase mt-2">Based on your input: "{prompt.substring(0, 40)}..."</p>
@@ -134,9 +138,16 @@ export default function OnboardingPage() {
             <div className="bg-zinc-900/50 border border-zinc-800 rounded-[2.5rem] p-10 text-center relative overflow-hidden group border-b-emerald-500/20">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-emerald-500 to-blue-600 bg-[length:200%_100%] animate-gradient" />
                 
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-red-500 mb-2">You are currently losing:</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-red-500 mb-2">
+                  {rawSavings > 0 ? 'You are currently losing:' : 'Your current prompt is:'}
+                </p>
+                
                 <div className="text-7xl font-black italic tracking-tighter text-white mb-2">
-                    <AnimatedCounter value={result.business_metrics?.savings_generated_usd * 100000} />
+                    {savingsValue > 0 ? (
+                      <AnimatedCounter value={savingsValue} />
+                    ) : (
+                      <span className="text-5xl text-blue-500">OPTIMIZED</span>
+                    )}
                 </div>
                 <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-6">Every 100k requests / month</p>
                 
