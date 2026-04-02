@@ -30,13 +30,13 @@ interface ChatSession {
   session_id: string;
   created_at: string;
   custom_title?: string;
+  session_savings?: number;
 }
 
 export default function FullChatPage() {
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
   
-  // States
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
@@ -45,15 +45,14 @@ export default function FullChatPage() {
   const [userApiKey, setUserApiKey] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
-  // Addiction loop stats
-  const [stats, setStats] = useState({ daily: 0, weekly: 12.40, total: 310.50 });
+  // ✅ STATS INICIALIZADAS EN CERO REAL
+  const [stats, setStats] = useState({ daily: 0, weekly: 0, total: 0 });
   const WEEKLY_GOAL = 100;
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const API_BASE = "https://web-production-4f439.up.railway.app";
 
-  // 1. AUTO-RESIZE TEXTAREA
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -61,14 +60,13 @@ export default function FullChatPage() {
     }
   }, [input]);
 
-  // 2. SCROLL AUTO
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     }
   }, [messages, isTyping]);
 
-  // 3. INIT: KEY + SESSIONS + STATS
+  // 1. CARGA DE CREDENCIALES, SESIONES Y STATS REALES
   useEffect(() => {
     async function initChat() {
       if (!isLoaded || !user) return;
@@ -85,11 +83,11 @@ export default function FullChatPage() {
         const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`);
         if (res.ok) {
           const d = await res.json();
-          setStats(prev => ({ 
-            daily: d.total_savings || 0, 
-            weekly: d.weekly_savings || 12.40, 
-            total: d.total_savings_lifetime || 310.50 
-          }));
+          setStats({ 
+            daily: Number(d.total_savings || 0), 
+            weekly: Number(d.weekly_savings || 0), 
+            total: Number(d.total_savings || 0) 
+          });
         }
       } catch (e) { console.error("Init Error", e); }
     }
@@ -106,7 +104,7 @@ export default function FullChatPage() {
     } catch (e) { console.error("Sessions Fetch Error", e); }
   };
 
-  // 4. PERSISTENCIA: CARGAR HISTORIAL
+  // 2. CARGAR HISTORIAL DE SESIÓN
   const loadChatHistory = async (sId: string) => {
     if (!sId || !userApiKey) return;
     setIsTyping(true);
@@ -140,18 +138,21 @@ export default function FullChatPage() {
     } catch (e) { console.error("Rename Error", e); }
   };
 
-  // 5. ENVIAR Y GUARDAR
+  // 3. ENVÍO DE MENSAJES Y GUARDADO AUTOMÁTICO
   const handleSendMessage = async (overridePrompt?: string) => {
     const p = overridePrompt || input;
     if (!p.trim() || isTyping || !userApiKey) return;
-    if (!user?.id) { document.getElementById('clerk-auth-trigger')?.click(); return; }
 
+    // Aseguramos que haya un sessionId
     const currentSessionId = sessionId || crypto.randomUUID();
     if (!sessionId) setSessionId(currentSessionId);
 
     const userMsg: ChatMessage = { role: 'user', content: p };
     const historyContext = messages.map(m => ({ role: m.role, content: m.content }));
     
+    // Guardamos estado de si es el primer mensaje antes de actualizar el array
+    const isFirstMessage = messages.length === 0;
+
     setMessages(prev => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
@@ -187,14 +188,20 @@ export default function FullChatPage() {
             gpt4_cost: gpt4Cost,
             savings_pct: isOverdrive ? 0 : data.business_metrics?.savings_percentage || 90,
             isOverdrive: isOverdrive,
-            reasoning: isOverdrive ? "High complexity node engaged for precision." : (data.routing_decision?.reason || "Cost-optimized route.")
+            reasoning: isOverdrive ? "Complexity node engaged for precision." : (data.routing_decision?.reason || "Cost-optimized route.")
           }
         }]);
 
-        setStats(prev => ({ ...prev, daily: prev.daily + (data.business_metrics?.savings_usd || 0) }));
+        // Actualizamos stats locales
+        const newSavings = data.business_metrics?.savings_usd || 0;
+        setStats(prev => ({ 
+          daily: prev.daily + newSavings, 
+          weekly: prev.weekly + newSavings, 
+          total: prev.total + newSavings 
+        }));
 
-        // Renombrar si es el primer mensaje
-        if (messages.length === 0) {
+        // Si es el primer mensaje, renombramos el log
+        if (isFirstMessage) {
           await renameSession(currentSessionId, p);
         } else {
           fetchSessions();
@@ -205,7 +212,7 @@ export default function FullChatPage() {
   };
 
   const shareSavings = (pct: number, overdrive: boolean) => {
-    const text = overdrive ? `Maximum precision via Neural Overdrive ⚡` : `Saved ${pct.toFixed(0)}% with NeuralRouting.io 🚀`;
+    const text = overdrive ? `Neural Overdrive engaged ⚡` : `Saved ${pct.toFixed(0)}% using NeuralRouting.io 🚀`;
     navigator.clipboard.writeText(text);
     alert("Copied!");
   };
@@ -241,7 +248,7 @@ export default function FullChatPage() {
         {/* HEADER ADICTIVO */}
         <header className="h-24 border-b border-white/5 flex items-center justify-between px-4 md:px-8 bg-[#050506]/80 backdrop-blur-xl z-10">
            <div className="flex items-center gap-6">
-             <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 md:hidden"><Menu size={20} /></button>
+             <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 md:hidden hover:text-white transition-colors"><Menu size={20} /></button>
              <div className="flex flex-col gap-2">
                <div className="flex items-center gap-5">
                   <div className="flex flex-col">
@@ -250,7 +257,7 @@ export default function FullChatPage() {
                   </div>
                   <div className="w-[1px] h-6 bg-white/5" />
                   <div className="flex flex-col">
-                    <span className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-1">Total Impact</span>
+                    <span className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-1">Impact Total</span>
                     <span className="text-sm font-black italic text-emerald-500 leading-none">${stats.total.toFixed(2)}</span>
                   </div>
                </div>
@@ -260,7 +267,7 @@ export default function FullChatPage() {
              </div>
            </div>
            <div className="flex items-center gap-4">
-             <Link href="/dashboard" className="hidden sm:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white bg-blue-600 px-5 py-2.5 rounded-full hover:scale-105 transition-all shadow-lg shadow-blue-600/20">
+             <Link href="/dashboard" className="hidden sm:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white bg-blue-600 px-6 py-3 rounded-full hover:scale-105 transition-all shadow-lg shadow-blue-600/20">
                 Apply to my App <Rocket size={14} />
              </Link>
              <UserButton afterSignOutUrl="/" />
@@ -274,7 +281,14 @@ export default function FullChatPage() {
                <Target className="text-blue-500" size={40} />
                <div className="space-y-2">
                  <h1 className="text-4xl font-black italic uppercase tracking-tighter text-white">Stop Burning Cash</h1>
-                 <p className="text-zinc-500 text-sm font-medium uppercase tracking-widest">You're overpaying for AI requests. Let's fix that.</p>
+                 <p className="text-zinc-500 text-sm font-medium uppercase tracking-widest">Neuralrouting automatically engages the most cost-efficient route.</p>
+               </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-lg">
+                  {["Audit technical code", "Extract market insights"].map((t, idx) => (
+                    <button key={idx} onClick={() => handleSendMessage(t)} className="p-4 bg-zinc-900/50 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:bg-blue-600 hover:text-white transition-all text-left">
+                      {t}
+                    </button>
+                  ))}
                </div>
             </div>
           )}
@@ -283,7 +297,7 @@ export default function FullChatPage() {
             <div key={i} className={`flex flex-col gap-4 ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in`}>
               <div className={`flex gap-4 max-w-[90%] md:max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                 <div className={`p-5 md:p-6 rounded-[2rem] ${m.role === 'user' ? 'bg-zinc-900 border border-white/10 text-white rounded-tr-none' : 'bg-zinc-900/30 border border-white/5 text-zinc-200 rounded-tl-none backdrop-blur-md shadow-2xl'}`}>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} className="text-sm leading-relaxed prose prose-invert max-w-none">{m.content}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} className="text-sm leading-relaxed prose prose-invert max-none">{m.content}</ReactMarkdown>
                   {m.role === 'assistant' && m.stats && (
                     <div className="mt-8 pt-8 border-t border-white/5 space-y-6">
                       <div className="flex flex-col gap-1">
@@ -291,15 +305,15 @@ export default function FullChatPage() {
                            {m.stats.isOverdrive ? <Zap size={14} /> : <Sparkles size={14} />} 
                            {m.stats.isOverdrive ? "Neural Overdrive: Maximum Precision" : `Saved ${m.stats.savings_pct.toFixed(0)}% vs GPT-4`}
                         </h4>
-                        <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Cost: ${m.stats.cost.toFixed(5)} vs ${m.stats.gpt4_cost.toFixed(5)}</p>
+                        <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Actual: ${m.stats.cost.toFixed(5)} vs ${m.stats.gpt4_cost.toFixed(5)} on GPT-4</p>
                       </div>
                       <div className="bg-black/40 rounded-xl p-4 border border-white/5 flex items-center justify-between">
                          <p className="text-[10px] text-zinc-400 font-medium italic">{m.stats.reasoning}</p>
-                         <span className={`px-2 py-1 border rounded text-[8px] font-black uppercase ${m.stats.isOverdrive ? 'text-blue-500' : 'text-emerald-500'}`}>{m.stats.model}</span>
+                         <span className={`px-2 py-1 border rounded text-[8px] font-black uppercase ${m.stats.isOverdrive ? 'text-blue-500 border-blue-500/20' : 'text-emerald-500 border-emerald-500/20'}`}>{m.stats.model}</span>
                       </div>
                       <div className="flex gap-2">
-                         <button onClick={() => shareSavings(m.stats?.savings_pct || 0, m.stats?.isOverdrive || false)} className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2"><Share2 size={12}/> Share</button>
-                         <button onClick={() => handleSendMessage(`Make this more concise to save more tokens`)} className="flex-1 py-3 bg-zinc-800 hover:bg-emerald-600 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2"><DollarSign size={12}/> Cheaper</button>
+                         <button onClick={() => shareSavings(m.stats?.savings_pct || 0, m.stats?.isOverdrive || false)} className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 transition-all"><Share2 size={12}/> Share</button>
+                         <button onClick={() => handleSendMessage(`Analyze and make it cheaper`)} className="flex-1 py-3 bg-zinc-800 hover:bg-emerald-600 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 transition-all"><DollarSign size={12}/> Make Cheaper</button>
                       </div>
                     </div>
                   )}
@@ -307,23 +321,23 @@ export default function FullChatPage() {
               </div>
             </div>
           ))}
-          {isTyping && <div className="ml-12 text-blue-500/50 text-[10px] font-black uppercase tracking-widest animate-pulse">Neural routing active...</div>}
+          {isTyping && <div className="ml-12 text-blue-500/50 text-[10px] font-black uppercase tracking-widest animate-pulse">Neural Routing Active...</div>}
           <div className="h-40 flex-shrink-0" /> 
         </div>
 
-        {/* INPUT AREA */}
+        {/* INPUT */}
         <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-[#050506] via-[#050506] to-transparent z-10">
-          <div className="max-w-3xl mx-auto relative">
+          <div className="max-w-3xl mx-auto relative group">
             <textarea 
               ref={textareaRef} 
               value={input} 
               onChange={(e) => setInput(e.target.value)} 
               onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}} 
-              placeholder="Execute command..." 
+              placeholder="Paste prompt and see how much you save..." 
               className="w-full bg-zinc-950 border border-white/10 rounded-[1.8rem] md:rounded-[2.2rem] p-5 md:p-6 pr-16 text-xs md:text-sm focus:border-blue-500 outline-none resize-none shadow-2xl backdrop-blur-2xl transition-all max-h-[200px]" 
               rows={1} 
             />
-            <button onClick={() => handleSendMessage()} disabled={isTyping || !input.trim() || !userApiKey} className="absolute right-3 md:right-4 bottom-3 md:bottom-4 p-3 bg-blue-600 rounded-2xl hover:scale-110 active:scale-95 disabled:opacity-50 text-white shadow-xl shadow-blue-600/30">
+            <button onClick={() => handleSendMessage()} disabled={isTyping || !input.trim() || !userApiKey} className="absolute right-3 md:right-4 bottom-3 md:bottom-4 p-3 bg-blue-600 rounded-2xl hover:scale-110 active:scale-95 disabled:opacity-50 transition-all text-white shadow-xl shadow-blue-600/30">
               <Send size={20} />
             </button>
           </div>
