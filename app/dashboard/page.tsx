@@ -129,11 +129,18 @@ export default function Dashboard() {
 
       setTestResult(data);
       setNotification({ msg: "Route optimized successfully!", type: 'success' });
+      
+      // Update local stats optimistically
       setStats(prev => ({ 
         ...prev, 
         last_requests: [data, ...prev.last_requests.slice(0, 4)],
-        savings: prev.savings + (data.business_metrics?.savings_usd || 0)
+        savings: prev.savings + (data.business_metrics?.savings_usd || 0),
+        requests: prev.requests + 1
       }));
+      
+      // Update usage bar
+      setUsageData(prev => ({ ...prev, used: prev.used + 1 }));
+
       setTimeout(() => setNotification(null), 4000);
 
     } catch (e: any) { 
@@ -290,8 +297,7 @@ export default function Dashboard() {
             </div>
         </div>
 
-        {/* RECENT OPTIMIZATIONS */}
-        <div className="bg-zinc-900/10 border border-zinc-800 rounded-[2.5rem] p-10 space-y-6 backdrop-blur-md">
+        <div className="bg-zinc-900/10 border border-zinc-800 rounded-[2.5rem] p-10 space-y-6">
             <div className="flex items-center gap-3">
               <History size={20} className="text-blue-600" />
               <h3 className="text-white font-black italic uppercase text-lg tracking-tight italic">Recent <span className="text-blue-600">Optimizations</span></h3>
@@ -301,7 +307,7 @@ export default function Dashboard() {
                     <div key={i} className="bg-black/40 border border-white/5 p-6 rounded-2xl flex flex-col gap-2 group hover:border-blue-500/30 transition-all">
                         <div className="flex justify-between items-center">
                             <span className="text-[10px] font-black text-blue-500 uppercase italic">{req.model_used}</span>
-                            <span className="text-[9px] font-black text-emerald-500">-{req.business_metrics?.savings_percentage?.toFixed(1)}% cost</span>
+                            <span className="text-[9px] font-black text-emerald-400">-{req.business_metrics?.savings_percentage?.toFixed(1)}% cost</span>
                         </div>
                         <div className="flex justify-between items-center text-xs font-mono">
                             <span className="text-zinc-500">Optimized Cost:</span>
@@ -312,20 +318,20 @@ export default function Dashboard() {
             </div>
         </div>
 
-        {/* NEURAL NOTIFICATION SYSTEM */}
+        {/* NEURAL NOTIFICATION SYSTEM - CYBERPUNK UPGRADE */}
         {notification && (
-          <div className="fixed bottom-8 right-8 z-[100] animate-in slide-in-from-bottom-5 duration-300">
-            <div className={`p-[1px] rounded-2xl bg-gradient-to-br ${notification.type === 'error' ? 'from-red-500/50 to-transparent' : 'from-blue-500/50 to-transparent shadow-[0_0_40px_-10px_rgba(59,130,246,0.5)]'}`}>
-              <div className="bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl px-6 py-4 flex items-center gap-4 border border-white/5">
-                <div className={`p-2 rounded-full ${notification.type === 'error' ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
-                  {notification.type === 'error' ? <AlertCircle size={18}/> : <CheckCircle2 size={18}/>}
+          <div className="fixed bottom-10 right-10 z-[100] animate-in fade-in slide-in-from-right-10 duration-500">
+            <div className={`relative p-[1.5px] rounded-2xl bg-gradient-to-br ${notification.type === 'error' ? 'from-red-500/80 via-red-500/20 to-transparent shadow-[0_0_30px_-10px_rgba(239,68,68,0.5)]' : 'from-blue-600/80 via-blue-400/20 to-transparent shadow-[0_0_30px_-10px_rgba(37,99,235,0.5)]'}`}>
+              <div className="bg-[#080808]/90 backdrop-blur-xl rounded-2xl px-8 py-5 flex items-center gap-5 border border-white/5">
+                <div className={`p-3 rounded-full ${notification.type === 'error' ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-400'}`}>
+                  {notification.type === 'error' ? <AlertCircle size={22} className="animate-pulse" /> : <CheckCircle2 size={22} className="animate-pulse" />}
                 </div>
-                <div className="flex flex-col pr-4">
-                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 italic">Neural Message</span>
-                  <span className="text-xs font-bold text-white tracking-tight leading-tight">{notification.msg}</span>
+                <div className="flex flex-col min-w-[200px]">
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 italic mb-1">System Message</span>
+                  <span className="text-sm font-bold text-white tracking-tight leading-snug">{notification.msg}</span>
                 </div>
-                <button onClick={() => setNotification(null)} className="text-zinc-700 hover:text-white transition-colors">
-                  <Code size={14} className="rotate-45" />
+                <button onClick={() => setNotification(null)} className="p-2 hover:bg-white/5 rounded-lg text-zinc-700 hover:text-white transition-all">
+                  <Code size={16} className="rotate-45" />
                 </button>
               </div>
             </div>
