@@ -8,9 +8,9 @@ const tiers = [
     name: "Free",
     price: "0",
     description: "Instant access",
-    outcome: "Run ~500 requests free", // ✅ FIXED: Consistency
+    outcome: "Run ~500 requests free",
     savingLabel: "FREE $5 CREDIT",
-    comparison: "Try Neural Routing Free", // ✅ FIXED: Action-oriented
+    comparison: "Try Neural Routing Free",
     timeToValue: "Live in <30 seconds",
     features: [
       "1 API Key",
@@ -32,7 +32,7 @@ const tiers = [
     features: [
       "1.5M Tokens included",
       "90% Cost Reduction",
-      "Upgrade → Save 3x more" // 💰 REVENUE BOOST: Upgrade hint
+      "Upgrade → Save 3x more"
     ],
     cta: "Start Saving",
     highlight: false,
@@ -45,7 +45,7 @@ const tiers = [
     outcome: "Handle ~60k requests/mo",
     savingLabel: "SAVE $420/MO",
     comparison: "7x cheaper than GPT-4",
-    timeToValue: "Best for most apps", // 🧠 PSYCHOLOGY: Decision reinforcement
+    timeToValue: "Best for most apps",
     features: [
       "5M Tokens included",
       "Priority Routing Nodes",
@@ -70,7 +70,7 @@ const tiers = [
       "Volume-based rates",
       "Custom SLA Agreements"
     ],
-    cta: "Contact Sales", // ⚡ B2B STANDARD: More trust
+    cta: "Get Business", // ✅ Changed to allow direct purchase
     highlight: false,
     icon: <Crown className="text-zinc-500" size={20} />
   }
