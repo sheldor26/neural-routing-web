@@ -27,13 +27,13 @@ export default function Playground() {
   const API_BASE = "https://web-production-4f439.up.railway.app";
   const PUBLIC_KEY = process.env.NEXT_PUBLIC_API_KEY || "nr-dev-secret-123";
 
+  // ✅ QUICK PROMPTS BÁSICOS (Más entendibles para todos)
   const QUICK_PROMPTS = [
-    { label: "Analyze Logs", prompt: "Summarize these 500 lines of server logs and find the 404 root cause" },
-    { label: "Fix Python Bug", prompt: "Fix this error: IndexError: list index out of range in a for loop" },
-    { label: "Classify Tickets", prompt: "Classify these 100 customer support tickets by priority and sentiment" }
+    { label: "Resumir Texto", prompt: "Haz un resumen corto de este texto resaltando los 3 puntos más importantes." },
+    { label: "Corregir Email", prompt: "Corrige la gramática y haz que este email suene más profesional." },
+    { label: "Extraer Datos", prompt: "Extrae los nombres y fechas mencionados en el siguiente párrafo." }
   ];
 
-  // ✅ AUTO-DEMO: Populate prompt on load
   useEffect(() => {
     if (!prompt && !result) {
       setPrompt(QUICK_PROMPTS[0].prompt);
@@ -49,12 +49,17 @@ export default function Playground() {
     const nrYearly = nrUnit * monthlyVolume * 12;
     const diff = gpt4Yearly - nrYearly;
 
+    let effPercent = Number(result.business_metrics.savings_percentage || 0);
+    if (effPercent <= 0 && gpt4Unit > 0) {
+      effPercent = ((gpt4Unit - nrUnit) / gpt4Unit) * 100;
+    }
+
     return {
       gpt4Yearly,
       nrYearly,
       yearlySavings: Math.max(0, diff),
       monthlyLoss: Math.max(0, diff / 12),
-      efficiency: gpt4Yearly > 0 ? ((diff / gpt4Yearly) * 100).toFixed(1) : 0
+      efficiency: effPercent > 0 && effPercent < 0.1 ? "0.1" : effPercent.toFixed(1)
     };
   }, [result, monthlyVolume]);
 
@@ -87,13 +92,12 @@ export default function Playground() {
   };
 
   return (
-    <section id="playground" className="max-w-5xl mx-auto px-6 py-20 relative z-30 font-sans">
+    <section id="playground" className="max-w-5xl mx-auto px-6 py-20 relative z-30 font-sans text-zinc-300">
       
-      {/* SOCIAL PROOF COUNTER */}
       <div className="flex justify-center mb-10">
         <div className="bg-zinc-900/60 border border-white/5 px-6 py-2.5 rounded-full flex items-center gap-4 backdrop-blur-md">
             <div className="flex -space-x-2">
-                {[1,2,3].map(i => <div key={i} className="w-6 h-6 rounded-full bg-zinc-800 border-2 border-black flex items-center justify-center text-[8px] font-bold">U{i}</div>)}
+                {[1,2,3].map(i => <div key={i} className="w-6 h-6 rounded-full bg-zinc-800 border-2 border-black"></div>)}
             </div>
             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
                 <span className="text-emerald-500 animate-pulse mr-2">●</span> 
@@ -104,7 +108,6 @@ export default function Playground() {
 
       <div className="bg-[#080808] border border-white/10 rounded-[3.5rem] p-8 md:p-16 shadow-3xl relative overflow-hidden">
         
-        {/* HEADER: EMOTIONAL & B2B */}
         <div className="text-center mb-10">
           <h2 className="text-4xl md:text-5xl font-black mb-4 italic uppercase text-white tracking-tighter">
             You’re Overpaying for AI — <span className="text-blue-500">Here’s Proof</span>
@@ -116,7 +119,7 @@ export default function Playground() {
           </div>
         </div>
 
-        {/* QUICK PROMPTS: REDUCE FRICTION */}
+        {/* QUICK PROMPTS */}
         <div className="flex gap-2 flex-wrap mb-6 justify-center">
             {QUICK_PROMPTS.map((p) => (
                 <button 
@@ -129,13 +132,12 @@ export default function Playground() {
             ))}
         </div>
 
-        {/* INPUT AREA */}
         <div className="space-y-6">
           <div className="relative group">
             <textarea 
               className="w-full bg-black border border-zinc-800 rounded-3xl p-8 text-white focus:border-blue-500 outline-none transition-all text-lg resize-none shadow-2xl placeholder:text-zinc-800"
               rows={3}
-              placeholder='Describe a complex task...'
+              placeholder='Try something basic...'
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
             />
@@ -153,7 +155,6 @@ export default function Playground() {
             </button>
           </div>
 
-          {/* SCALING SLIDER */}
           <div className="bg-zinc-900/20 p-6 rounded-3xl border border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="space-y-1">
               <p className="text-[10px] font-black uppercase text-zinc-600 tracking-widest">Monthly Traffic</p>
@@ -166,7 +167,6 @@ export default function Playground() {
         {result && (
           <div className="mt-12 space-y-10 animate-in fade-in zoom-in duration-1000">
             
-            {/* LOSS FRAMING CARDS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="p-10 rounded-[3rem] bg-red-500/5 border border-red-500/10 flex flex-col items-center justify-center text-center opacity-60">
                 <p className="text-[9px] font-black uppercase text-red-500/50 mb-3 tracking-[0.3em]">Without NeuralRouting</p>
@@ -187,40 +187,35 @@ export default function Playground() {
               </div>
             </div>
 
-            {/* BRAIN LOGIC & QUALITY SIGNAL */}
-            <div className="bg-black/40 border border-white/5 p-10 rounded-[2.5rem] space-y-6 relative overflow-hidden">
-              <div className="flex items-center gap-4 border-b border-white/5 pb-6">
-                <div className="p-3 bg-blue-500/10 rounded-2xl"><Brain className="text-blue-500" size={24}/></div>
-                <div>
-                  <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Neural Decision: <span className="text-emerald-500">Same quality detected</span></p>
-                  <p className="text-sm font-black text-white uppercase italic tracking-tighter">Routed to <span className="text-blue-500">{result.model_used}</span></p>
+            <div className="bg-black/40 border border-white/5 p-10 rounded-[2.5rem] space-y-6 relative overflow-hidden text-center">
+                <div className="flex flex-col items-center gap-2">
+                    <Brain className="text-blue-500 mb-2" size={32}/>
+                    <p className="text-sm font-black text-white uppercase italic tracking-tighter">Routed to <span className="text-blue-500">{result.model_used}</span></p>
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Same quality • {result.business_metrics.latency_ms}ms latency</p>
                 </div>
-                <div className="ml-auto text-right">
-                    <p className="text-zinc-500 text-[10px] font-black uppercase">{result.business_metrics.latency_ms}ms</p>
-                    <p className="text-[8px] font-black text-zinc-700 uppercase tracking-widest">Latency</p>
-                </div>
-              </div>
-              <p className="text-zinc-500 text-xs italic leading-relaxed text-center max-w-2xl mx-auto">
-                 "Task intent matches low-complexity pattern. {result.model_used} output quality is 
-                 identical to GPT-4 for this specific query. <span className="text-white">Optimization locked.</span>"
-              </p>
             </div>
 
-            {/* DYNAMIC MOMENTUM CTA */}
-            <div className="flex flex-col items-center gap-6 pt-6">
+            {/* ✅ DYNAMIC CTA: ACTUALIZADO */}
+            <div className="flex flex-col items-center gap-8 pt-10 border-t border-white/5">
                <button onClick={() => { setResult(null); setPrompt(""); }} className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] hover:text-white transition-colors flex items-center gap-3">
-                  ⚡ Request Optimized. Run another scenario? <ArrowRight size={12}/>
+                  ⚡ REQUEST OPTIMIZED. RUN ANOTHER SCENARIO? <ArrowRight size={12}/>
                </button>
                
-               <a href="/dashboard" className="group relative w-full md:w-auto bg-white text-black px-16 py-8 rounded-3xl font-black text-xl uppercase tracking-tighter italic transition-all hover:scale-105 active:scale-95 shadow-2xl flex flex-col items-center gap-1">
-                  <div className="flex items-center gap-3">
-                    Save ${metrics.yearlySavings.toLocaleString()}/yr → Get Started
+               <a href="/dashboard" className="group relative w-full md:w-auto bg-white text-black px-16 py-8 rounded-[2rem] font-black text-2xl uppercase tracking-tighter italic transition-all hover:scale-105 active:scale-95 shadow-2xl flex flex-col items-center gap-1 overflow-hidden">
+                  <div className="flex items-center gap-3 relative z-10">
+                    {metrics.yearlySavings > 0 ? (
+                        <>Save ${metrics.yearlySavings.toLocaleString()}/year → Get Started</>
+                    ) : (
+                        <>Get My API Key → Start Saving</>
+                    )}
                   </div>
-                  <span className="text-[10px] font-black text-zinc-400 tracking-[0.2em] italic opacity-60 uppercase mt-1">
-                    No credit card required • Free $5 credit
+                  <span className="text-[10px] font-black text-zinc-400 normal-case tracking-widest italic opacity-60 relative z-10">
+                    Integration takes 30 seconds • No credit card required
                   </span>
+                  
+                  {/* Badge de Recompensa */}
                   <div className="absolute -top-3 -right-3 bg-emerald-500 text-white text-[9px] px-3 py-1.5 rounded-full font-black animate-bounce shadow-lg rotate-12 group-hover:rotate-0 transition-transform">
-                     START SAVING NOW
+                     FREE $5 CREDIT
                   </div>
                </a>
             </div>
