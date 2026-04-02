@@ -73,7 +73,7 @@ export default function Dashboard() {
           }));
         }
 
-        // Fix: Call backend stats using the secure Clerk User ID
+        // Fix: Llamada resiliente al backend (maneja 404 para usuarios nuevos)
         const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`);
 
         if (res.ok) {
@@ -85,6 +85,10 @@ export default function Dashboard() {
             last_requests: data.recent_decisions?.slice(0, 5) || []
           });
           setUsageData(prev => ({ ...prev, used: Number(data.total_tokens_consumed || 0) }));
+        } else if (res.status === 404) {
+          // Usuario nuevo: inicializamos en ceros sin romper el dash
+          setStats({ savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] });
+          setUsageData(prev => ({ ...prev, used: 0 }));
         }
       } catch (e) { 
         console.error("Dashboard Sync Error:", e); 
@@ -115,7 +119,7 @@ export default function Dashboard() {
 
       const data = await res.json();
 
-      // Fix: Handle 402 "Insufficient Balance" explicitly
+      // Fix: Manejo explícito de Error 402 (Saldo insuficiente)
       if (res.status === 402) {
         alert("Free Tier limit reached. Please upgrade to continue optimizing.");
         return;
@@ -124,7 +128,11 @@ export default function Dashboard() {
       if (!res.ok) throw new Error(data.details || data.error || `Error ${res.status}`);
 
       setTestResult(data);
-      setStats(prev => ({ ...prev, last_requests: [data, ...prev.last_requests.slice(0, 4)] }));
+      setStats(prev => ({ 
+        ...prev, 
+        last_requests: [data, ...prev.last_requests.slice(0, 4)],
+        savings: prev.savings + (data.business_metrics?.savings_usd || 0)
+      }));
     } catch (e: any) { 
       alert(e.message);
     } finally { setTestLoading(false); }
@@ -150,7 +158,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-6">
             <div className="hidden md:flex flex-col text-right">
               <span className="text-[9px] font-black uppercase text-emerald-500 tracking-widest italic">You're saving +18% vs last week</span>
-              <span className="text-[10px] font-bold text-zinc-500 uppercase flex items-center justify-end gap-1">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase flex items-center gap-1">
                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"/> Network Healthy
               </span>
             </div>
