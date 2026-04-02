@@ -1,9 +1,8 @@
 "use client";
 import { useState } from 'react';
-import { Loader2, CheckCircle2, AlertCircle, Zap } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, Zap, DollarSign, TrendingUp } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 
-// ✅ FIX 1: Interface matched to your actual Python 'business_metrics' structure
 interface RoutingResult {
   status: string;
   model_used: string;
@@ -25,18 +24,22 @@ export default function Playground() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Use the full Railway URL for the Landing Page
   const API_BASE = "https://web-production-4f439.up.railway.app";
+
+  // Lógica de cálculo de impacto empresarial
+  const ESTIMATED_MONTHLY_VOLUME = 1000000; 
+  const savingsPerRequest = result 
+    ? (result.business_metrics.estimated_gpt4_cost - result.business_metrics.cost_usd) 
+    : 0;
+  const potentialYearlySavings = savingsPerRequest * ESTIMATED_MONTHLY_VOLUME * 12;
 
   const testRoute = async () => {
     if (!prompt || !isLoaded) return;
-    
     setLoading(true);
     setError(null);
     setResult(null);
 
     try {
-      // ✅ FIX 2: Correct endpoint and body structure
       const response = await fetch(`${API_BASE}/v1/dispatch`, {
         method: "POST",
         headers: {
@@ -44,20 +47,14 @@ export default function Playground() {
           "X-API-KEY": "nr-dev-secret-123" 
         },
         body: JSON.stringify({ 
-          messages: [
-            { role: "user", content: prompt.trim() }
-          ],
+          messages: [{ role: "user", content: prompt.trim() }],
           user_id: user?.id || "juan_dev_34", 
           session_id: "playground_live_session" 
         })
       });
 
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.details || data.error || `Error: ${response.status}`);
-      }
-      
+      if (!response.ok) throw new Error(data.details || data.error || `Error: ${response.status}`);
       setResult(data);
     } catch (err: any) {
       console.error("❌ Dispatch Error:", err);
@@ -109,45 +106,58 @@ export default function Playground() {
           </div>
         )}
 
-        {/* ✅ FIX 3: Nested access to business_metrics */}
         {result && (
-          <div className="mt-10 p-8 bg-black border border-blue-500/20 rounded-[2.5rem] animate-in fade-in zoom-in duration-500 shadow-2xl">
-             <div className="flex flex-wrap justify-between items-center gap-4 mb-6 pb-6 border-b border-zinc-800">
-               <div className="flex items-center gap-2">
-                 <CheckCircle2 className="text-green-500" size={16} />
-                 <span className="font-bold tracking-tighter italic text-zinc-300 uppercase text-[10px]">
-                   Status: <span className="text-green-500">Neural Node Active</span>
-                 </span>
-               </div>
-               <div className="px-4 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-emerald-400 text-[9px] font-black uppercase">
-                 Savings: {result.business_metrics?.savings_percentage?.toFixed(0)}%
-               </div>
-             </div>
+          <div className="mt-10 space-y-8 animate-in fade-in zoom-in duration-500">
+            
+            {/* BIG IMPACT CARD: Potential Yearly Savings */}
+            <div className="bg-blue-600/10 border border-blue-500/30 rounded-[2.5rem] p-10 text-center relative overflow-hidden group shadow-[0_0_50px_-12px_rgba(37,99,235,0.3)]">
+              <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                <DollarSign size={120} className="text-blue-500" />
+              </div>
+              
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-400 mb-4">
+                Estimated Enterprise Impact
+              </p>
+              
+              <h3 className="text-6xl font-black italic text-white tracking-tighter mb-4">
+                ${potentialYearlySavings.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                <span className="text-blue-600">/yr</span>
+              </h3>
+              
+              <div className="flex items-center justify-center gap-2 text-zinc-500 text-[10px] font-bold uppercase tracking-widest">
+                <TrendingUp size={14} className="text-emerald-500" />
+                Potential annual savings based on enterprise volume
+              </div>
+            </div>
 
-             <div className="space-y-6">
-               <div className="flex flex-col items-center gap-2">
-                  <div className="flex items-center gap-2 text-zinc-600">
-                    <Zap size={10} className="fill-blue-500 text-blue-500" />
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em]">Model Selected</p>
-                  </div>
-                  <p className="text-blue-400 font-mono bg-blue-500/5 w-fit px-3 py-1 rounded-md text-[11px] border border-blue-500/20 uppercase">
-                    {result.model_used}
-                  </p>
-               </div>
+            {/* SECONDARY METRICS GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-zinc-950/50 border border-zinc-800 p-6 rounded-3xl text-center group hover:border-blue-500/30 transition-colors">
+                <p className="text-[9px] font-black text-zinc-600 uppercase mb-2 tracking-widest">Latency</p>
+                <p className="text-xl font-black text-white italic">{result.business_metrics.latency_ms}<span className="text-blue-500 text-xs ml-1">ms</span></p>
+              </div>
+              
+              <div className="bg-zinc-950/50 border border-zinc-800 p-6 rounded-3xl text-center group hover:border-emerald-500/30 transition-colors">
+                <p className="text-[9px] font-black text-zinc-600 uppercase mb-2 tracking-widest">Efficiency</p>
+                <p className="text-xl font-black text-emerald-500 italic">+{result.business_metrics.savings_percentage.toFixed(1)}%</p>
+              </div>
 
-               <div className="p-6 bg-zinc-900/30 rounded-2xl text-zinc-100 text-sm leading-relaxed border border-zinc-800/50 font-medium italic text-center">
-                 "{result.output?.ai_answer}"
-               </div>
+              <div className="bg-zinc-950/50 border border-zinc-800 p-6 rounded-3xl text-center group hover:border-blue-500/30 transition-colors">
+                <p className="text-[9px] font-black text-zinc-600 uppercase mb-2 tracking-widest">Model Used</p>
+                <p className="text-[11px] font-mono text-blue-400 truncate uppercase">{result.model_used}</p>
+              </div>
+            </div>
 
-               <div className="flex justify-center gap-8">
-                 <p className="text-center text-[9px] text-zinc-700 font-bold uppercase tracking-[0.3em]">
-                   Latency: {result.business_metrics?.latency_ms}ms
-                 </p>
-                 <p className="text-center text-[9px] text-zinc-700 font-bold uppercase tracking-[0.3em]">
-                   Cost Saved: ${result.business_metrics?.savings_percentage > 0 ? (result.business_metrics?.estimated_gpt4_cost - result.business_metrics?.cost_usd).toFixed(4) : "0.0000"}
-                 </p>
+            {/* ENGINE OUTPUT */}
+            <div className="p-8 bg-zinc-900/30 rounded-[2rem] border border-zinc-800/50 relative">
+               <div className="absolute -top-3 left-10 px-4 py-1 bg-zinc-800 rounded-full border border-zinc-700">
+                  <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Engine Response</p>
                </div>
-             </div>
+               <p className="text-zinc-300 text-sm italic leading-relaxed text-center">
+                 "{result.output.ai_answer}"
+               </p>
+            </div>
+
           </div>
         )}
       </div>
