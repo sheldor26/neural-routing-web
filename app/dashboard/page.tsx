@@ -30,6 +30,7 @@ export default function Dashboard() {
   const API_BASE = "https://web-production-4f439.up.railway.app";
   const INTERNAL_KEY = "nr-dev-secret-123"; 
 
+  // Prevent Hydration Error #418
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -40,7 +41,8 @@ export default function Dashboard() {
       try {
         setLoading(true);
         
-        // Search in api_keys table using either Clerk ID or the dev ID from your screenshot
+        // Match Table Editor structure: user_id, key, plan
+        // Filters by Clerk ID or the Dev ID 'juan_dev_34' from your screenshot
         const { data: dbData } = await supabase
           .from('api_keys')
           .select('key, plan') 
@@ -50,7 +52,7 @@ export default function Dashboard() {
         
         if (dbData) setApiData(dbData);
 
-        // Use dev ID fallback to avoid 404 while setting up Clerk sync
+        // Fetch Stats
         const fetchId = user.id || "juan_dev_34";
         const res = await fetch(`${API_BASE}/v1/user-stats/${fetchId}`, { 
             headers: { 'X-API-KEY': INTERNAL_KEY } 
@@ -66,7 +68,7 @@ export default function Dashboard() {
           });
         }
       } catch (e) { 
-        console.error("Sync Error:", e); 
+        console.error("Dashboard Sync Error:", e); 
       } finally { 
         setLoading(false); 
       }
@@ -90,7 +92,7 @@ export default function Dashboard() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.details || data.error || `Error ${res.status}`);
+      if (!res.ok) throw new Error(data.details || data.error || `Status ${res.status}`);
 
       setTestResult(data);
       setStats(prev => ({ ...prev, last_requests: [data, ...prev.last_requests.slice(0, 4)] }));
@@ -102,7 +104,9 @@ export default function Dashboard() {
     }
   };
 
-  if (!mounted || !isLoaded || loading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center"><Loader2 className="animate-spin text-blue-500" size={40}/></div>;
+  if (!mounted || !isLoaded || loading) {
+    return <div className="min-h-screen bg-[#050505] flex items-center justify-center"><Loader2 className="animate-spin text-blue-500" size={40}/></div>;
+  }
 
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans pb-24">
