@@ -1,7 +1,8 @@
 import { Webhook } from 'svix'
 import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
-import { createClient } from '@supabase/supabase-client'
+// Antes tenías @supabase/supabase-client (que no existe en npm)
+import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
 
 const supabase = createClient(

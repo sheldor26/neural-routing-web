@@ -9,9 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.0.2",
+    "@clerk/nextjs": "^6.39.1",
     "@lemonsqueezy/lemonsqueezy.js": "^4.0.0",
-    "@supabase/supabase-js": "^2.101.0",
+    "@supabase/supabase-js": "^2.101.1",
     "lucide-react": "^0.454.0",
     "next": "^15.5.14",
     "react": "19.0.0-rc-66855b96-20241106",
