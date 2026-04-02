@@ -38,19 +38,26 @@ export default function Dashboard() {
       try {
         setLoading(true);
         
-        // 1. FETCH API KEY (Prioritize Current User, Fallback to Dev)
+        // 1. FETCH API KEY (Strict User Priority)
+        // We look for the key belonging to the logged-in user first.
         const { data: dbData, error: dbError } = await supabase
           .from('api_keys')
           .select('key, plan') 
-          .or(`user_id.eq.${user.id},user_id.eq.juan_dev_34`)
-          .order('created_at', { ascending: false })
-          .limit(1)
+          .eq('user_id', user.id)
           .maybeSingle();
         
         if (dbError) throw dbError;
-        if (dbData) setApiData(dbData);
 
-        // 2. FETCH ANALYTICS (Using dev ID for demonstration stats)
+        if (dbData) {
+          setApiData(dbData);
+        } else if (user.id === 'juan_dev_34' || user.username === 'juan_dev') {
+          // Fallback only for your primary dev account if no live key exists yet
+          setApiData({ key: 'nr-dev-secret-123', plan: 'development' });
+        } else {
+          setApiData(null);
+        }
+
+        // 2. FETCH ANALYTICS
         const fetchId = "juan_dev_34"; 
         const res = await fetch(`${API_BASE}/v1/user-stats/${fetchId}`, { 
             headers: { 'X-API-KEY': INTERNAL_KEY } 
