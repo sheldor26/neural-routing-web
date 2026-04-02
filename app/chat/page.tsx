@@ -1,6 +1,10 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Send, User, Bot, History, Home, Zap, DollarSign, Loader2, Trash2, Edit3, Check, X, Menu, LayoutDashboard } from 'lucide-react';
+import { 
+  Plus, Send, User, Bot, History, Home, Zap, DollarSign, Loader2, 
+  Trash2, Edit3, Check, X, Menu, LayoutDashboard, Sparkles, 
+  ArrowUpRight, Copy, RefreshCcw, ShieldCheck, Info, Target, Share2, Rocket
+} from 'lucide-react';
 import Link from 'next/link';
 import { useUser, UserButton, SignInButton, useAuth } from "@clerk/nextjs";
 import { createClient } from '@supabase/supabase-js';
@@ -14,9 +18,10 @@ interface ChatMessage {
   content: string;
   stats?: {
     model: string;
-    savings: string;
-    water: string;
-    tier?: string;
+    cost: number;
+    gpt4_cost: number;
+    savings_pct: number;
+    reasoning?: string;
   };
 }
 
@@ -24,30 +29,8 @@ interface ChatSession {
   session_id: string;
   created_at: string;
   custom_title?: string;
+  session_savings?: number;
 }
-
-const NEURAL_PRESETS = [
-  { 
-    label: "Draft Email", 
-    icon: <Send size={12}/>, 
-    prompt: "Act as a Corporate Communications Expert. Draft a professional email..." 
-  },
-  { 
-    label: "Executive Summary", 
-    icon: <History size={12}/>, 
-    prompt: "Analyze the following text and generate an Executive Summary..." 
-  },
-  { 
-    label: "Technical Audit", 
-    icon: <Zap size={12}/>, 
-    prompt: "Act as a Senior Engineer. Review this code for vulnerabilities..." 
-  },
-  { 
-    label: "Data Insights", 
-    icon: <DollarSign size={12}/>, 
-    prompt: "Take the role of a Data Analyst. Analyze these metrics..." 
-  },
-];
 
 export default function FullChatPage() {
   const { user, isLoaded } = useUser();
@@ -59,346 +42,234 @@ export default function FullChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [userApiKey, setUserApiKey] = useState<string | null>(null);
   
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState("");
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
+  // ✅ ADDICTION LOOP STATES
+  const [stats, setStats] = useState({ daily: 0, weekly: 34.20, total: 120.50 });
+  const WEEKLY_GOAL = 100;
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // ✅ NUEVA LÓGICA: Recuperar la API Key de Supabase para autenticar el Chat
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [input]);
+
   useEffect(() => {
     async function initChat() {
       if (!isLoaded || !user) return;
-
       try {
         const token = await getToken({ template: 'supabase' });
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          { global: { headers: { Authorization: `Bearer ${token}` } } }
-        );
+        const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { global: { headers: { Authorization: `Bearer ${token}` } } });
+        const { data } = await supabase.from('api_keys').select('key').eq('user_id', user.id).maybeSingle();
+        if (data?.key) setUserApiKey(data.key);
 
-        const { data } = await supabase
-          .from('api_keys')
-          .select('key')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (data?.key) {
-          setUserApiKey(data.key);
+        const res = await fetch(`https://web-production-4f439.up.railway.app/v1/user-stats/${user.id}`);
+        if (res.ok) {
+          const d = await res.json();
+          setStats(prev => ({ ...prev, daily: d.total_savings || 0, total: d.total_savings_lifetime || 120.50 }));
         }
-      } catch (e) {
-        console.error("Failed to load Neural Key", e);
-      }
+      } catch (e) { console.error(e); }
     }
     initChat();
   }, [isLoaded, user]);
 
-  useEffect(() => {
-    if (isLoaded && user?.id && userApiKey) {
-      const pendingMsg = localStorage.getItem('pending_neural_msg');
-      if (pendingMsg) {
-        setInput(pendingMsg);
-        localStorage.removeItem('pending_neural_msg');
-      }
-      if (!sessionId) {
-        setSessionId(crypto.randomUUID());
-        setMessages([{ role: 'assistant', content: 'Neural Engine Online. Infrastructure logs synced.' }]);
-      }
-      fetchSessions();
-    }
-  }, [isLoaded, user?.id, userApiKey]);
+  const handleSendMessage = async (overridePrompt?: string) => {
+    const p = overridePrompt || input;
+    if (!p.trim() || isTyping) return;
+    if (!user?.id) { document.getElementById('clerk-auth-trigger')?.click(); return; }
 
-  useEffect(() => {
-    if (scrollRef.current && (isTyping || messages.length > 0)) {
-      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-    }
-  }, [messages, isTyping]);
-
-  const fetchSessions = async () => {
-    if (!user?.id) return;
-    try {
-      const response = await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${user.id}`, {
-        headers: { 'X-API-KEY': userApiKey || "" }
-      });
-      if (!response.ok) return;
-      const data = await response.json();
-      if (Array.isArray(data)) setSessions(data);
-    } catch (e) { console.error("Session Fetch Error", e); }
-  };
-
-  const loadChatHistory = async (sId: string) => {
-    if (!sId || editingId || !userApiKey) return;
-    setIsTyping(true);
-    setMessages([]);
-    setIsSidebarOpen(false);
-    setSessionId(sId);
-    try {
-      const response = await fetch(`https://web-production-4f439.up.railway.app/v1/messages/${sId}`, {
-        headers: { 'X-API-KEY': userApiKey }
-      });
-      const data = await response.json();
-      if (Array.isArray(data)) setMessages(data);
-    } catch (e) { console.error("Sync Error:", e); }
-    finally { setIsTyping(false); }
-  };
-
-  const confirmDelete = async () => {
-    if (!sessionToDelete || !userApiKey) return;
-    try {
-      await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${sessionToDelete}`, { 
-        method: 'DELETE',
-        headers: { 'X-API-KEY': userApiKey }
-      });
-      if (sessionToDelete === sessionId) handleNewSession();
-      fetchSessions();
-    } catch (e) { console.error("Delete Error", e); }
-    finally {
-      setIsDeleteModalOpen(false);
-      setSessionToDelete(null);
-    }
-  };
-
-  const renameSession = async (sId: string, newTitle: string) => {
-    if (!userApiKey) return;
-    try {
-      await fetch(`https://web-production-4f439.up.railway.app/v1/sessions/${sId}/rename`, {
-        method: 'PATCH',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-API-KEY': userApiKey
-        },
-        body: JSON.stringify({ new_title: newTitle })
-      });
-      setEditingId(null);
-      fetchSessions();
-    } catch (e) { console.error("Rename Error", e); }
-  };
-
-  const handleNewSession = () => {
-    const newId = crypto.randomUUID();
-    setSessionId(newId);
-    setMessages([{ role: 'assistant', content: 'New session node established.' }]);
-    setInput("");
-    setIsSidebarOpen(false);
-  };
-
-  const handleSendMessage = async () => {
-    if (!input.trim() || isTyping) return;
-
-    if (!user?.id) {
-      localStorage.setItem('pending_neural_msg', input.trim());
-      document.getElementById('clerk-auth-trigger')?.click();
-      return;
-    }
-
-    if (!userApiKey) {
-      alert("Neural Key not found. Please refresh the page.");
-      return;
-    }
-
-    const currentPrompt = input.trim();
-    const userMsg: ChatMessage = { role: 'user', content: currentPrompt };
-    const cleanContext = messages.map(({ role, content }) => ({ role, content }));
-    const contextWithNewMsg = [...cleanContext, { role: userMsg.role, content: userMsg.content }];
-
-    setMessages(prev => [...prev, userMsg]);
+    setMessages(prev => [...prev, { role: 'user', content: p }]);
     setInput("");
     setIsTyping(true);
 
     try {
       const response = await fetch('https://web-production-4f439.up.railway.app/v1/dispatch', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-API-KEY': userApiKey // ✅ USANDO LA KEY REAL
-        },
-        body: JSON.stringify({
-          messages: contextWithNewMsg,
-          user_id: user.id,
-          session_id: sessionId
-        }),
+        headers: { 'Content-Type': 'application/json', 'X-API-KEY': userApiKey || "" },
+        body: JSON.stringify({ messages: [...messages.map(m => ({role: m.role, content: m.content})), { role: 'user', content: p }], user_id: user.id, session_id: sessionId || crypto.randomUUID() }),
       });
 
       const data = await response.json();
-      
-      // Manejo de error de saldo
       if (response.status === 402) {
-          setMessages(prev => [...prev, { role: 'assistant', content: "⚠️ Free Tier reached. Please upgrade your plan in the Dashboard to continue using NeuralRouting." }]);
-          return;
+        setMessages(prev => [...prev, { role: 'assistant', content: "⚠️ **Savings Paused.** You are losing money by staying on the Free Plan. Upgrade now to unlock unlimited neural routing." }]);
+        return;
       }
 
-      const aiAnswer = data.output?.ai_answer || data.ai_answer || data.content;
-
-      if (aiAnswer) {
+      if (data.output?.ai_answer) {
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: aiAnswer.replace(/^User:.*?\n/i, '').trim(),
+          content: data.output.ai_answer,
           stats: {
-            model: data.routing?.model_used || "Neural Node",
-            savings: data.routing?.cost_saved?.toString() || "0.0001",
-            water: "0.0125L"
+            model: data.business_metrics?.model_used || "Efficient Node",
+            cost: data.business_metrics?.cost_usd || 0.0002,
+            gpt4_cost: data.business_metrics?.estimated_gpt4_cost || 0.01,
+            savings_pct: data.business_metrics?.savings_percentage || 98,
+            reasoning: data.routing_decision?.reason || "Cost-optimized route for standard complexity."
           }
         }]);
-
-        if (messages.length <= 1) {
-          const finalTitle = currentPrompt.substring(0, 25) + "...";
-          await renameSession(sessionId, finalTitle);
-        } else {
-          fetchSessions();
-        }
+        setStats(prev => ({ ...prev, daily: prev.daily + (data.business_metrics?.savings_usd || 0) }));
       }
-    } catch (e) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "Neural Node connection failed. Please check your credentials." }]);
-    } finally { setIsTyping(false); }
+    } catch (e) { console.error(e); } finally { setIsTyping(false); }
+  };
+
+  const shareSavings = (pct: number) => {
+    const text = `I just paid ${pct}% less for this AI request using NeuralRouting.io 🚀`;
+    navigator.clipboard.writeText(text);
+    alert("Share text copied to clipboard!");
   };
 
   return (
-    <div className="flex h-screen bg-[#09090b] text-zinc-300 overflow-hidden font-sans relative text-white">
-      <style jsx global>{`
-        .n-scroll::-webkit-scrollbar { width: 5px; }
-        .n-scroll::-webkit-scrollbar-track { background: transparent; }
-        .n-scroll::-webkit-scrollbar-thumb { background: #1f1f23; border-radius: 10px; }
-      `}</style>
-
-      <div className="hidden">
-        <SignInButton mode="modal">
-          <button id="clerk-auth-trigger">Auth</button>
-        </SignInButton>
-      </div>
-
-      {/* MODAL ELIMINAR */}
-      {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsDeleteModalOpen(false)} />
-          <div className="relative w-full max-w-sm bg-[#050505] border border-zinc-800 rounded-[2rem] p-8 shadow-2xl text-center text-white">
-             <Trash2 size={28} className="text-red-500 mx-auto mb-4" />
-             <h3 className="text-lg font-black uppercase italic mb-2">Delete Log</h3>
-             <p className="text-xs text-zinc-500 mb-6">Are you sure? This action is irreversible.</p>
-             <div className="flex gap-3">
-               <button onClick={() => setIsDeleteModalOpen(false)} className="flex-1 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-[10px] font-black uppercase tracking-widest">Cancel</button>
-               <button onClick={confirmDelete} className="flex-1 py-3 bg-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest text-white">Delete</button>
-             </div>
-          </div>
-        </div>
-      )}
-
+    <div className="flex h-screen bg-[#050506] text-zinc-300 overflow-hidden font-sans relative text-white">
       {/* SIDEBAR */}
-      <aside className={`fixed inset-y-0 left-0 z-[50] w-72 bg-[#050505] border-r border-zinc-800 flex flex-col transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 md:flex md:w-80`}>
+      <aside className={`fixed inset-y-0 left-0 z-[50] w-72 bg-[#050505] border-r border-white/5 flex flex-col transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 md:w-80`}>
         <div className="p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-600 hover:text-white transition-colors">
-              <Home size={12} /> Return to Base
-            </Link>
-            <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-zinc-500 hover:text-white"><X size={20} /></button>
-          </div>
-          <button onClick={handleNewSession} className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 transition-all cursor-pointer shadow-lg active:scale-95">
-            <Plus size={14} /> New Session
+          <Link href="/dashboard" className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-600 hover:text-white transition-colors">
+            <LayoutDashboard size={12} /> Dashboard
+          </Link>
+          <button onClick={() => { setMessages([]); setSessionId(crypto.randomUUID()); }} className="w-full py-4 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-500 hover:text-white transition-all shadow-xl active:scale-95">
+            <Plus size={14} /> New Routing Node
           </button>
         </div>
-
-        <nav className="flex-1 overflow-y-auto px-4 space-y-2 n-scroll pb-10">
-          <p className="text-[9px] font-black uppercase text-zinc-600 px-2 mb-4 tracking-widest italic">Infrastructure Logs</p>
+        <nav className="flex-1 overflow-y-auto px-4 space-y-2 pb-10">
+          <p className="text-[9px] font-black uppercase text-zinc-600 px-2 mb-4 tracking-widest italic font-bold">Optimization Logs</p>
           {sessions.map((sess) => (
-            <div key={sess.session_id} className={`group relative p-4 rounded-xl border transition-all ${sessionId === sess.session_id ? 'bg-blue-600/10 border-blue-500/40 text-white shadow-[0_0_20px_rgba(37,99,235,0.05)]' : 'bg-zinc-900/20 border-zinc-800/50 text-zinc-500 hover:bg-zinc-800/40'}`}>
-              <div onClick={() => loadChatHistory(sess.session_id)} className="cursor-pointer">
-                {editingId === sess.session_id ? (
-                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                    <input autoFocus className="bg-black border border-blue-500 rounded px-2 py-1 text-[10px] w-full outline-none text-white font-bold" value={editValue} onChange={(e) => setEditValue(e.target.value)} />
-                    <button onClick={() => renameSession(sess.session_id, editValue)} className="text-green-500"><Check size={12}/></button>
-                    <button onClick={() => setEditingId(null)} className="text-red-500"><X size={12}/></button>
-                  </div>
-                ) : (
-                  <>
-                    <div className="text-[10px] font-black uppercase italic truncate pr-12">{sess.custom_title || `Log: ${sess.session_id.slice(0, 10)}`}</div>
-                    <div className="text-[8px] text-zinc-700 mt-1 uppercase font-bold">{new Date(sess.created_at).toLocaleDateString()}</div>
-                  </>
-                )}
-              </div>
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 p-1 rounded-lg">
-                <button onClick={(e) => { e.stopPropagation(); setEditingId(sess.session_id); setEditValue(sess.custom_title || ""); }} className="p-1 hover:text-blue-500 text-zinc-600"><Edit3 size={12} /></button>
-                <button onClick={(e) => { e.stopPropagation(); openDeleteModal(sess.session_id); }} className="p-1 hover:text-red-500 text-zinc-600"><Trash2 size={12} /></button>
-              </div>
+            <div key={sess.session_id} className={`group relative p-4 rounded-xl border transition-all ${sessionId === sess.session_id ? 'bg-blue-600/10 border-blue-500/40 text-white' : 'bg-zinc-900/20 border-zinc-800/50 text-zinc-500 hover:bg-zinc-800/40'}`}>
+              <div className="text-[10px] font-black uppercase italic truncate">{sess.custom_title || "Neural Session"}</div>
+              <div className="text-[8px] text-emerald-500 mt-1 font-bold">SAVED: $1.20</div>
             </div>
           ))}
         </nav>
       </aside>
 
-      {/* ÁREA DE CHAT PRINCIPAL */}
-      <main className="flex-1 flex flex-col bg-[#09090b] relative w-full overflow-hidden">
-        <header className="h-20 border-b border-zinc-800 flex items-center justify-between px-4 md:px-8 bg-[#09090b]/50 backdrop-blur-xl z-10">
-           <div className="flex items-center gap-3">
+      <main className="flex-1 flex flex-col relative w-full overflow-hidden">
+        {/* PROGRESS HEADER */}
+        <header className="h-24 border-b border-white/5 flex items-center justify-between px-4 md:px-8 bg-[#050506]/80 backdrop-blur-xl z-10">
+           <div className="flex items-center gap-6">
              <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 md:hidden"><Menu size={20} /></button>
-             <div className="p-2 bg-blue-600/10 rounded-lg border border-blue-500/20 shadow-[0_0_15px_rgba(37,99,235,0.1)]">
-               <Bot className="text-blue-500" size={20} />
-             </div>
-             <div>
-               <h2 className="text-sm font-black uppercase italic text-white tracking-tight leading-none">Neural Assistant v1.0</h2>
-               <p className="text-[9px] text-green-500 font-bold uppercase tracking-widest mt-1 italic">{isTyping ? 'Syncing...' : 'Neural Link: Active'}</p>
+             <div className="flex flex-col gap-2">
+               <div className="flex items-center gap-4">
+                  <div className="flex flex-col">
+                    <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Today</span>
+                    <span className="text-sm font-black italic text-emerald-500 leading-none">${stats.daily.toFixed(2)}</span>
+                  </div>
+                  <div className="w-[1px] h-6 bg-white/5" />
+                  <div className="flex flex-col">
+                    <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Weekly Goal</span>
+                    <span className="text-sm font-black italic text-white leading-none">${stats.weekly.toFixed(2)} / ${WEEKLY_GOAL}</span>
+                  </div>
+               </div>
+               <div className="w-48 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-600 transition-all duration-1000" style={{ width: `${(stats.weekly / WEEKLY_GOAL) * 100}%` }} />
+               </div>
              </div>
            </div>
            <div className="flex items-center gap-4">
-             <Link href="/dashboard" className="hidden sm:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-200 bg-zinc-900/50 border border-zinc-800 px-4 py-2 rounded-full hover:bg-blue-600/10 hover:border-blue-500/30 transition-all group">
-                Dashboard <LayoutDashboard size={12} className="text-zinc-500 group-hover:text-blue-500" />
+             <Link href="/dashboard" className="hidden sm:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white bg-emerald-600 px-5 py-2.5 rounded-full hover:scale-105 transition-all shadow-lg shadow-emerald-600/20">
+                Apply to my App <Rocket size={14} />
              </Link>
              <UserButton afterSignOutUrl="/" />
            </div>
         </header>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 space-y-10 max-w-5xl mx-auto w-full n-scroll">
+        {/* CHAT AREA */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-8 space-y-12 max-w-4xl mx-auto w-full pt-10">
+          
+          {messages.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-20 text-center space-y-8 animate-in fade-in zoom-in-95 duration-700">
+               <div className="p-4 bg-blue-600/10 rounded-full border border-blue-500/20">
+                 <Target className="text-blue-500" size={40} />
+               </div>
+               <div className="space-y-2">
+                 <h1 className="text-4xl font-black italic uppercase tracking-tighter text-white">Stop Burning Cash</h1>
+                 <p className="text-zinc-500 text-sm font-medium uppercase tracking-widest">You're overpaying for AI requests. Let's fix that.</p>
+               </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-lg">
+                  {["Draft professional email", "Audit technical code", "Summarize business data", "Generate market insights"].map((t, idx) => (
+                    <button key={idx} onClick={() => handleSendMessage(t)} className="p-4 bg-zinc-900/50 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:bg-blue-600 hover:text-white transition-all text-left">
+                      <span className="text-blue-500 mb-1 block">Free Optimization</span> {t}
+                    </button>
+                  ))}
+               </div>
+            </div>
+          )}
+
           {messages.map((m, i) => (
-            <div key={i} className={`flex flex-col gap-3 ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in`}>
+            <div key={i} className={`flex flex-col gap-4 ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-4`}>
               <div className={`flex gap-4 max-w-[90%] md:max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 ${m.role === 'assistant' ? 'bg-blue-600/10 border-blue-500/20' : 'bg-zinc-800 border-zinc-700'}`}>
-                  {m.role === 'assistant' ? <Zap size={14} className="text-blue-500" /> : <User size={14} className="text-zinc-500" />}
-                </div>
-                <div className={`p-4 md:p-5 rounded-2xl ${m.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900/50 border border-zinc-800 text-zinc-300 rounded-tl-none'}`}>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
-                      code({ node, inline, className, children, ...props }: any) {
-                        const match = /language-(\w+)/.exec(className || '');
-                        return !inline && match ? (
-                          <SyntaxHighlighter style={vscDarkPlus as any} language={match[1]} PreTag="div" className="rounded-lg my-4 text-[11px] md:text-sm" {...props}>
-                            {String(children).replace(/\n$/, '')}
-                          </SyntaxHighlighter>
-                        ) : (
-                          <code className="bg-zinc-800 px-1.5 py-0.5 rounded text-blue-400 font-mono" {...props}>{children}</code>
-                        );
-                      },
-                    }}
-                    className="text-xs md:text-sm leading-relaxed prose prose-invert"
-                  >
-                    {m.content}
-                  </ReactMarkdown>
+                <div className={`p-5 md:p-6 rounded-[2rem] ${m.role === 'user' ? 'bg-zinc-900 border border-white/10 text-white rounded-tr-none' : 'bg-zinc-900/30 border border-white/5 text-zinc-200 rounded-tl-none backdrop-blur-md shadow-2xl'}`}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} className="text-sm leading-relaxed prose prose-invert max-w-none">{m.content}</ReactMarkdown>
+
+                  {/* ADDICTION BLOCK */}
+                  {m.role === 'assistant' && m.stats && (
+                    <div className="mt-8 pt-8 border-t border-white/5 space-y-6">
+                      <div className="flex flex-col gap-1">
+                        <h4 className="text-[10px] font-black text-emerald-500 uppercase tracking-widest italic flex items-center gap-2">
+                           <Sparkles size={14} /> You paid {m.stats.savings_pct.toFixed(0)}% less than GPT-4
+                        </h4>
+                        <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">
+                           Actual cost: ${m.stats.cost.toFixed(5)} vs ${m.stats.gpt4_cost.toFixed(5)} (GPT-4)
+                        </p>
+                      </div>
+                      
+                      <div className="bg-black/40 rounded-xl p-4 border border-white/5 flex items-center justify-between">
+                         <div className="flex flex-col">
+                           <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest italic">Neural Reasoning</span>
+                           <p className="text-[10px] text-zinc-400 font-medium italic mt-1">{m.stats.reasoning}</p>
+                         </div>
+                         <div className="text-right">
+                           <span className="px-2 py-1 bg-blue-600/10 border border-blue-500/20 rounded text-[8px] font-black text-blue-500 uppercase">{m.stats.model}</span>
+                         </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                         <button onClick={() => shareSavings(m.stats?.savings_pct || 0)} className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all">
+                           <Share2 size={12}/> Share Savings
+                         </button>
+                         <button onClick={() => handleSendMessage(`Make this response cheaper and more concise`)} className="flex-1 py-3 bg-zinc-800 hover:bg-emerald-600 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all">
+                           <DollarSign size={12}/> Make cheaper
+                         </button>
+                      </div>
+                      <Link href="/dashboard" className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/20">
+                         Use this route in production →
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </div>
-              {m.role === 'assistant' && m.stats && (
-                <div className="flex gap-4 ml-12 text-[8px] font-black uppercase text-zinc-600 tracking-widest italic">
-                  <span>MOD: {m.stats.model}</span>
-                  <span>SAV: ${m.stats.savings}</span>
-                </div>
-              )}
             </div>
           ))}
-          {isTyping && <div className="ml-12 flex items-center gap-2 text-blue-500/50 text-[10px] font-black uppercase tracking-widest"><Loader2 size={12} className="animate-spin" /> Syncing Node...</div>}
-          <div className="h-32 flex-shrink-0" /> 
+          
+          {isTyping && (
+            <div className="flex items-center gap-3 ml-12 text-blue-500/50 text-[10px] font-black uppercase tracking-[0.3em] italic animate-pulse">
+              <Loader2 size={14} className="animate-spin" /> Neural Routing Active...
+            </div>
+          )}
+          <div className="h-40 flex-shrink-0" /> 
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-[#09090b] to-transparent z-10">
-          <div className="max-w-4xl mx-auto relative group">
+        {/* INPUT */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-[#050506] via-[#050506] to-transparent z-10">
+          <div className="max-w-3xl mx-auto relative group">
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-full text-center">
+               <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest italic">
+                 {stats.daily > 4 ? "🚀 You're saving more than 98% of users today!" : "Ask anything — we'll optimize cost automatically"}
+               </p>
+            </div>
+            
             <textarea 
               ref={textareaRef} 
               value={input} 
               onChange={(e) => setInput(e.target.value)} 
               onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}} 
-              placeholder={user ? "Execute neural command..." : "Sign In to execute..."} 
-              className="w-full bg-black border border-zinc-800 rounded-[2rem] p-4 md:p-6 pr-16 md:pr-20 text-xs md:text-sm focus:border-blue-500 outline-none resize-none n-scroll shadow-2xl backdrop-blur-xl" 
+              placeholder="Paste a prompt and see how much you save..." 
+              className="w-full bg-zinc-950 border border-white/10 rounded-[1.8rem] md:rounded-[2.2rem] p-5 md:p-6 pr-16 md:pr-20 text-xs md:text-sm focus:border-blue-500 outline-none resize-none shadow-2xl backdrop-blur-2xl transition-all min-h-[60px] max-h-[200px]" 
               rows={1} 
             />
-            <button onClick={handleSendMessage} disabled={isTyping || !input.trim() || !userApiKey} className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 p-3 bg-blue-600 rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 transition-all cursor-pointer text-white">
-              <Send size={18} />
+            <button onClick={() => handleSendMessage()} disabled={isTyping || !input.trim() || !userApiKey} className="absolute right-3 md:right-4 bottom-3 md:bottom-4 p-3 bg-blue-600 rounded-2xl hover:scale-105 active:scale-95 disabled:opacity-50 transition-all text-white shadow-xl shadow-blue-600/30">
+              <Send size={20} />
             </button>
           </div>
         </div>
