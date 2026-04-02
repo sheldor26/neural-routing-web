@@ -26,7 +26,8 @@ export default function Dashboard() {
     savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] as any[]
   });
 
-  const API_BASE = "https://web-production-4f439.app.railway.app";
+  // Corrected to .up.railway.app to fix SSL issues
+  const API_BASE = "https://web-production-4f439.up.railway.app";
   const INTERNAL_KEY = "nr-dev-secret-123"; 
 
   useEffect(() => {
@@ -34,7 +35,13 @@ export default function Dashboard() {
       if (!isLoaded || !user?.primaryEmailAddress?.emailAddress) return;
       try {
         setLoading(true);
-        const { data: dbData } = await supabase.from('api_keys').select('key, plan_type').eq('email', user.primaryEmailAddress.emailAddress).single();
+        // Corrected: selected 'plan' instead of 'plan_type' to match your Supabase schema
+        const { data: dbData } = await supabase
+          .from('api_keys')
+          .select('key, plan') 
+          .eq('email', user.primaryEmailAddress.emailAddress)
+          .single();
+        
         if (dbData) setApiData(dbData);
 
         const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`, { headers: { 'X-API-KEY': INTERNAL_KEY } });
@@ -47,7 +54,7 @@ export default function Dashboard() {
             last_requests: data.recent_decisions?.slice(0, 5) || []
           });
         }
-      } catch (e) { console.error(e); } finally { setLoading(false); }
+      } catch (e) { console.error("Sync Error:", e); } finally { setLoading(false); }
     }
     loadData();
   }, [isLoaded, user]);
@@ -64,7 +71,7 @@ export default function Dashboard() {
       const data = await res.json();
       setTestResult(data);
       setStats(prev => ({ ...prev, last_requests: [data, ...prev.last_requests.slice(0, 4)] }));
-    } catch (e) { console.error(e); } finally { setTestLoading(false); }
+    } catch (e) { console.error("Test Error:", e); } finally { setTestLoading(false); }
   };
 
   if (!isLoaded || loading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center"><Loader2 className="animate-spin text-blue-500" size={40}/></div>;
@@ -85,7 +92,7 @@ export default function Dashboard() {
 
       <main className="max-w-6xl mx-auto px-6 py-12 space-y-12">
 
-        {/* 1. GUIDED NEXT STEPS (NUEVO: DIRECCIÓN) */}
+        {/* 1. GUIDED NEXT STEPS */}
         <div className="bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="space-y-1 text-center md:text-left">
                 <p className="text-[10px] font-black uppercase text-blue-500 tracking-[0.2em]">Step 2: Connect Your App</p>
@@ -125,13 +132,13 @@ export default function Dashboard() {
                   <div>
                       <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2 mb-1"><Sparkles size={12}/> Result Found</p>
                       <p className="text-2xl font-black italic text-white uppercase leading-none">
-                        Cost: ${testResult.business_metrics?.cost_usd?.toFixed(4)} 
-                        <span className="text-zinc-600 text-sm line-through ml-2">vs ${testResult.business_metrics?.estimated_gpt4_cost?.toFixed(4)}</span>
+                        Cost: ${testResult.business_metrics?.cost_usd?.toFixed(4) || "0.0000"} 
+                        <span className="text-zinc-600 text-sm line-through ml-2">vs ${testResult.business_metrics?.estimated_gpt4_cost?.toFixed(4) || "0.0000"}</span>
                       </p>
                   </div>
                   <div className="text-right">
                       <p className="text-[9px] font-black text-emerald-400 uppercase mb-1">Latency: {testResult.latency_ms}ms</p>
-                      <div className="px-4 py-1.5 bg-emerald-500 text-black text-[9px] font-black uppercase italic rounded-lg">-{testResult.business_metrics?.savings_percentage?.toFixed(0)}% Savings</div>
+                      <div className="px-4 py-1.5 bg-emerald-500 text-black text-[9px] font-black uppercase italic rounded-lg">-{testResult.business_metrics?.savings_percentage?.toFixed(0) || "0"}% Savings</div>
                   </div>
               </div>
             )}
@@ -147,12 +154,12 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* 3. TECHNICAL ACTIVATION (KEY + SNIPPET) */}
+        {/* 3. TECHNICAL ACTIVATION */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-zinc-900/30 border border-white/5 rounded-[2.5rem] p-10 space-y-6">
                 <h3 className="text-white font-black italic uppercase text-lg tracking-tight">Your API <span className="text-blue-500">Key</span></h3>
                 <div className="w-full bg-black/50 border border-zinc-800 rounded-2xl p-6 font-mono text-xs flex items-center justify-between group">
-                    <span className="text-zinc-500 truncate mr-6">{showKey ? apiData?.key : "••••••••••••••••••••••••••••••••••••"}</span>
+                    <span className="text-zinc-400 truncate mr-6">{showKey ? apiData?.key : "••••••••••••••••••••••••••••••••••••"}</span>
                     <div className="flex gap-2">
                         <button onClick={() => setShowKey(!showKey)} className="text-zinc-600 hover:text-white transition-colors">{showKey ? <EyeOff size={18} /> : <Eye size={18} />}</button>
                         <button onClick={() => { navigator.clipboard.writeText(apiData?.key || ""); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="p-2 bg-zinc-800/50 rounded-xl hover:bg-blue-600 transition-all text-blue-500 hover:text-white">
@@ -173,7 +180,7 @@ export default function Dashboard() {
             </div>
         </div>
 
-        {/* 4. WOW MOMENT: THE READY BLOCK (CONVERSION FINAL) */}
+        {/* 4. WOW MOMENT: THE READY BLOCK */}
         <div className="p-12 rounded-[3.5rem] bg-gradient-to-r from-zinc-900 to-black border border-white/5 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left">
             <div className="space-y-3">
                 <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white">You're ready.</h3>
