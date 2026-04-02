@@ -7,13 +7,12 @@ import {
  CheckCircle2, History, Terminal, Sparkles, Play, MessageSquare, 
  Home, DollarSign, ExternalLink, Clock, AlertCircle, ArrowRight, Code
 } from 'lucide-react';
-import { useUser, UserButton } from '@clerk/nextjs';
+import { useUser, UserButton, useAuth } from '@clerk/nextjs'; // Added useAuth
 import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
 export default function Dashboard() {
   const { user, isLoaded } = useUser();
+  const { getToken } = useAuth(); // Required for the secure JWT token
   const [mounted, setMounted] = useState(false);
   const [apiData, setApiData] = useState<any>(null);
   const [showKey, setShowKey] = useState(false);
@@ -38,8 +37,24 @@ export default function Dashboard() {
       try {
         setLoading(true);
         
-        // 1. FETCH API KEY (Strict User Priority)
-        // We look for the key belonging to the logged-in user first.
+        // 1. GET THE SECURE TOKEN FROM CLERK
+        // This token tells Supabase exactly who is logged in.
+        const token = await getToken({ template: 'supabase' });
+
+        // 2. CREATE AN AUTHENTICATED SUPABASE CLIENT
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          {
+            global: {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          }
+        );
+
+        // 3. FETCH API KEY (The RLS will now permit this fetch)
         const { data: dbData, error: dbError } = await supabase
           .from('api_keys')
           .select('key, plan') 
@@ -51,13 +66,13 @@ export default function Dashboard() {
         if (dbData) {
           setApiData(dbData);
         } else if (user.id === 'juan_dev_34' || user.username === 'juan_dev') {
-          // Fallback only for your primary dev account if no live key exists yet
+          // Internal fallback for your dev profile
           setApiData({ key: 'nr-dev-secret-123', plan: 'development' });
         } else {
           setApiData(null);
         }
 
-        // 2. FETCH ANALYTICS
+        // 4. FETCH ANALYTICS
         const fetchId = "juan_dev_34"; 
         const res = await fetch(`${API_BASE}/v1/user-stats/${fetchId}`, { 
             headers: { 'X-API-KEY': INTERNAL_KEY } 
@@ -79,7 +94,7 @@ export default function Dashboard() {
       }
     }
     loadData();
-  }, [isLoaded, user, mounted]);
+  }, [isLoaded, user, mounted, getToken]);
 
   const runLiveTest = async () => {
     if (!testPrompt.trim()) return;
@@ -119,7 +134,7 @@ export default function Dashboard() {
   if (!mounted || !isLoaded || loading) return (
     <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center gap-4">
       <Loader2 className="animate-spin text-blue-600" size={40}/>
-      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 italic">Syncing Neural Data...</span>
+      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 italic">Securing Neural Channel...</span>
     </div>
   );
 
@@ -194,7 +209,7 @@ export default function Dashboard() {
                         <div className="w-2 h-2 bg-blue-500 rounded-full"/>
                         <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest italic">Routing Decision: {testResult.model_used}</p>
                       </div>
-                      <p className="text-sm font-mono text-zinc-500 line-clamp-2 italic italic">"{testResult.output?.ai_answer}"</p>
+                      <p className="text-sm font-mono text-zinc-500 line-clamp-2 italic">"{testResult.output?.ai_answer}"</p>
                       <div className="flex items-end gap-3">
                         <p className="text-3xl font-black italic text-white uppercase tracking-tighter">
                           ${testResult.business_metrics?.cost_usd?.toFixed(5)} 
@@ -238,14 +253,11 @@ export default function Dashboard() {
                       <div className="flex flex-col">
                         <span className="text-[8px] font-black text-zinc-600 uppercase mb-1 tracking-widest">Active API Key</span>
                         <span className="text-zinc-200 font-mono text-xs tracking-widest">
-                          {showKey ? apiData?.key : "•".repeat(32)}
+                          {showKey ? (apiData?.key || "No Key Found") : "•".repeat(32)}
                         </span>
                       </div>
                       <div className="flex gap-2">
-                          <button 
-                            onClick={() => setShowKey(!showKey)} 
-                            className="p-2 text-zinc-600 hover:text-white transition-colors"
-                          >
+                          <button onClick={() => setShowKey(!showKey)} className="p-2 text-zinc-600 hover:text-white transition-colors">
                             {showKey ? <EyeOff size={20} /> : <Eye size={20} />}
                           </button>
                           <button 
@@ -288,10 +300,7 @@ const res = await fetch("${API_BASE}/v1/dispatch", {
   })
 })`}
                   </pre>
-                  <button 
-                    onClick={() => navigator.clipboard.writeText(`${API_BASE}/v1/dispatch`)}
-                    className="absolute top-4 right-4 text-zinc-600 hover:text-white transition-colors"
-                  >
+                  <button onClick={() => navigator.clipboard.writeText(`${API_BASE}/v1/dispatch`)} className="absolute top-4 right-4 text-zinc-600 hover:text-white transition-colors">
                     <Copy size={14}/>
                   </button>
                 </div>
