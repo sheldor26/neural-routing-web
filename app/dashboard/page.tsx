@@ -26,7 +26,7 @@ export default function Dashboard() {
     savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] as any[]
   });
 
-  // Fixed URL: added '.up' to resolve Railway SSL/404 issues
+  // Ensure this matches your Railway Public Domain exactly
   const API_BASE = "https://web-production-4f439.up.railway.app";
   const INTERNAL_KEY = "nr-dev-secret-123"; 
 
@@ -35,19 +35,22 @@ export default function Dashboard() {
       if (!isLoaded || !user?.primaryEmailAddress?.emailAddress) return;
       try {
         setLoading(true);
-        // Corrected: Selecting 'plan' instead of 'plan_type' as per your Supabase screenshot
-        const { data: dbData } = await supabase
+        
+        // FIX 1: Map 'plan' correctly from your Supabase Schema
+        const { data: dbData, error: dbError } = await supabase
           .from('api_keys')
-          .select('key, plan')
+          .select('key, plan') 
           .eq('email', user.primaryEmailAddress.emailAddress)
           .single();
         
+        if (dbError) console.error("Supabase Error:", dbError.message);
         if (dbData) setApiData(dbData);
 
+        // FIX 2: Validate Railway Response
         const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`, { 
-          headers: { 'X-API-KEY': INTERNAL_KEY } 
+            headers: { 'X-API-KEY': INTERNAL_KEY } 
         });
-        
+
         if (res.ok) {
           const data = await res.json();
           setStats({
@@ -56,9 +59,11 @@ export default function Dashboard() {
             opt_opportunity_usd: Number(data.optimization_opportunity_usd || 0),
             last_requests: data.recent_decisions?.slice(0, 5) || []
           });
+        } else {
+            console.warn(`Railway Stats returned ${res.status}`);
         }
       } catch (e) { 
-        console.error("Sync Error:", e); 
+        console.error("Dashboard Sync Error:", e); 
       } finally { 
         setLoading(false); 
       }
@@ -78,14 +83,18 @@ export default function Dashboard() {
         body: JSON.stringify({ messages: [{ role: "user", content: testPrompt }], user_id: user?.id })
       });
 
-      if (!res.ok) throw new Error(`Status: ${res.status}`);
+      if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.detail || `Auth failed: ${res.status}`);
+      }
 
       const data = await res.json();
       setTestResult(data);
+      // Immediate UI update for the logs
       setStats(prev => ({ ...prev, last_requests: [data, ...prev.last_requests.slice(0, 4)] }));
-    } catch (e) { 
+    } catch (e: any) { 
       console.error("Test Error:", e);
-      alert("Auth failed or Proxy offline. Check /api/proxy/dispatch.");
+      alert(`Optimization failed: ${e.message}`);
     } finally { 
       setTestLoading(false); 
     }
@@ -95,17 +104,16 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans pb-24">
+      {/* NAVBAR */}
       <nav className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50 h-20 flex items-center justify-between px-6 md:px-12">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-3"><Zap size={20} className="text-blue-500" /><span className="text-xl font-black italic uppercase tracking-tighter text-white">Neuralrouting.io</span></Link>
           </div>
-          <div className="flex items-center gap-6">
-              <Link href="/pricing" className="text-[10px] font-black uppercase text-zinc-500 hover:text-white transition-colors hidden md:block">Pricing</Link>
-              <UserButton afterSignOutUrl="/" />
-          </div>
+          <UserButton afterSignOutUrl="/" />
       </nav>
 
       <main className="max-w-6xl mx-auto px-6 py-12 space-y-12">
+        {/* STEPPER */}
         <div className="bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="space-y-1 text-center md:text-left">
                 <p className="text-[10px] font-black uppercase text-blue-500 tracking-[0.2em]">Step 2: Connect Your App</p>
@@ -120,6 +128,7 @@ export default function Dashboard() {
             </div>
         </div>
         
+        {/* OPTIMIZER & STATS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 p-10 rounded-[3rem] bg-zinc-900/40 border border-white/5 space-y-6">
             <div className="flex justify-between items-center">
@@ -157,12 +166,13 @@ export default function Dashboard() {
           <div className="p-10 rounded-[3rem] bg-blue-600 flex flex-col justify-center items-center text-center space-y-4 shadow-[0_0_60px_-15px_rgba(37,99,235,0.6)] group">
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-100">Total Yearly Potential</span>
             <h3 className="text-7xl font-black italic text-white tracking-tighter">${(stats.opt_opportunity_usd * 12).toFixed(0)}</h3>
-            <button className="mt-4 w-full py-4 bg-white text-blue-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
+            <button className="mt-4 w-full py-4 bg-white text-blue-600 rounded-xl text-[10px] font-black uppercase tracking-widest">
                 Connect My App → (30s)
             </button>
           </div>
         </div>
 
+        {/* API KEY & SNIPPET */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-zinc-900/30 border border-white/5 rounded-[2.5rem] p-10 space-y-6">
                 <h3 className="text-white font-black italic uppercase text-lg tracking-tight">Your API <span className="text-blue-500">Key</span></h3>
