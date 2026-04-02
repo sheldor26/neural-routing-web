@@ -14,6 +14,7 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 
 export default function Dashboard() {
   const { user, isLoaded } = useUser();
+  const [mounted, setMounted] = useState(false);
   const [apiData, setApiData] = useState<any>(null);
   const [showKey, setShowKey] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -26,27 +27,30 @@ export default function Dashboard() {
     savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] as any[]
   });
 
-  // Ensure this matches your Railway Public Domain exactly
   const API_BASE = "https://web-production-4f439.up.railway.app";
   const INTERNAL_KEY = "nr-dev-secret-123"; 
 
+  // Fix Hydration Error #418
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     async function loadData() {
-      if (!isLoaded || !user?.primaryEmailAddress?.emailAddress) return;
+      if (!isLoaded || !user || !mounted) return;
       try {
         setLoading(true);
         
-        // FIX 1: Map 'plan' correctly from your Supabase Schema
+        // FIX: Map correctly using user_id instead of email, and column 'plan'
         const { data: dbData, error: dbError } = await supabase
           .from('api_keys')
           .select('key, plan') 
-          .eq('email', user.primaryEmailAddress.emailAddress)
+          .eq('user_id', user.id) 
           .single();
         
         if (dbError) console.error("Supabase Error:", dbError.message);
         if (dbData) setApiData(dbData);
 
-        // FIX 2: Validate Railway Response
         const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`, { 
             headers: { 'X-API-KEY': INTERNAL_KEY } 
         });
@@ -59,8 +63,6 @@ export default function Dashboard() {
             opt_opportunity_usd: Number(data.optimization_opportunity_usd || 0),
             last_requests: data.recent_decisions?.slice(0, 5) || []
           });
-        } else {
-            console.warn(`Railway Stats returned ${res.status}`);
         }
       } catch (e) { 
         console.error("Dashboard Sync Error:", e); 
@@ -69,7 +71,7 @@ export default function Dashboard() {
       }
     }
     loadData();
-  }, [isLoaded, user]);
+  }, [isLoaded, user, mounted]);
 
   const runLiveTest = async () => {
     if (!testPrompt.trim()) return;
@@ -90,7 +92,6 @@ export default function Dashboard() {
 
       const data = await res.json();
       setTestResult(data);
-      // Immediate UI update for the logs
       setStats(prev => ({ ...prev, last_requests: [data, ...prev.last_requests.slice(0, 4)] }));
     } catch (e: any) { 
       console.error("Test Error:", e);
@@ -100,11 +101,10 @@ export default function Dashboard() {
     }
   };
 
-  if (!isLoaded || loading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center"><Loader2 className="animate-spin text-blue-500" size={40}/></div>;
+  if (!mounted || !isLoaded || loading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center"><Loader2 className="animate-spin text-blue-500" size={40}/></div>;
 
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans pb-24">
-      {/* NAVBAR */}
       <nav className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50 h-20 flex items-center justify-between px-6 md:px-12">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-3"><Zap size={20} className="text-blue-500" /><span className="text-xl font-black italic uppercase tracking-tighter text-white">Neuralrouting.io</span></Link>
@@ -113,7 +113,6 @@ export default function Dashboard() {
       </nav>
 
       <main className="max-w-6xl mx-auto px-6 py-12 space-y-12">
-        {/* STEPPER */}
         <div className="bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="space-y-1 text-center md:text-left">
                 <p className="text-[10px] font-black uppercase text-blue-500 tracking-[0.2em]">Step 2: Connect Your App</p>
@@ -128,7 +127,6 @@ export default function Dashboard() {
             </div>
         </div>
         
-        {/* OPTIMIZER & STATS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 p-10 rounded-[3rem] bg-zinc-900/40 border border-white/5 space-y-6">
             <div className="flex justify-between items-center">
@@ -172,7 +170,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* API KEY & SNIPPET */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-zinc-900/30 border border-white/5 rounded-[2.5rem] p-10 space-y-6">
                 <h3 className="text-white font-black italic uppercase text-lg tracking-tight">Your API <span className="text-blue-500">Key</span></h3>
