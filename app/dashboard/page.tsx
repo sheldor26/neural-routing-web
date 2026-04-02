@@ -26,7 +26,7 @@ export default function Dashboard() {
     savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] as any[]
   });
 
-  // Corrected to .up.railway.app to fix SSL/Connection issues
+  // Fixed URL: added '.up' to resolve Railway SSL/404 issues
   const API_BASE = "https://web-production-4f439.up.railway.app";
   const INTERNAL_KEY = "nr-dev-secret-123"; 
 
@@ -35,31 +35,30 @@ export default function Dashboard() {
       if (!isLoaded || !user?.primaryEmailAddress?.emailAddress) return;
       try {
         setLoading(true);
-        
-        // Corrected: Selecting 'plan' instead of 'plan_type' as per your schema
-        const { data: dbData, error: dbError } = await supabase
+        // Corrected: Selecting 'plan' instead of 'plan_type' as per your Supabase screenshot
+        const { data: dbData } = await supabase
           .from('api_keys')
-          .select('key, plan') 
+          .select('key, plan')
           .eq('email', user.primaryEmailAddress.emailAddress)
           .single();
         
         if (dbData) setApiData(dbData);
 
         const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`, { 
-            headers: { 'X-API-KEY': INTERNAL_KEY } 
+          headers: { 'X-API-KEY': INTERNAL_KEY } 
         });
-
+        
         if (res.ok) {
-            const data = await res.json();
-            setStats({
-              savings: Number(data.total_savings || 0),
-              requests: Number(data.requests_count || 0),
-              opt_opportunity_usd: Number(data.optimization_opportunity_usd || 0),
-              last_requests: data.recent_decisions?.slice(0, 5) || []
-            });
+          const data = await res.json();
+          setStats({
+            savings: Number(data.total_savings || 0),
+            requests: Number(data.requests_count || 0),
+            opt_opportunity_usd: Number(data.optimization_opportunity_usd || 0),
+            last_requests: data.recent_decisions?.slice(0, 5) || []
+          });
         }
       } catch (e) { 
-        console.error("Dashboard Sync Error:", e); 
+        console.error("Sync Error:", e); 
       } finally { 
         setLoading(false); 
       }
@@ -70,30 +69,25 @@ export default function Dashboard() {
   const runLiveTest = async () => {
     if (!testPrompt.trim()) return;
     setTestLoading(true);
-    setTestResult(null); // Clear previous results
-    
+    setTestResult(null); 
+
     try {
       const res = await fetch('/api/proxy/dispatch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            messages: [{ role: "user", content: testPrompt }], 
-            user_id: user?.id 
-        })
+        body: JSON.stringify({ messages: [{ role: "user", content: testPrompt }], user_id: user?.id })
       });
 
-      if (!res.ok) {
-          // Handle 401/Unauthorized from proxy
-          throw new Error(`Auth failed: ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`Status: ${res.status}`);
 
       const data = await res.json();
       setTestResult(data);
       setStats(prev => ({ ...prev, last_requests: [data, ...prev.last_requests.slice(0, 4)] }));
     } catch (e) { 
-        console.error("Test Execution Error:", e);
+      console.error("Test Error:", e);
+      alert("Auth failed or Proxy offline. Check /api/proxy/dispatch.");
     } finally { 
-        setTestLoading(false); 
+      setTestLoading(false); 
     }
   };
 
@@ -101,8 +95,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans pb-24">
-      
-      {/* NAVBAR */}
       <nav className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50 h-20 flex items-center justify-between px-6 md:px-12">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-3"><Zap size={20} className="text-blue-500" /><span className="text-xl font-black italic uppercase tracking-tighter text-white">Neuralrouting.io</span></Link>
@@ -114,36 +106,31 @@ export default function Dashboard() {
       </nav>
 
       <main className="max-w-6xl mx-auto px-6 py-12 space-y-12">
-
-        {/* 1. GUIDED NEXT STEPS */}
         <div className="bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="space-y-1 text-center md:text-left">
                 <p className="text-[10px] font-black uppercase text-blue-500 tracking-[0.2em]">Step 2: Connect Your App</p>
                 <h2 className="text-xl font-black italic text-white uppercase italic">Stop the leakage in 30 seconds</h2>
             </div>
             <div className="flex flex-wrap justify-center gap-4">
-                <div className="flex items-center gap-2 text-[9px] font-black uppercase text-zinc-400 bg-black/40 px-3 py-2 rounded-xl border border-white/5">
-                    <span className="text-blue-500">1.</span> Copy API Key
-                </div>
-                <div className="flex items-center gap-2 text-[9px] font-black uppercase text-zinc-400 bg-black/40 px-3 py-2 rounded-xl border border-white/5">
-                    <span className="text-blue-500">2.</span> Replace Base URL
-                </div>
-                <div className="flex items-center gap-2 text-[9px] font-black uppercase text-zinc-400 bg-black/40 px-3 py-2 rounded-xl border border-white/5 font-bold">
-                    <span className="text-blue-500">3.</span> Save Money
-                </div>
+                {["Copy API Key", "Replace Base URL", "Save Money"].map((text, i) => (
+                    <div key={i} className="flex items-center gap-2 text-[9px] font-black uppercase text-zinc-400 bg-black/40 px-3 py-2 rounded-xl border border-white/5">
+                        <span className="text-blue-500">{i+1}.</span> {text}
+                    </div>
+                ))}
             </div>
         </div>
         
-        {/* 2. DYNAMIC LOSS ALERT & YEARLY IMPACT */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 p-10 rounded-[3rem] bg-zinc-900/40 border border-white/5 space-y-6">
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">Live <span className="text-blue-600">Optimizer</span></h2>
-                <span className="text-[9px] font-black text-red-500 uppercase flex items-center gap-2 animate-pulse"><AlertCircle size={12}/> Overpaying ~${stats.opt_opportunity_usd.toFixed(2)}/mo right now</span>
+                <span className="text-[9px] font-black text-red-500 uppercase flex items-center gap-2 animate-pulse">
+                    <AlertCircle size={12}/> Overpaying ~${stats.opt_opportunity_usd.toFixed(2)}/mo right now
+                </span>
             </div>
 
             <div className="relative">
-                <p className="text-[10px] font-bold text-zinc-600 uppercase mb-2 ml-2 italic">Paste a real request from your app (this is where you’re losing money)</p>
+                <p className="text-[10px] font-bold text-zinc-600 uppercase mb-2 ml-2 italic">Paste a real request from your app</p>
                 <textarea value={testPrompt} onChange={(e) => setTestPrompt(e.target.value)} placeholder="e.g. Summarize this customer ticket..." className="w-full bg-black/60 border border-zinc-800 rounded-2xl p-6 text-sm font-mono focus:border-blue-500 outline-none min-h-[140px] resize-none" />
                 <button onClick={runLiveTest} disabled={testLoading || !testPrompt.trim()} className="absolute bottom-4 right-4 px-8 py-4 bg-blue-600 text-white rounded-xl font-black uppercase text-[10px] tracking-widest hover:scale-105 transition-all shadow-xl">
                     {testLoading ? <Loader2 size={14} className="animate-spin" /> : "Run Optimization Audit"}
@@ -170,29 +157,27 @@ export default function Dashboard() {
           <div className="p-10 rounded-[3rem] bg-blue-600 flex flex-col justify-center items-center text-center space-y-4 shadow-[0_0_60px_-15px_rgba(37,99,235,0.6)] group">
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-100">Total Yearly Potential</span>
             <h3 className="text-7xl font-black italic text-white tracking-tighter">${(stats.opt_opportunity_usd * 12).toFixed(0)}</h3>
-            <p className="text-[9px] font-black text-blue-900 uppercase opacity-80">Estimated from real usage patterns</p>
-            <button className="mt-4 w-full py-4 bg-white text-blue-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center justify-center gap-2">
+            <button className="mt-4 w-full py-4 bg-white text-blue-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
                 Connect My App → (30s)
             </button>
           </div>
         </div>
 
-        {/* 3. TECHNICAL ACTIVATION */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-zinc-900/30 border border-white/5 rounded-[2.5rem] p-10 space-y-6">
                 <h3 className="text-white font-black italic uppercase text-lg tracking-tight">Your API <span className="text-blue-500">Key</span></h3>
-                <div className="w-full bg-black/50 border border-zinc-800 rounded-2xl p-6 font-mono text-xs flex items-center justify-between group">
+                <div className="w-full bg-black/50 border border-zinc-800 rounded-2xl p-6 font-mono text-xs flex items-center justify-between">
                     <span className="text-zinc-500 truncate mr-6">{showKey ? apiData?.key : "••••••••••••••••••••••••••••••••••••"}</span>
                     <div className="flex gap-2">
                         <button onClick={() => setShowKey(!showKey)} className="text-zinc-600 hover:text-white transition-colors">{showKey ? <EyeOff size={18} /> : <Eye size={18} />}</button>
-                        <button onClick={() => { navigator.clipboard.writeText(apiData?.key || ""); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="p-2 bg-zinc-800/50 rounded-xl hover:bg-blue-600 transition-all text-blue-500 hover:text-white">
-                            {copied ? <CheckCircle2 size={18} className="text-emerald-500" /> : <Copy size={18} />}
+                        <button onClick={() => { navigator.clipboard.writeText(apiData?.key || ""); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="p-2 bg-zinc-800/50 rounded-xl hover:bg-blue-600 transition-all text-blue-500">
+                            {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
                         </button>
                     </div>
                 </div>
             </div>
             <div className="bg-zinc-900/10 border border-zinc-800 rounded-[2.5rem] p-10 space-y-4">
-                <h3 className="text-white font-black italic uppercase text-[10px] tracking-widest flex items-center gap-3"><Terminal size={16} className="text-zinc-500" /> Integration Snippet</h3>
+                <h3 className="text-white font-black italic uppercase text-[10px] tracking-widest flex items-center gap-3"><Terminal size={16} /> Integration Snippet</h3>
                 <pre className="bg-black/40 p-5 rounded-2xl border border-white/5 text-[10px] font-mono text-zinc-500 overflow-x-auto">
 {`const res = await fetch("https://neuralrouting.io/v1/dispatch", {
   method: "POST",
@@ -202,20 +187,6 @@ export default function Dashboard() {
                 </pre>
             </div>
         </div>
-
-        {/* 4. WOW MOMENT: THE READY BLOCK */}
-        <div className="p-12 rounded-[3.5rem] bg-gradient-to-r from-zinc-900 to-black border border-white/5 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left">
-            <div className="space-y-3">
-                <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white">You're ready.</h3>
-                <p className="text-zinc-500 text-sm font-medium italic">Replace one line of code and start saving instantly in production.</p>
-            </div>
-            <div className="w-full md:w-auto">
-                <button className="w-full md:w-auto px-12 py-6 bg-white text-black rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-500 hover:text-white transition-all shadow-2xl flex items-center justify-center gap-3">
-                    Get Full Integration Snippet <Code size={18} />
-                </button>
-            </div>
-        </div>
-
       </main>
     </div>
   );
