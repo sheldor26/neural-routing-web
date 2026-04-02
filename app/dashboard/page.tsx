@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
-  Zap, Cpu, TrendingUp, Loader2, Shield, Key, Copy, Eye, EyeOff, 
-  CheckCircle2, History, Terminal, Sparkles, Play, MessageSquare, 
-  Home, DollarSign, ExternalLink, Clock, AlertCircle, ArrowRight, Code
+ Zap, Cpu, TrendingUp, Loader2, Shield, Key, Copy, Eye, EyeOff, 
+ CheckCircle2, History, Terminal, Sparkles, Play, MessageSquare, 
+ Home, DollarSign, ExternalLink, Clock, AlertCircle, ArrowRight, Code
 } from 'lucide-react';
 import { useUser, UserButton } from '@clerk/nextjs';
 import { createClient } from '@supabase/supabase-js';
@@ -39,7 +39,7 @@ export default function Dashboard() {
         setLoading(true);
         
         // 1. FETCH API KEY (Prioritize Current User, Fallback to Dev)
-        const { data: dbData } = await supabase
+        const { data: dbData, error: dbError } = await supabase
           .from('api_keys')
           .select('key, plan') 
           .or(`user_id.eq.${user.id},user_id.eq.juan_dev_34`)
@@ -47,6 +47,7 @@ export default function Dashboard() {
           .limit(1)
           .maybeSingle();
         
+        if (dbError) throw dbError;
         if (dbData) setApiData(dbData);
 
         // 2. FETCH ANALYTICS (Using dev ID for demonstration stats)
