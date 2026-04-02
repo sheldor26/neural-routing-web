@@ -37,7 +37,7 @@ export default function Dashboard() {
       if (!isLoaded || !user || !mounted) return;
       try {
         setLoading(true);
-        // Supports Clerk ID or Dev ID with credits
+        // Supports Clerk ID or Dev ID with credits (Image 7/15)
         const { data: dbData } = await supabase
           .from('api_keys')
           .select('key, plan') 
@@ -84,7 +84,7 @@ export default function Dashboard() {
       const data = await res.json();
       
       if (res.status === 402) {
-          alert(`Insufficient Balance: ${data.details || "Please check juan_dev_34 credits."}`);
+          alert(`Insufficient Balance: ${data.details || "Your user profile balance check failed. Please ensure 'juan_dev_34' exists in user_profiles table."}`);
           return;
       }
 
