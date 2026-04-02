@@ -1,14 +1,12 @@
 "use client";
-import { useState } from 'react';
+import { useState, useMemo } from 'react'; // Añadimos useMemo por estabilidad
 import { Loader2, CheckCircle2, AlertCircle, Zap, DollarSign, TrendingUp } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 
 interface RoutingResult {
   status: string;
   model_used: string;
-  output: {
-    ai_answer: string;
-  };
+  output: { ai_answer: string };
   business_metrics: {
     latency_ms: number;
     cost_usd: number;
@@ -26,33 +24,30 @@ export default function Playground() {
 
   const API_BASE = "https://web-production-4f439.up.railway.app";
 
-  // ✅ CONSTANTES DE VOLUMEN FIJAS PARA EVITAR INCONSISTENCIAS
-  const ESTIMATED_MONTHLY_VOLUME = 1000000; 
+  // ✅ FIX CRÍTICO: Lógica de métricas recalculada en cada render con valores frescos
+  const metrics = useMemo(() => {
+    if (!result || !result.business_metrics) return { yearly: 0, efficiency: "0.0" };
 
-  // ✅ CÁLCULOS NORMALIZADOS (Se ejecutan solo cuando hay un result)
-  const getMetrics = () => {
-    if (!result) return { yearly: 0, efficiency: "0.0" };
+    // Forzamos conversión a número para evitar errores de tipo
+    const gpt4 = Number(result.business_metrics.estimated_gpt4_cost || 0);
+    const actual = Number(result.business_metrics.cost_usd || 0);
+    const vol = 1000000; // 1M requests/mo
 
-    const gpt4Cost = Number(result.business_metrics.estimated_gpt4_cost || 0);
-    const actualCost = Number(result.business_metrics.cost_usd || 0);
-    
-    // Calculamos el ahorro real por request
-    const savingsPerRequest = Math.max(0, gpt4Cost - actualCost);
-    const yearly = savingsPerRequest * ESTIMATED_MONTHLY_VOLUME * 12;
+    // 1. Cálculo de Ahorro Anual (Fórmula: (Ahorro Unitario * Volumen Mensual * 12))
+    const savingsPerRequest = gpt4 - actual;
+    const yearlyValue = savingsPerRequest * vol * 12;
 
-    // Calculamos eficiencia real (Si el backend falla o manda 0)
-    let efficiency = Number(result.business_metrics.savings_percentage || 0);
-    if (efficiency <= 0 && gpt4Cost > 0) {
-      efficiency = ((gpt4Cost - actualCost) / gpt4Cost) * 100;
+    // 2. Cálculo de Eficiencia (Fórmula: ((GPT4 - Actual) / GPT4) * 100)
+    let effPercent = 0;
+    if (gpt4 > 0) {
+      effPercent = ((gpt4 - actual) / gpt4) * 100;
     }
 
-    return { 
-      yearly: Math.floor(yearly), 
-      efficiency: efficiency > 0 && efficiency < 0.1 ? "0.1" : efficiency.toFixed(1) 
+    return {
+      yearly: Math.max(0, Math.floor(yearlyValue)),
+      efficiency: effPercent > 0 && effPercent < 0.1 ? "0.1" : effPercent.toFixed(1)
     };
-  };
-
-  const metrics = getMetrics();
+  }, [result]); // Solo se recalcula cuando el objeto 'result' cambia
 
   const testRoute = async () => {
     if (!prompt || !isLoaded) return;
@@ -88,6 +83,7 @@ export default function Playground() {
   return (
     <section id="playground" className="max-w-4xl mx-auto px-6 py-20 relative z-30">
       <div className="bg-zinc-900/50 border border-zinc-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl backdrop-blur-md">
+        {/* ... (Cabecera y Textarea igual) ... */}
         <div className="text-center mb-10">
           <h2 className="text-3xl font-bold mb-4 italic tracking-tight uppercase text-white">Live Routing Simulator</h2>
           <p className="text-zinc-500 max-w-md mx-auto italic text-sm">
@@ -130,7 +126,7 @@ export default function Playground() {
         {result && (
           <div className="mt-10 space-y-8 animate-in fade-in zoom-in duration-500">
             
-            {/* BIG IMPACT CARD */}
+            {/* BIG IMPACT CARD - Ahora usa 'metrics.yearly' del useMemo */}
             <div className="bg-blue-600/10 border border-blue-500/30 rounded-[2.5rem] p-10 text-center relative overflow-hidden group shadow-[0_0_50px_-12px_rgba(37,99,235,0.3)]">
               <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
                 <DollarSign size={120} className="text-blue-500" />
@@ -146,7 +142,7 @@ export default function Playground() {
               </div>
             </div>
 
-            {/* MÉTRICAS GRID */}
+            {/* GRID DE MÉTRICAS */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-zinc-950/50 border border-zinc-800 p-6 rounded-3xl text-center group hover:border-blue-500/30 transition-colors">
                 <p className="text-[9px] font-black text-zinc-600 uppercase mb-2 tracking-widest">Latency</p>
