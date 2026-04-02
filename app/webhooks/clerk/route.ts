@@ -1,25 +1,34 @@
 import { Webhook } from 'svix'
 import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
-// Antes tenías @supabase/supabase-client (que no existe en npm)
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// 1. Inicialización segura para el Build de Vercel
+const supabaseUrl = process.env.SUPABASE_URL || ''
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+
+// No inicializamos el cliente globalmente con "!" para evitar que falle el build 
+// si las variables de entorno aún no están cargadas en Vercel.
+const supabase = supabaseUrl && supabaseKey 
+  ? createClient(supabaseUrl, supabaseKey) 
+  : null
 
 export async function POST(req: Request) {
-  // 1. Obtener el secreto de Clerk desde tus variables de entorno
-  const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET
-
-  if (!WEBHOOK_SECRET) {
-    throw new Error('Please add CLERK_WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local')
+  // Verificación de configuración de base de datos
+  if (!supabase) {
+    console.error('❌ Supabase configuration missing')
+    return new Response('Internal Configuration Error', { status: 500 })
   }
 
-  // 2. Obtener los headers de Svix para validación
-  const headerPayload = headers();
+  // 1. Obtener el secreto de Clerk
+  const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET
+  if (!WEBHOOK_SECRET) {
+    throw new Error('Please add CLERK_WEBHOOK_SECRET from Clerk Dashboard to .env')
+  }
+
+  // 2. Obtener los headers de Svix (Añadido await para compatibilidad Next.js 15)
+  const headerPayload = await headers();
   const svix_id = headerPayload.get("svix-id");
   const svix_timestamp = headerPayload.get("svix-timestamp");
   const svix_signature = headerPayload.get("svix-signature");
@@ -28,7 +37,7 @@ export async function POST(req: Request) {
     return new Response('Error occured -- no svix headers', { status: 400 })
   }
 
-  // 3. Obtener el cuerpo de la petición
+  // 3. Obtener el cuerpo de la petición de forma segura
   const payload = await req.json()
   const body = JSON.stringify(payload);
 
@@ -43,19 +52,20 @@ export async function POST(req: Request) {
       "svix-signature": svix_signature,
     }) as WebhookEvent
   } catch (err) {
-    console.error('Error verifying webhook:', err);
-    return new Response('Error occured', { status: 400 })
+    console.error('❌ Error verifying webhook:', err);
+    return new Response('Error occured during verification', { status: 400 })
   }
 
   // 5. Lógica de Negocio: Crear la API Key al registrarse
   if (evt.type === 'user.created') {
     const clerkId = evt.data.id;
     
-    // Generación segura de la key
+    // Generación segura de la key (nr_...)
     const rawKey = `nr_${crypto.randomBytes(32).toString('hex')}`;
     const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
     const keyPreview = `${rawKey.substring(0, 10)}...`;
 
+    // Inserción en Supabase
     const { error } = await supabase
       .from('api_keys')
       .insert([
@@ -65,17 +75,18 @@ export async function POST(req: Request) {
           key_preview: keyPreview,
           key_plain: rawKey, // Se guarda para mostrarla en el Dashboard
           is_active: true,
-          label: 'Primary Key'
+          label: 'Primary Key',
+          created_at: new Date().toISOString()
         }
       ]);
 
     if (error) {
-      console.error('Supabase Error:', error);
+      console.error('❌ Supabase Error:', error);
       return new Response('Error saving to DB', { status: 500 });
     }
     
-    console.log(`✅ API Key generada para el usuario: ${clerkId}`);
+    console.log(`✅ API Key generada exitosamente para: ${clerkId}`);
   }
 
-  return new Response('', { status: 200 })
+  return new Response('Webhook processed successfully', { status: 200 })
 }
