@@ -4,18 +4,15 @@ import { WebhookEvent } from '@clerk/nextjs/server'
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
 
-// 1. Inicialización segura para el Build de Vercel
+// 1. Inicialización de Supabase con Service Role (para saltar RLS)
 const supabaseUrl = process.env.SUPABASE_URL || ''
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
-// No inicializamos el cliente globalmente con "!" para evitar que falle el build 
-// si las variables de entorno aún no están cargadas en Vercel.
 const supabase = supabaseUrl && supabaseKey 
   ? createClient(supabaseUrl, supabaseKey) 
   : null
 
 export async function POST(req: Request) {
-  // Verificación de configuración de base de datos
   if (!supabase) {
     console.error('❌ Supabase configuration missing')
     return new Response('Internal Configuration Error', { status: 500 })
@@ -24,10 +21,10 @@ export async function POST(req: Request) {
   // 1. Obtener el secreto de Clerk
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET
   if (!WEBHOOK_SECRET) {
-    throw new Error('Please add CLERK_WEBHOOK_SECRET from Clerk Dashboard to .env')
+    return new Response('Error: Please add CLERK_WEBHOOK_SECRET', { status: 500 })
   }
 
-  // 2. Obtener los headers de Svix (Añadido await para compatibilidad Next.js 15)
+  // 2. Obtener headers para validación de Svix
   const headerPayload = await headers();
   const svix_id = headerPayload.get("svix-id");
   const svix_timestamp = headerPayload.get("svix-timestamp");
@@ -37,11 +34,11 @@ export async function POST(req: Request) {
     return new Response('Error occured -- no svix headers', { status: 400 })
   }
 
-  // 3. Obtener el cuerpo de la petición de forma segura
+  // 3. Obtener el cuerpo de la petición
   const payload = await req.json()
   const body = JSON.stringify(payload);
 
-  // 4. Validar la firma del Webhook
+  // 4. Verificar que la petición viene REALMENTE de Clerk
   const wh = new Webhook(WEBHOOK_SECRET);
   let evt: WebhookEvent
 
@@ -56,24 +53,23 @@ export async function POST(req: Request) {
     return new Response('Error occured during verification', { status: 400 })
   }
 
-  // 5. Lógica de Negocio: Crear la API Key al registrarse
+  // 5. LÓGICA DE REGISTRO: Crear el perfil y la Key
   if (evt.type === 'user.created') {
-    const clerkId = evt.data.id;
+    const { id, email_addresses, first_name, last_name } = evt.data;
+    const email = email_addresses[0]?.email_address;
     
-    // Generación segura de la key (nr_...)
-    const rawKey = `nr_${crypto.randomBytes(32).toString('hex')}`;
-    const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
-    const keyPreview = `${rawKey.substring(0, 10)}...`;
+    // Generamos la key que se verá en el Dashboard (nr_live_...)
+    const generatedKey = `nr_live_${crypto.randomBytes(24).toString('hex')}`;
 
-    // Inserción en Supabase
+    console.log(`Creating profile for user: ${id}`);
+
+    // Insertamos en la tabla 'api_keys' (o 'profiles', ajustá el nombre si es necesario)
     const { error } = await supabase
-      .from('api_keys')
+      .from('api_keys') 
       .insert([
         { 
-          user_id: clerkId, 
-          key_hash: keyHash, 
-          key_preview: keyPreview,
-          key_plain: rawKey, // Se guarda para mostrarla en el Dashboard
+          user_id: id, 
+          key: generatedKey, // <--- Columna 'key' tipo text de tu foto
           is_active: true,
           label: 'Primary Key',
           created_at: new Date().toISOString()
@@ -81,11 +77,11 @@ export async function POST(req: Request) {
       ]);
 
     if (error) {
-      console.error('❌ Supabase Error:', error);
+      console.error('❌ Supabase Error:', error.message);
       return new Response('Error saving to DB', { status: 500 });
     }
     
-    console.log(`✅ API Key generada exitosamente para: ${clerkId}`);
+    console.log(`✅ API Key generada exitosamente para: ${id}`);
   }
 
   return new Response('Webhook processed successfully', { status: 200 })
