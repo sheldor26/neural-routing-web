@@ -33,7 +33,6 @@ export default function Dashboard() {
   });
 
   const API_BASE = "https://web-production-4f439.up.railway.app";
-  // 🛡️ SECURITY NOTE: We are removing INTERNAL_KEY usage for stats to rely on Clerk Auth
   
   useEffect(() => { setMounted(true); }, []);
 
@@ -74,6 +73,7 @@ export default function Dashboard() {
           }));
         }
 
+        // Fix: Call backend stats using the secure Clerk User ID
         const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`);
 
         if (res.ok) {
@@ -114,12 +114,19 @@ export default function Dashboard() {
       });
 
       const data = await res.json();
+
+      // Fix: Handle 402 "Insufficient Balance" explicitly
+      if (res.status === 402) {
+        alert("Free Tier limit reached. Please upgrade to continue optimizing.");
+        return;
+      }
+
       if (!res.ok) throw new Error(data.details || data.error || `Error ${res.status}`);
 
       setTestResult(data);
       setStats(prev => ({ ...prev, last_requests: [data, ...prev.last_requests.slice(0, 4)] }));
     } catch (e: any) { 
-      alert(`Optimization failed: ${e.message}`);
+      alert(e.message);
     } finally { setTestLoading(false); }
   };
 
@@ -152,7 +159,6 @@ export default function Dashboard() {
       </nav>
 
       <main className="max-w-6xl mx-auto px-6 py-12 space-y-12">
-        {/* STEPPER / FUNNEL CONVERSION */}
         <div className="bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl shadow-blue-900/10">
             <div className="space-y-1 text-center md:text-left">
                 <p className="text-[10px] font-black uppercase text-blue-500 tracking-[0.2em]">Step 1: Deployment</p>
@@ -166,7 +172,6 @@ export default function Dashboard() {
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* LIVE OPTIMIZER - EMOTIONAL COPY */}
           <div className="lg:col-span-2 p-10 rounded-[3rem] bg-zinc-900/40 border border-white/5 space-y-6 backdrop-blur-md">
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">See how much you are <span className="text-blue-600">overpaying</span></h2>
@@ -209,7 +214,6 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* TOTAL SAVINGS CARD - "SATISFACTION" */}
           <div className="p-10 rounded-[3rem] bg-blue-600 flex flex-col justify-center items-center text-center space-y-4 shadow-[0_0_80px_-20px_rgba(37,99,235,0.5)] group relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform duration-700">
               <TrendingUp size={160} />
@@ -223,16 +227,12 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* USAGE & CREDENTIALS GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
-            {/* USAGE & LIMITS (REPHRASED) */}
             <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-6 shadow-inner">
                 <div className="flex items-center justify-between">
                     <h3 className="text-white font-black italic uppercase text-lg tracking-tight">Usage <span className="text-blue-600">& Limits</span></h3>
                     <Sparkles size={18} className="text-blue-500 animate-pulse" />
                 </div>
-
                 <div className="space-y-4">
                     <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-500 italic">
                         <span>{usageData.used.toLocaleString()} Requests used</span>
@@ -240,21 +240,15 @@ export default function Dashboard() {
                             {usageData.planName === "Business" ? "Unlimited Access" : `${((usageData.used / usageData.max) * 100).toFixed(1)}% of plan`}
                         </span>
                     </div>
-
                     <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
-                        <div 
-                            className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-1000"
-                            style={{ width: `${usageData.planName === "Business" ? 100 : Math.min((usageData.used / usageData.max) * 100, 100)}%` }}
-                        />
+                        <div className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-1000" style={{ width: `${usageData.planName === "Business" ? 100 : Math.min((usageData.used / usageData.max) * 100, 100)}%` }} />
                     </div>
                 </div>
-
                 <button className="w-full py-4 bg-white text-black rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-all">
                     Upgrade to avoid throttling →
                 </button>
             </div>
 
-            {/* ACCESS CREDENTIALS - ACTIVATION COPY */}
             <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-8 shadow-inner">
                 <div className="flex justify-between items-center">
                   <h3 className="text-white font-black italic uppercase text-lg tracking-tight">Ready to <span className="text-blue-600">Integrate</span></h3>
@@ -262,44 +256,30 @@ export default function Dashboard() {
                     View Docs <ExternalLink size={12}/>
                   </button>
                 </div>
-                
-                <div className="space-y-4">
-                  <div className="w-full bg-black/60 border border-zinc-800 rounded-2xl p-6 flex items-center justify-between group hover:border-zinc-700 transition-colors">
-                      <div className="flex flex-col">
-                        <span className="text-[8px] font-black text-zinc-600 uppercase mb-1 tracking-widest italic">Secret Production Key</span>
-                        <span className="text-zinc-200 font-mono text-xs tracking-widest">
-                          {showKey ? (apiData?.key || "No Key Found") : "•".repeat(32)}
-                        </span>
-                      </div>
-                      <div className="flex gap-2">
-                          <button onClick={() => setShowKey(!showKey)} className="p-2 text-zinc-600 hover:text-white transition-colors">
-                            {showKey ? <EyeOff size={20} /> : <Eye size={20} />}
-                          </button>
-                          <button 
-                            onClick={() => { 
-                              navigator.clipboard.writeText(apiData?.key || ""); 
-                              setCopied(true); 
-                              setTimeout(() => setCopied(false), 2000); 
-                            }} 
-                            className={`p-3 rounded-xl transition-all ${
-                              copied ? "bg-emerald-500 text-black" : "bg-zinc-800 text-blue-500 hover:bg-blue-600 hover:text-white"
-                            }`}
-                          >
-                              {copied ? <CheckCircle2 size={20} /> : <Copy size={20} />}
-                          </button>
-                      </div>
-                  </div>
+                <div className="bg-black/60 border border-zinc-800 rounded-2xl p-6 flex items-center justify-between group hover:border-zinc-700 transition-colors">
+                    <div className="flex flex-col">
+                      <span className="text-[8px] font-black text-zinc-600 uppercase mb-1 tracking-widest italic">Secret Production Key</span>
+                      <span className="text-zinc-200 font-mono text-xs tracking-widest">
+                        {showKey ? (apiData?.key || "No Key Found") : "•".repeat(32)}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                        <button onClick={() => setShowKey(!showKey)} className="p-2 text-zinc-600 hover:text-white transition-colors">
+                          {showKey ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                        <button onClick={() => { navigator.clipboard.writeText(apiData?.key || ""); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className={`p-3 rounded-xl transition-all ${copied ? "bg-emerald-500 text-black" : "bg-zinc-800 text-blue-500 hover:bg-blue-600 hover:text-white"}`}>
+                            {copied ? <CheckCircle2 size={20} /> : <Copy size={20} />}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        {/* 💥 RECENT OPTIMIZATIONS (HISTORY USABLE) */}
         <div className="bg-zinc-900/10 border border-zinc-800 rounded-[2.5rem] p-10 space-y-6">
             <div className="flex items-center gap-3">
               <History size={20} className="text-blue-600" />
               <h3 className="text-white font-black italic uppercase text-lg tracking-tight italic">Recent <span className="text-blue-600">Optimizations</span></h3>
             </div>
-            
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {stats.last_requests.map((req, i) => (
                     <div key={i} className="bg-black/40 border border-white/5 p-6 rounded-2xl flex flex-col gap-2 group hover:border-blue-500/30 transition-all">
