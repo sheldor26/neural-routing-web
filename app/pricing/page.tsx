@@ -1,164 +1,203 @@
 "use client";
 
-import { Check, Zap, Rocket, Crown, ArrowRight, TrendingDown, Calculator } from 'lucide-react';
-import Link from 'next/link';
+import React from 'react';
+import { Check, Zap, Rocket, Crown, ArrowRight, Sparkles, Info, HelpCircle } from 'lucide-react';
 
-export default function PricingPage() {
-  const plans = [
-    {
-      name: "Starter",
-      price: "$29",
-      savings: "Save ~$110/mo*",
-      tokens: "1.5M tokens",
-      equivalence: "≈ $140 GPT-4 Value", // Claridad absoluta
-      description: "Perfect for indie hackers & side projects.",
-      features: ["90% Cost Reduction", "Standard Neural Routing", "Economy Node Access", "Setup in 30 seconds"],
-      icon: <Rocket className="text-zinc-400" size={24} />,
-      buttonText: "Analyze My Savings", // CTA de Onboarding
-      highlight: false
-    },
-    {
-      name: "Growth",
-      price: "$89",
-      savings: "Save ~$420/mo*",
-      tokens: "5M tokens",
-      equivalence: "≈ $510 GPT-4 Value", // Claridad absoluta
-      description: "Scaling startups needing maximum margin.",
-      features: ["Priority Neural Routing", "Premium Node Access", "Real-time Cost Optimization", "Guaranteed Savings SLA"],
-      icon: <Zap className="text-blue-500" size={24} />,
-      buttonText: "Claim My Margin", // CTA Agresivo
-      highlight: true
-    },
-    {
-      name: "Enterprise",
-      price: "Custom",
-      savings: "Unlimited ROI",
-      tokens: "20M+ tokens",
-      equivalence: "Volume-based pricing",
-      description: "High-volume teams with custom needs.",
-      features: ["Custom Model Training", "Dedicated Node Location", "Volume Discounts", "Unlimited API Keys"],
-      icon: <Crown className="text-white" size={24} />,
-      buttonText: "Contact Sales",
-      highlight: false
-    }
-  ];
+const tiers = [
+  {
+    name: "Free",
+    price: "0",
+    description: "Instant access",
+    outcome: "50k Tokens included",
+    savingLabel: "FREE $5 CREDIT",
+    comparison: "Test Neural Routing Free",
+    timeToValue: "Live in <30 seconds",
+    features: [
+      "1 API Key",
+      "Standard Routing",
+      "No Credit Card Required"
+    ],
+    cta: "Start Free",
+    highlight: false,
+    icon: <Zap className="text-zinc-500" size={20} />
+  },
+  {
+    name: "Starter",
+    price: "29",
+    description: "For indie apps",
+    outcome: "Handle ~15k requests/mo",
+    savingLabel: "SAVE $110/MO",
+    comparison: "5x cheaper than GPT-4",
+    timeToValue: "Live in <2 minutes",
+    features: [
+      "1.5M Tokens included",
+      "90% Cost Reduction",
+      "+ $15/1M extra tokens"
+    ],
+    cta: "Start Saving",
+    highlight: false,
+    icon: <Rocket className="text-zinc-500" size={20} />
+  },
+  {
+    name: "Growth",
+    price: "89",
+    description: "Scaling production",
+    outcome: "Handle ~60k requests/mo",
+    savingLabel: "SAVE $420/MO",
+    comparison: "7x cheaper than GPT-4",
+    timeToValue: "Used by most teams",
+    features: [
+      "5M Tokens included",
+      "Priority Routing Nodes",
+      "+ $12/1M extra tokens"
+    ],
+    cta: "Get Started",
+    highlight: true,
+    tag: "MOST POPULAR",
+    icon: <Zap className="text-blue-500" size={20} />
+  },
+  {
+    name: "Business",
+    price: "249", // ✅ ANCHORED PRICE (Point 7)
+    description: "Enterprise grade",
+    outcome: "For >250k requests/mo",
+    savingLabel: "MAX ROI",
+    comparison: "Up to 95% cheaper than GPT-4",
+    timeToValue: "Dedicated Support",
+    features: [
+      "Unlimited API Keys",
+      "Dedicated Infrastructure",
+      "Volume-based rates"
+    ],
+    cta: "Talk to Sales",
+    highlight: false,
+    icon: <Crown className="text-zinc-500" size={20} />
+  }
+];
 
+export default function Pricing() {
   return (
-    <div className="min-h-screen bg-[#050505] text-white py-32 px-6 overflow-hidden">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-blue-600/5 blur-[160px] rounded-full pointer-events-none"></div>
+    <section id="pricing" className="py-32 bg-[#050505] text-white relative overflow-hidden font-sans">
+      
+      {/* BACKGROUND GLOW */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.05)_0%,transparent_70%)] pointer-events-none"></div>
 
-      {/* Header con Urgencia y Anclaje */}
-      <div className="max-w-7xl mx-auto text-center mb-24 relative z-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 mb-8">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-          </span>
-          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-            Free tier available // <span className="text-white">Active Nodes: 124</span>
-          </span>
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="text-center mb-24">
+          <div className="mb-6 px-4 py-1.5 bg-blue-600/10 border border-blue-500/20 rounded-full inline-block">
+            <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.3em]">
+               Teams save up to 90% on AI costs
+            </p>
+          </div>
+          <h2 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter mb-6 leading-none">
+            Pay Less for AI <br/> <span className="text-blue-600 font-black italic text-6xl md:text-8xl">At Any Scale</span>
+          </h2>
+          <p className="text-zinc-500 font-bold italic text-lg max-w-xl mx-auto tracking-tight opacity-80 uppercase leading-tight">
+             Stop the GPT-4 Tax. Get identical quality for a fraction of the price.
+          </p>
         </div>
-        
-        <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter uppercase mb-8 leading-none">
-          It's Costing You <br/> <span className="text-zinc-800 text-outline underline decoration-blue-600/30">Not To Switch</span>
-        </h1>
-        
-        <p className="text-zinc-500 text-lg md:text-xl max-w-2xl mx-auto italic font-medium">
-          Your current GPT-4 bill is inflated by 90%. Our neural nodes route your traffic for maximum efficiency. 
-          <span className="text-white font-bold block mt-2">Intelligence is a commodity. Margin is your edge.</span>
-        </p>
-      </div>
 
-      {/* Grid de Planes */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-        {plans.map((plan, index) => (
-          <div 
-            key={index}
-            className={`relative p-10 rounded-[3rem] border transition-all duration-500 flex flex-col ${
-              plan.highlight 
-              ? 'border-blue-500/50 bg-blue-500/5 shadow-[0_0_50px_rgba(59,130,246,0.1)] scale-105' 
-              : 'border-zinc-800 bg-zinc-900/20 hover:border-zinc-700'
-            }`}
-          >
-            {plan.highlight && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-[9px] font-black px-6 py-1.5 rounded-full uppercase tracking-[0.2em] italic">
-                Max Efficiency Node
-              </div>
-            )}
-            
-            <div className="mb-10">
-              <div className="p-4 bg-zinc-900/80 w-fit rounded-2xl border border-zinc-800 mb-8 shadow-inner">
-                {plan.icon}
-              </div>
-              <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white mb-2">{plan.name}</h3>
-              
-              <div className="flex items-baseline gap-2 mb-1">
-                <span className="text-5xl font-black text-white italic tracking-tighter">{plan.price}</span>
-                {plan.price !== "Custom" && <span className="text-zinc-600 font-bold text-sm">/ MO</span>}
-              </div>
-              
-              {/* ROI Check & Mental Calculator */}
-              <div className="flex flex-col gap-1 mb-6">
-                <p className="text-green-500 font-black text-xs uppercase italic">{plan.savings}</p>
-                <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-tight">{plan.equivalence}</p>
-              </div>
-
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg w-fit">
-                <Calculator size={12} className="text-blue-400" />
-                <p className="text-blue-400 font-black uppercase text-[9px] tracking-widest">{plan.tokens} Included</p>
-              </div>
-            </div>
-
-            <div className="space-y-5 mb-12 flex-grow">
-              {plan.features.map((feature, i) => (
-                <div key={i} className="flex items-center gap-4 text-sm font-medium italic text-zinc-400">
-                  <div className="p-1 bg-zinc-800 rounded-full">
-                    <Check size={10} className="text-white" />
-                  </div>
-                  <span>{feature}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* CTA CONECTADO AL ONBOARDING / CLERK */}
-            <Link 
-              href="/onboarding" 
-              className={`w-full py-5 rounded-2xl font-black uppercase italic tracking-tighter text-center transition-all active:scale-95 flex items-center justify-center gap-2 ${
-                plan.highlight 
-                ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_20px_40px_rgba(37,99,235,0.25)]' 
-                : 'bg-white text-black hover:bg-zinc-200 shadow-xl'
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+          {tiers.map((tier, i) => (
+            <div 
+              key={i} 
+              className={`relative p-8 rounded-[3.5rem] border transition-all duration-700 group flex flex-col ${
+                tier.highlight 
+                ? "bg-blue-600/5 border-blue-500 ring-1 ring-blue-500/50 shadow-[0_0_120px_-20px_rgba(37,99,235,0.4)] md:scale-110 z-20 pb-12" 
+                : "bg-zinc-900/20 border-white/5 hover:border-white/10 pb-10"
               }`}
             >
-              {plan.buttonText} <ChevronRight size={18} />
-            </Link>
-          </div>
-        ))}
-      </div>
-      
-      {/* Disclaimer para evitar el "Humo" */}
-      <div className="max-w-3xl mx-auto mt-12 text-center">
-        <p className="text-[10px] text-zinc-700 uppercase font-bold tracking-widest leading-relaxed">
-          *Savings based on typical GPT-4 usage patterns and real-time Neural Routing efficiency data. 
-          Actual results may vary based on prompt complexity and model availability.
-        </p>
-      </div>
+              {tier.highlight && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-[9px] font-black uppercase px-6 py-1.5 rounded-full tracking-[0.2em] italic shadow-2xl flex items-center gap-2 whitespace-nowrap">
+                  <Sparkles size={10} /> {tier.tag}
+                </div>
+              )}
 
-      <div className="mt-24 flex flex-col items-center">
-        <div className="flex gap-12 opacity-20 grayscale filter brightness-200">
-          <span className="text-white font-black italic">CLERK</span>
-          <span className="text-white font-black italic">SUPABASE</span>
-          <span className="text-white font-black italic">LEMON SQUEEZY</span>
-          <span className="text-white font-black italic">GROQ</span>
+              {/* SAVINGS BADGE */}
+              <div className="mb-6 flex justify-between items-start">
+                <div className="p-3 bg-zinc-800/50 rounded-xl border border-white/5 group-hover:bg-blue-600/10 transition-colors">
+                  {tier.icon}
+                </div>
+                <div className="text-right">
+                  <p className="text-emerald-500 text-lg font-black italic tracking-tighter uppercase">
+                    {tier.savingLabel}
+                  </p>
+                </div>
+              </div>
+
+              {/* PRICE & NAME */}
+              <div className="mb-1">
+                <h3 className="text-xl font-black italic uppercase text-zinc-400 tracking-tighter">{tier.name}</h3>
+                <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-black italic tracking-tighter text-white">
+                        {tier.name === "Business" ? "Starts at $" : "$"}{tier.price}
+                    </span>
+                    <span className="text-zinc-600 text-[9px] font-black uppercase">/ mo</span>
+                </div>
+              </div>
+
+              {/* OUTCOME */}
+              <p className="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6 italic opacity-90">
+                {tier.outcome}
+              </p>
+
+              {/* RATIO COMPARISON WITH TOOLTIP FEEL */}
+              <div className="mb-8 p-4 bg-black/40 rounded-[1.5rem] border border-white/5 flex items-center justify-between group/info cursor-help">
+                <p className="text-zinc-200 text-[10px] font-black uppercase tracking-tight italic">
+                  {tier.comparison}
+                </p>
+                <div className="relative">
+                    <HelpCircle size={12} className="text-zinc-600 group-hover/info:text-blue-500 transition-colors" />
+                    {/* MEJORA #6: HIDDEN TOOLTIP EFFECT */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-zinc-900 border border-white/10 rounded-lg text-[8px] font-bold uppercase tracking-widest text-zinc-400 opacity-0 group-hover/info:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-30 shadow-2xl">
+                        Based on GPT-4 avg pricing ($0.01/req)
+                    </div>
+                </div>
+              </div>
+
+              {/* FEATURES */}
+              <div className="space-y-4 mb-10 flex-grow">
+                {tier.features.map((feature, j) => (
+                  <div key={j} className="flex items-start gap-3 text-[10px] font-bold text-zinc-500 uppercase tracking-tight leading-tight">
+                    <Check size={12} className={tier.highlight ? "text-blue-500" : "text-zinc-700"} />
+                    <span>{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA & TIME TO VALUE */}
+              <div className="space-y-4 text-center mt-auto">
+                <button 
+                    className={`w-full py-5 rounded-2xl font-black uppercase italic text-[10px] tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${
+                    tier.highlight 
+                    ? "bg-blue-600 text-white hover:bg-blue-500 shadow-xl shadow-blue-600/20 active:scale-95" 
+                    : "bg-white text-black hover:bg-zinc-200 shadow-xl active:scale-95"
+                    }`}
+                >
+                    {tier.cta} <ArrowRight size={14} />
+                </button>
+                {/* MEJORA #4 & #5: TIME TO VALUE / SOCIAL PROOF */}
+                <p className="text-[7px] font-black text-zinc-600 uppercase tracking-[0.4em] italic flex items-center justify-center gap-2">
+                   {tier.highlight && <div className="h-1 w-1 bg-emerald-500 rounded-full animate-pulse" />}
+                   {tier.timeToValue}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-24 pt-12 border-t border-white/5 flex flex-col items-center gap-6 text-center">
+            <div className="flex flex-wrap justify-center gap-8 opacity-30 grayscale contrast-125">
+                <span className="text-xs font-black italic uppercase tracking-widest">LangChain</span>
+                <span className="text-xs font-black italic uppercase tracking-widest">OpenAI</span>
+                <span className="text-xs font-black italic uppercase tracking-widest">Anthropic</span>
+                <span className="text-xs font-black italic uppercase tracking-widest">Llama-3</span>
+            </div>
+            <p className="text-[8px] font-black text-zinc-700 uppercase tracking-[0.5em] italic">
+                NeuralRouting Engine v2.4 • High Performance Guaranteed • PCI Compliant
+            </p>
         </div>
       </div>
-    </div>
-  );
-}
-
-function ChevronRight({ size, className }: { size: number, className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="m9 18 6-6-6-6"/>
-    </svg>
+    </section>
   );
 }
