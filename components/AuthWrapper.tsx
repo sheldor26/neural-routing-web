@@ -1,12 +1,12 @@
 "use client";
-// Importamos solo lo mínimo necesario
 import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 export function AuthNav() {
   return (
     <div className="flex items-center gap-4">
       <SignedOut>
-        <SignInButton mode="modal">
+        {/* SACAMOS EL mode="modal" PARA QUE NAVEGUE A /sign-in */}
+        <SignInButton> 
           <button className="bg-white text-black px-6 py-2.5 rounded-full text-sm font-bold hover:bg-zinc-200 transition">
             Get Started
           </button>
@@ -26,7 +26,8 @@ export function AuthHero() {
   return (
     <>
       <SignedOut>
-        <SignInButton mode="modal">
+        {/* SACAMOS EL mode="modal" AQUÍ TAMBIÉN */}
+        <SignInButton>
           <button className="bg-blue-600 hover:bg-blue-500 px-10 py-5 rounded-2xl font-bold text-lg transition shadow-2xl shadow-blue-900/40 flex items-center justify-center gap-2">
             Try Live Demo
           </button>
