@@ -1,25 +1,24 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-
-// Rutas que SIEMPRE requieren login
-const isProtectedRoute = createRouteMatcher([
-  '/chat(.*)',
-  '/dashboard(.*)',
-  '/api/chat(.*)',
-  '/blog/admin(.*)'
-]);
+import { NextResponse } from "next/server";
 
 export default clerkMiddleware(async (auth, req) => {
-  const { nextUrl } = req;
-
-  // 🚨 REGLA DE ORO: Si la URL contiene "webhooks/clerk", NO aplicar auth.
-  // Esto ignora mayúsculas, minúsculas y barras diagonales.
-  if (nextUrl.pathname.includes('/api/webhooks/clerk')) {
-    return; 
+  // 1. Si la URL contiene "webhooks", saltamos Clerk por completo
+  if (req.nextUrl.pathname.includes('/api/webhooks/clerk')) {
+    return NextResponse.next(); 
   }
+
+  // 2. Definimos rutas protegidas (solo para el Dashboard y Chat)
+  const isProtectedRoute = createRouteMatcher([
+    '/chat(.*)',
+    '/dashboard(.*)',
+    '/api/chat(.*)'
+  ]);
 
   if (isProtectedRoute(req)) {
     await auth.protect();
   }
+  
+  return NextResponse.next();
 });
 
 export const config = {
