@@ -30,6 +30,7 @@ export default function Dashboard() {
   const API_BASE = "https://web-production-4f439.up.railway.app";
   const INTERNAL_KEY = "nr-dev-secret-123"; 
 
+  // Fix Hydration Error #418
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -41,18 +42,18 @@ export default function Dashboard() {
         setLoading(true);
         
         // Match Table Editor structure: user_id, key, plan
-        // Attempting to match the development user_id seen in your DB screenshot
+        // Attempting to match the user_id seen in your DB screenshot (juan_dev_34)
         const { data: dbData, error: dbError } = await supabase
           .from('api_keys')
           .select('key, plan') 
-          .or(`user_id.eq.${user.id},user_id.eq.juan_dev_34`) // Try real ID or Dev ID
+          .or(`user_id.eq.${user.id},user_id.eq.juan_dev_34`)
           .limit(1)
           .maybeSingle();
         
         if (dbError) console.error("Supabase Error:", dbError.message);
         if (dbData) setApiData(dbData);
 
-        // Fetch Stats - Using Dev ID if real stats aren't found yet
+        // Fetch Stats - Use Dev ID if real stats aren't found yet to avoid 404
         const fetchId = user.id || "juan_dev_34";
         const res = await fetch(`${API_BASE}/v1/user-stats/${fetchId}`, { 
             headers: { 'X-API-KEY': INTERNAL_KEY } 
@@ -93,7 +94,7 @@ export default function Dashboard() {
 
       if (!res.ok) {
           const errData = await res.json();
-          throw new Error(errData.detail || `Server Error: ${res.status}`);
+          throw new Error(errData.details || errData.error || `Server Error: ${res.status}`);
       }
 
       const data = await res.json();
@@ -160,7 +161,7 @@ export default function Dashboard() {
                       </p>
                   </div>
                   <div className="text-right">
-                      <p className="text-[9px] font-black text-emerald-400 uppercase mb-1">Latency: {testResult.latency_ms || 0}ms</p>
+                      <p className="text-[9px] font-black text-emerald-400 uppercase mb-1">Latency: {testResult.business_metrics?.latency_ms || 0}ms</p>
                       <div className="px-4 py-1.5 bg-emerald-500 text-black text-[9px] font-black uppercase italic rounded-lg">-{testResult.business_metrics?.savings_percentage?.toFixed(0) || 0}% Savings</div>
                   </div>
               </div>
@@ -179,18 +180,18 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-zinc-900/30 border border-white/5 rounded-[2.5rem] p-10 space-y-6">
                 <h3 className="text-white font-black italic uppercase text-lg tracking-tight">Your API <span className="text-blue-500">Key</span></h3>
-                <div className="w-full bg-black/50 border border-zinc-800 rounded-2xl p-6 font-mono text-xs flex items-center justify-between group">
-                    <span className="text-zinc-400 truncate mr-6">{showKey ? apiData?.key : "••••••••••••••••••••••••••••••••••••"}</span>
+                <div className="w-full bg-black/50 border border-zinc-800 rounded-2xl p-6 font-mono text-xs flex items-center justify-between">
+                    <span className="text-zinc-500 truncate mr-6">{showKey ? apiData?.key : "••••••••••••••••••••••••••••••••••••"}</span>
                     <div className="flex gap-2">
                         <button onClick={() => setShowKey(!showKey)} className="text-zinc-600 hover:text-white transition-colors">{showKey ? <EyeOff size={18} /> : <Eye size={18} />}</button>
-                        <button onClick={() => { navigator.clipboard.writeText(apiData?.key || ""); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="p-2 bg-zinc-800/50 rounded-xl hover:bg-blue-600 transition-all text-blue-500 hover:text-white">
-                            {copied ? <CheckCircle2 size={18} className="text-emerald-500" /> : <Copy size={18} />}
+                        <button onClick={() => { navigator.clipboard.writeText(apiData?.key || ""); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="p-2 bg-zinc-800/50 rounded-xl hover:bg-blue-600 transition-all text-blue-500">
+                            {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
                         </button>
                     </div>
                 </div>
             </div>
             <div className="bg-zinc-900/10 border border-zinc-800 rounded-[2.5rem] p-10 space-y-4">
-                <h3 className="text-white font-black italic uppercase text-[10px] tracking-widest flex items-center gap-3"><Terminal size={16} className="text-zinc-500" /> Integration Snippet</h3>
+                <h3 className="text-white font-black italic uppercase text-[10px] tracking-widest flex items-center gap-3"><Terminal size={16} /> Integration Snippet</h3>
                 <pre className="bg-black/40 p-5 rounded-2xl border border-white/5 text-[10px] font-mono text-zinc-500 overflow-x-auto">
 {`const res = await fetch("https://neuralrouting.io/v1/dispatch", {
   method: "POST",
