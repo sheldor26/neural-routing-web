@@ -1,55 +1,43 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs';
 
 export async function POST(req: Request) {
   try {
+    // Validamos que el usuario esté logueado en Clerk para este proxy
+    const { userId } = auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized Clerk Session" }, { status: 401 });
+    }
+
     const body = await req.json();
     
-    // Ensure we use the Environment Variable in production
+    // IMPORTANTE: Verifica que NR_PRIVATE_KEY esté en tus variables de Vercel
     const apiKey = process.env.NR_PRIVATE_KEY || 'nr-dev-secret-123';
-
-    // The Railway URL must be exactly as defined in your dashboard
     const RAILWAY_ENDPOINT = 'https://web-production-4f439.up.railway.app/v1/dispatch';
 
     const response = await fetch(RAILWAY_ENDPOINT, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-        // Optional: Some backends require a User-Agent or specific Origin
-        'User-Agent': 'NeuralRouting-Proxy/1.0'
+        'X-API-KEY': apiKey
       },
       body: JSON.stringify({
         ...body,
-        // Ensure user_id is present if the backend requires it for stats
-        user_id: body.user_id || 'anonymous_node'
+        user_id: userId // Pasamos el ID real de Clerk al backend
       }),
-      // Set a cache policy for Next.js 14+
       cache: 'no-store'
     });
 
-    // Capture 401, 404, or 500 from Railway
+    const data = await response.json();
+
     if (!response.ok) {
-        const errorData = await response.text();
-        console.error(`Backend Response Error [${response.status}]:`, errorData);
-        
-        return NextResponse.json({ 
-            error: "Backend communication failed", 
-            status: response.status,
-            details: errorData 
-        }, { status: response.status });
+        return NextResponse.json({ error: "Railway Error", details: data }, { status: response.status });
     }
 
-    const data = await response.json();
-    
-    // Return the data directly to the Dashboard
     return NextResponse.json(data);
 
   } catch (error: any) {
-    console.error("Critical Proxy Error:", error);
-    
-    return NextResponse.json({ 
-        error: "Proxy connection timeout or failure", 
-        details: error.message 
-    }, { status: 500 });
+    console.error("Proxy Error:", error);
+    return NextResponse.json({ error: "Proxy Failure", details: error.message }, { status: 500 });
   }
 }
