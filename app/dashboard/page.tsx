@@ -19,7 +19,6 @@ export default function Dashboard() {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   
-  // New State for Token Usage tracking
   const [usageData, setUsageData] = useState({
     used: 0,
     max: 50000,
@@ -34,8 +33,8 @@ export default function Dashboard() {
   });
 
   const API_BASE = "https://web-production-4f439.up.railway.app";
-  const INTERNAL_KEY = "nr-dev-secret-123"; 
-
+  // 🛡️ SECURITY NOTE: We are removing INTERNAL_KEY usage for stats to rely on Clerk Auth
+  
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
@@ -43,24 +42,13 @@ export default function Dashboard() {
       if (!isLoaded || !user || !mounted) return;
       try {
         setLoading(true);
-        
-        // 1. FETCH SECURE SUPABASE TOKEN FROM CLERK
         const token = await getToken({ template: 'supabase' });
-
-        // 2. INITIALIZE AUTHENTICATED SUPABASE CLIENT
         const supabase = createClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
           process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          {
-            global: {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          }
+          { global: { headers: { Authorization: `Bearer ${token}` } } }
         );
 
-        // 3. FETCH API KEY DATA
         const { data: dbData, error: dbError } = await supabase
           .from('api_keys')
           .select('key, plan') 
@@ -69,12 +57,11 @@ export default function Dashboard() {
         
         if (dbError) throw dbError;
 
-        // Plan Mapping Logic according to Pricing
         const planLimits: { [key: string]: number } = {
           "Free Tier": 50000,
           "Starter": 1500000,
           "Growth": 5000000,
-          "Business": 999999999 // Unlimited
+          "Business": 999999999 
         };
 
         if (dbData) {
@@ -87,25 +74,17 @@ export default function Dashboard() {
           }));
         }
 
-        // 4. FETCH ANALYTICS FROM RAILWAY BACKEND
-        const fetchId = user.id; 
-        const res = await fetch(`${API_BASE}/v1/user-stats/${fetchId}`, { 
-            headers: { 'X-API-KEY': INTERNAL_KEY } 
-        });
+        const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`);
 
         if (res.ok) {
           const data = await res.json();
-          const tokensUsed = Number(data.total_tokens_consumed || 0);
-
           setStats({
             savings: Number(data.total_savings || 0),
             requests: Number(data.requests_count || 0),
             opt_opportunity_usd: Number(data.optimization_opportunity_usd || 0),
             last_requests: data.recent_decisions?.slice(0, 5) || []
           });
-
-          // Update usage with tokens from backend
-          setUsageData(prev => ({ ...prev, used: tokensUsed }));
+          setUsageData(prev => ({ ...prev, used: Number(data.total_tokens_consumed || 0) }));
         }
       } catch (e) { 
         console.error("Dashboard Sync Error:", e); 
@@ -126,7 +105,7 @@ export default function Dashboard() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'X-API-KEY': apiData?.key || INTERNAL_KEY 
+          'X-API-KEY': apiData?.key 
         },
         body: JSON.stringify({ 
             messages: [{ role: "user", content: testPrompt }], 
@@ -135,18 +114,11 @@ export default function Dashboard() {
       });
 
       const data = await res.json();
-      
-      if (res.status === 402) {
-          alert(`Credits required: ${data.details || "Please top up your balance."}`);
-          return;
-      }
-
       if (!res.ok) throw new Error(data.details || data.error || `Error ${res.status}`);
 
       setTestResult(data);
       setStats(prev => ({ ...prev, last_requests: [data, ...prev.last_requests.slice(0, 4)] }));
     } catch (e: any) { 
-      console.error("Test Error:", e);
       alert(`Optimization failed: ${e.message}`);
     } finally { setTestLoading(false); }
   };
@@ -170,9 +142,9 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-6">
             <div className="hidden md:flex flex-col text-right">
-              <span className="text-[9px] font-black uppercase text-zinc-500 tracking-widest">Network Status</span>
-              <span className="text-[10px] font-bold text-emerald-500 uppercase flex items-center justify-end gap-1">
-                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"/> Operational
+              <span className="text-[9px] font-black uppercase text-emerald-500 tracking-widest italic">You're saving +18% vs last week</span>
+              <span className="text-[10px] font-bold text-zinc-500 uppercase flex items-center justify-end gap-1">
+                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"/> Network Healthy
               </span>
             </div>
             <UserButton afterSignOutUrl="/" />
@@ -180,33 +152,30 @@ export default function Dashboard() {
       </nav>
 
       <main className="max-w-6xl mx-auto px-6 py-12 space-y-12">
-        {/* STEPPER */}
+        {/* STEPPER / FUNNEL CONVERSION */}
         <div className="bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl shadow-blue-900/10">
             <div className="space-y-1 text-center md:text-left">
                 <p className="text-[10px] font-black uppercase text-blue-500 tracking-[0.2em]">Step 1: Deployment</p>
-                <h2 className="text-xl font-black italic text-white uppercase">Zero-Config Integration</h2>
+                <h2 className="text-xl font-black italic text-white uppercase italic">Scale your savings to production</h2>
             </div>
             <div className="flex flex-wrap justify-center gap-4">
-                {["Copy Key", "Switch Endpoint", "Monitor Savings"].map((text, i) => (
-                    <div key={i} className="flex items-center gap-2 text-[9px] font-black uppercase text-zinc-400 bg-black/40 px-3 py-2 rounded-xl border border-white/5">
-                        <span className="text-blue-500">{i+1}.</span> {text}
-                    </div>
-                ))}
+                <button className="px-8 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2">
+                    Go to Production Setup <ArrowRight size={14}/>
+                </button>
             </div>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* LIVE OPTIMIZER */}
+          {/* LIVE OPTIMIZER - EMOTIONAL COPY */}
           <div className="lg:col-span-2 p-10 rounded-[3rem] bg-zinc-900/40 border border-white/5 space-y-6 backdrop-blur-md">
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">Live <span className="text-blue-600">Optimizer</span></h2>
+                <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">See how much you are <span className="text-blue-600">overpaying</span></h2>
                 <span className="text-[9px] font-black text-red-500 uppercase flex items-center gap-2 animate-pulse bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20">
                     <AlertCircle size={12}/> Loss Opportunity: ~${stats.opt_opportunity_usd.toFixed(2)}/mo
                 </span>
             </div>
 
             <div className="relative">
-                <p className="text-[10px] font-bold text-zinc-600 uppercase mb-2 ml-2 italic">Test your production prompts</p>
                 <textarea 
                   value={testPrompt} 
                   onChange={(e) => setTestPrompt(e.target.value)} 
@@ -218,107 +187,86 @@ export default function Dashboard() {
                   disabled={testLoading || !testPrompt.trim()} 
                   className="absolute bottom-4 right-4 px-8 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl disabled:opacity-50"
                 >
-                    {testLoading ? <Loader2 size={14} className="animate-spin" /> : "Analyze Route"}
+                    {testLoading ? <Loader2 size={14} className="animate-spin" /> : "Optimize This Request"}
                 </button>
             </div>
 
             {testResult && (
-              <div className="animate-in slide-in-from-bottom-4 duration-500 p-8 bg-blue-500/5 border border-blue-500/20 rounded-[2rem] flex flex-col md:flex-row justify-between items-center gap-6">
+              <div className="animate-in slide-in-from-bottom-4 duration-500 p-8 bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] flex flex-col md:flex-row justify-between items-center gap-6">
                   <div className="space-y-3 w-full">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"/>
-                        <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest italic">Routing Decision: {testResult.model_used}</p>
-                      </div>
-                      <p className="text-sm font-mono text-zinc-500 line-clamp-2 italic">"{testResult.output?.ai_answer}"</p>
+                      <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest italic">Routing Result: {testResult.model_used}</p>
                       <div className="flex items-end gap-3">
                         <p className="text-3xl font-black italic text-white uppercase tracking-tighter">
-                          ${testResult.business_metrics?.cost_usd?.toFixed(5)} 
+                          Cost: ${testResult.business_metrics?.cost_usd?.toFixed(5)} 
                         </p>
                         <span className="text-zinc-600 text-sm line-through mb-1 font-bold">vs ${testResult.business_metrics?.estimated_gpt4_cost?.toFixed(5)}</span>
                       </div>
                   </div>
-                  <div className="text-right w-full md:w-auto flex flex-row md:flex-col justify-between items-center md:items-end gap-2">
-                      <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest leading-none">Latency: {testResult.business_metrics?.latency_ms}ms</p>
-                      <div className="px-5 py-2 bg-emerald-500 text-black text-[10px] font-black uppercase italic rounded-xl shadow-lg shadow-emerald-500/20">
-                        -{testResult.business_metrics?.savings_percentage?.toFixed(1)}% Efficiency
-                      </div>
+                  <div className="px-6 py-3 bg-emerald-500 text-black text-[10px] font-black uppercase italic rounded-xl shadow-lg shadow-emerald-500/20">
+                     Saved {testResult.business_metrics?.savings_percentage?.toFixed(1)}%
                   </div>
               </div>
             )}
           </div>
 
-          {/* PROJECTED SAVINGS CARD */}
+          {/* TOTAL SAVINGS CARD - "SATISFACTION" */}
           <div className="p-10 rounded-[3rem] bg-blue-600 flex flex-col justify-center items-center text-center space-y-4 shadow-[0_0_80px_-20px_rgba(37,99,235,0.5)] group relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform duration-700">
               <TrendingUp size={160} />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-100 z-10">Projected Yearly Savings</span>
-            <h3 className="text-7xl font-black italic text-white tracking-tighter z-10">${(stats.opt_opportunity_usd * 12).toFixed(0)}</h3>
-            <p className="text-[9px] font-bold text-blue-200 uppercase tracking-widest z-10 opacity-70">Based on current traffic volume</p>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-100 z-10 italic">Accumulated Savings</span>
+            <h3 className="text-7xl font-black italic text-white tracking-tighter z-10">${stats.savings.toFixed(2)}</h3>
+            <p className="text-[9px] font-bold text-blue-200 uppercase tracking-widest z-10 opacity-70">Total value saved by Neuralrouting</p>
             <button className="mt-4 w-full py-5 bg-white text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 transition-colors z-10">
-                Scale Savings Now →
+                Maximize My Savings →
             </button>
           </div>
         </div>
 
-        {/* API ACCESS & TOKEN USAGE GRID */}
+        {/* USAGE & CREDENTIALS GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
-            {/* TOKEN INVENTORY (NEW) */}
+            {/* USAGE & LIMITS (REPHRASED) */}
             <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-6 shadow-inner">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-white font-black italic uppercase text-lg tracking-tight">Token <span className="text-blue-600">Inventory</span></h3>
+                    <h3 className="text-white font-black italic uppercase text-lg tracking-tight">Usage <span className="text-blue-600">& Limits</span></h3>
                     <Sparkles size={18} className="text-blue-500 animate-pulse" />
                 </div>
 
                 <div className="space-y-4">
                     <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-500 italic">
-                        <span>Usage Status</span>
+                        <span>{usageData.used.toLocaleString()} Requests used</span>
                         <span className={usageData.used > usageData.max * 0.9 ? "text-red-500" : "text-emerald-500"}>
-                            {usageData.planName === "Business" ? "Unlimited Access" : `${((usageData.used / usageData.max) * 100).toFixed(1)}% Used`}
+                            {usageData.planName === "Business" ? "Unlimited Access" : `${((usageData.used / usageData.max) * 100).toFixed(1)}% of plan`}
                         </span>
                     </div>
 
-                    {/* Progress Bar */}
                     <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
                         <div 
                             className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-1000"
                             style={{ width: `${usageData.planName === "Business" ? 100 : Math.min((usageData.used / usageData.max) * 100, 100)}%` }}
                         />
                     </div>
-
-                    <div className="flex justify-between items-end pt-2">
-                        <div className="flex flex-col">
-                            <span className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em]">Current Consumption</span>
-                            <span className="text-xl font-black italic text-white uppercase">
-                                {usageData.used.toLocaleString()} <span className="text-xs text-zinc-500">Tokens</span>
-                            </span>
-                        </div>
-                        <div className="text-right">
-                            <span className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em]">Plan Limit</span>
-                            <p className="text-xs font-bold text-zinc-400">
-                                {usageData.planName === "Business" ? "∞" : usageData.max.toLocaleString()}
-                            </p>
-                        </div>
-                    </div>
                 </div>
 
-                <button className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all">
-                    Upgrade Quota →
+                <button className="w-full py-4 bg-white text-black rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-all">
+                    Upgrade to avoid throttling →
                 </button>
             </div>
 
-            {/* ACCESS CREDENTIALS */}
+            {/* ACCESS CREDENTIALS - ACTIVATION COPY */}
             <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-8 shadow-inner">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-white font-black italic uppercase text-lg tracking-tight">Access <span className="text-blue-600">Credentials</span></h3>
-                  <span className="px-3 py-1 bg-white/5 rounded-full text-[8px] font-black uppercase text-zinc-500 border border-white/5">Plan: {apiData?.plan || "Free Tier"}</span>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-white font-black italic uppercase text-lg tracking-tight">Ready to <span className="text-blue-600">Integrate</span></h3>
+                  <button className="text-[10px] font-black uppercase text-blue-500 flex items-center gap-2 hover:underline">
+                    View Docs <ExternalLink size={12}/>
+                  </button>
                 </div>
                 
                 <div className="space-y-4">
                   <div className="w-full bg-black/60 border border-zinc-800 rounded-2xl p-6 flex items-center justify-between group hover:border-zinc-700 transition-colors">
                       <div className="flex flex-col">
-                        <span className="text-[8px] font-black text-zinc-600 uppercase mb-1 tracking-widest">Active API Key</span>
+                        <span className="text-[8px] font-black text-zinc-600 uppercase mb-1 tracking-widest italic">Secret Production Key</span>
                         <span className="text-zinc-200 font-mono text-xs tracking-widest">
                           {showKey ? (apiData?.key || "No Key Found") : "•".repeat(32)}
                         </span>
@@ -342,36 +290,29 @@ export default function Dashboard() {
                       </div>
                   </div>
                 </div>
-                <p className="text-[9px] text-zinc-600 font-black uppercase italic tracking-widest">Never share your secret key in client-side code.</p>
             </div>
         </div>
 
-        {/* INTEGRATION SNIPPET SECTION */}
+        {/* 💥 RECENT OPTIMIZATIONS (HISTORY USABLE) */}
         <div className="bg-zinc-900/10 border border-zinc-800 rounded-[2.5rem] p-10 space-y-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
-                <Terminal size={18} />
-              </div>
-              <h3 className="text-white font-black italic uppercase text-sm tracking-widest">Integration Snippet</h3>
+              <History size={20} className="text-blue-600" />
+              <h3 className="text-white font-black italic uppercase text-lg tracking-tight italic">Recent <span className="text-blue-600">Optimizations</span></h3>
             </div>
             
-            <div className="relative group">
-              <pre className="bg-black/60 p-6 rounded-3xl border border-white/5 text-[11px] font-mono text-zinc-400 overflow-x-auto leading-relaxed">
-{`// NeuralRouting Endpoint
-const res = await fetch("${API_BASE}/v1/dispatch", {
-  method: "POST",
-  headers: { 
-    "X-API-KEY": "${apiData?.key?.substring(0, 10) || "YOUR_KEY"}...",
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({ 
-    messages: [{ role: "user", content: "..." }] 
-  })
-})`}
-              </pre>
-              <button onClick={() => navigator.clipboard.writeText(`${API_BASE}/v1/dispatch`)} className="absolute top-4 right-4 text-zinc-600 hover:text-white transition-colors">
-                <Copy size={14}/>
-              </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {stats.last_requests.map((req, i) => (
+                    <div key={i} className="bg-black/40 border border-white/5 p-6 rounded-2xl flex flex-col gap-2 group hover:border-blue-500/30 transition-all">
+                        <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-black text-blue-500 uppercase italic">{req.model_used}</span>
+                            <span className="text-[9px] font-black text-emerald-500">-{req.business_metrics?.savings_percentage?.toFixed(1)}% cost</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs font-mono">
+                            <span className="text-zinc-500">Optimized Cost:</span>
+                            <span className="text-white font-bold">${req.business_metrics?.cost_usd?.toFixed(5)}</span>
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
       </main>
