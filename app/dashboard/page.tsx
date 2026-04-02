@@ -7,7 +7,7 @@ import {
  CheckCircle2, History, Terminal, Sparkles, Play, MessageSquare, 
  Home, DollarSign, ExternalLink, Clock, AlertCircle, ArrowRight, Code
 } from 'lucide-react';
-import { useUser, UserButton, useAuth } from '@clerk/nextjs'; // Added useAuth
+import { useUser, UserButton, useAuth } from '@clerk/nextjs'; // useAuth is already added
 import { createClient } from '@supabase/supabase-js';
 
 export default function Dashboard() {
@@ -38,7 +38,7 @@ export default function Dashboard() {
         setLoading(true);
         
         // 1. GET THE SECURE TOKEN FROM CLERK
-        // This token tells Supabase exactly who is logged in.
+        // This token tells Supabase exactly who is logged in based on your JWT template
         const token = await getToken({ template: 'supabase' });
 
         // 2. CREATE AN AUTHENTICATED SUPABASE CLIENT
@@ -54,7 +54,8 @@ export default function Dashboard() {
           }
         );
 
-        // 3. FETCH API KEY (The RLS will now permit this fetch)
+        // 3. FETCH API KEY
+        // RLS policy "(auth.uid())::text = user_id" will now allow this request
         const { data: dbData, error: dbError } = await supabase
           .from('api_keys')
           .select('key, plan') 
@@ -65,15 +66,16 @@ export default function Dashboard() {
 
         if (dbData) {
           setApiData(dbData);
-        } else if (user.id === 'juan_dev_34' || user.username === 'juan_dev') {
-          // Internal fallback for your dev profile
+        } else if (user.id === 'user_3Bo8bDV0wvjHVfqYimprn8XdsVO' || user.username === 'juan_dev') {
+          // Fallback for your specific admin account
           setApiData({ key: 'nr-dev-secret-123', plan: 'development' });
         } else {
           setApiData(null);
         }
 
         // 4. FETCH ANALYTICS
-        const fetchId = "juan_dev_34"; 
+        // Using user.id to fetch specific stats if available, otherwise fallback to dev stats
+        const fetchId = user.id || "juan_dev_34"; 
         const res = await fetch(`${API_BASE}/v1/user-stats/${fetchId}`, { 
             headers: { 'X-API-KEY': INTERNAL_KEY } 
         });
@@ -94,7 +96,7 @@ export default function Dashboard() {
       }
     }
     loadData();
-  }, [isLoaded, user, mounted, getToken]);
+  }, [isLoaded, user, mounted, getToken]); // Added getToken to dependencies
 
   const runLiveTest = async () => {
     if (!testPrompt.trim()) return;
