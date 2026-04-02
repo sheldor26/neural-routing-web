@@ -26,12 +26,14 @@ export default function Playground() {
 
   const API_BASE = "https://web-production-4f439.up.railway.app";
 
-  // Lógica de cálculo de impacto empresarial
+  // ✅ FIX MATEMÁTICO: Paréntesis para orden de operación y Math.abs para evitar negativos
   const ESTIMATED_MONTHLY_VOLUME = 1000000; 
   const savingsPerRequest = result 
     ? (result.business_metrics.estimated_gpt4_cost - result.business_metrics.cost_usd) 
     : 0;
-  const potentialYearlySavings = savingsPerRequest * ESTIMATED_MONTHLY_VOLUME * 12;
+  
+  // Multiplicamos el valor absoluto del ahorro por el volumen mensual y por 12 meses
+  const potentialYearlySavings = Math.abs(savingsPerRequest) * ESTIMATED_MONTHLY_VOLUME * 12;
 
   const testRoute = async () => {
     if (!prompt || !isLoaded) return;
@@ -139,7 +141,7 @@ export default function Playground() {
               
               <div className="bg-zinc-950/50 border border-zinc-800 p-6 rounded-3xl text-center group hover:border-emerald-500/30 transition-colors">
                 <p className="text-[9px] font-black text-zinc-600 uppercase mb-2 tracking-widest">Efficiency</p>
-                <p className="text-xl font-black text-emerald-500 italic">+{result.business_metrics.savings_percentage.toFixed(1)}%</p>
+                <p className="text-xl font-black text-emerald-500 italic">+{Math.abs(result.business_metrics.savings_percentage).toFixed(1)}%</p>
               </div>
 
               <div className="bg-zinc-950/50 border border-zinc-800 p-6 rounded-3xl text-center group hover:border-blue-500/30 transition-colors">
