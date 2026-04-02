@@ -26,7 +26,7 @@ export default function Dashboard() {
     savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] as any[]
   });
 
-  // Corrected to .up.railway.app to fix SSL issues
+  // Corrected to .up.railway.app to fix SSL/Connection issues
   const API_BASE = "https://web-production-4f439.up.railway.app";
   const INTERNAL_KEY = "nr-dev-secret-123"; 
 
@@ -35,8 +35,9 @@ export default function Dashboard() {
       if (!isLoaded || !user?.primaryEmailAddress?.emailAddress) return;
       try {
         setLoading(true);
-        // Corrected: selected 'plan' instead of 'plan_type' to match your Supabase schema
-        const { data: dbData } = await supabase
+        
+        // Corrected: Selecting 'plan' instead of 'plan_type' as per your schema
+        const { data: dbData, error: dbError } = await supabase
           .from('api_keys')
           .select('key, plan') 
           .eq('email', user.primaryEmailAddress.emailAddress)
@@ -44,17 +45,24 @@ export default function Dashboard() {
         
         if (dbData) setApiData(dbData);
 
-        const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`, { headers: { 'X-API-KEY': INTERNAL_KEY } });
-        const data = await res.json();
-        if (data && !data.error) {
-          setStats({
-            savings: Number(data.total_savings || 0),
-            requests: Number(data.requests_count || 0),
-            opt_opportunity_usd: Number(data.optimization_opportunity_usd || 0),
-            last_requests: data.recent_decisions?.slice(0, 5) || []
-          });
+        const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`, { 
+            headers: { 'X-API-KEY': INTERNAL_KEY } 
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            setStats({
+              savings: Number(data.total_savings || 0),
+              requests: Number(data.requests_count || 0),
+              opt_opportunity_usd: Number(data.optimization_opportunity_usd || 0),
+              last_requests: data.recent_decisions?.slice(0, 5) || []
+            });
         }
-      } catch (e) { console.error("Sync Error:", e); } finally { setLoading(false); }
+      } catch (e) { 
+        console.error("Dashboard Sync Error:", e); 
+      } finally { 
+        setLoading(false); 
+      }
     }
     loadData();
   }, [isLoaded, user]);
@@ -62,16 +70,31 @@ export default function Dashboard() {
   const runLiveTest = async () => {
     if (!testPrompt.trim()) return;
     setTestLoading(true);
+    setTestResult(null); // Clear previous results
+    
     try {
       const res = await fetch('/api/proxy/dispatch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [{ role: "user", content: testPrompt }], user_id: user?.id })
+        body: JSON.stringify({ 
+            messages: [{ role: "user", content: testPrompt }], 
+            user_id: user?.id 
+        })
       });
+
+      if (!res.ok) {
+          // Handle 401/Unauthorized from proxy
+          throw new Error(`Auth failed: ${res.status}`);
+      }
+
       const data = await res.json();
       setTestResult(data);
       setStats(prev => ({ ...prev, last_requests: [data, ...prev.last_requests.slice(0, 4)] }));
-    } catch (e) { console.error("Test Error:", e); } finally { setTestLoading(false); }
+    } catch (e) { 
+        console.error("Test Execution Error:", e);
+    } finally { 
+        setTestLoading(false); 
+    }
   };
 
   if (!isLoaded || loading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center"><Loader2 className="animate-spin text-blue-500" size={40}/></div>;
@@ -137,8 +160,8 @@ export default function Dashboard() {
                       </p>
                   </div>
                   <div className="text-right">
-                      <p className="text-[9px] font-black text-emerald-400 uppercase mb-1">Latency: {testResult.latency_ms}ms</p>
-                      <div className="px-4 py-1.5 bg-emerald-500 text-black text-[9px] font-black uppercase italic rounded-lg">-{testResult.business_metrics?.savings_percentage?.toFixed(0) || "0"}% Savings</div>
+                      <p className="text-[9px] font-black text-emerald-400 uppercase mb-1">Latency: {testResult.latency_ms || 0}ms</p>
+                      <div className="px-4 py-1.5 bg-emerald-500 text-black text-[9px] font-black uppercase italic rounded-lg">-{testResult.business_metrics?.savings_percentage?.toFixed(0) || 0}% Savings</div>
                   </div>
               </div>
             )}
@@ -159,7 +182,7 @@ export default function Dashboard() {
             <div className="bg-zinc-900/30 border border-white/5 rounded-[2.5rem] p-10 space-y-6">
                 <h3 className="text-white font-black italic uppercase text-lg tracking-tight">Your API <span className="text-blue-500">Key</span></h3>
                 <div className="w-full bg-black/50 border border-zinc-800 rounded-2xl p-6 font-mono text-xs flex items-center justify-between group">
-                    <span className="text-zinc-400 truncate mr-6">{showKey ? apiData?.key : "••••••••••••••••••••••••••••••••••••"}</span>
+                    <span className="text-zinc-500 truncate mr-6">{showKey ? apiData?.key : "••••••••••••••••••••••••••••••••••••"}</span>
                     <div className="flex gap-2">
                         <button onClick={() => setShowKey(!showKey)} className="text-zinc-600 hover:text-white transition-colors">{showKey ? <EyeOff size={18} /> : <Eye size={18} />}</button>
                         <button onClick={() => { navigator.clipboard.writeText(apiData?.key || ""); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="p-2 bg-zinc-800/50 rounded-xl hover:bg-blue-600 transition-all text-blue-500 hover:text-white">
@@ -186,11 +209,11 @@ export default function Dashboard() {
                 <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white">You're ready.</h3>
                 <p className="text-zinc-500 text-sm font-medium italic">Replace one line of code and start saving instantly in production.</p>
             </div>
-            <Link href="/docs" className="w-full md:w-auto">
+            <div className="w-full md:w-auto">
                 <button className="w-full md:w-auto px-12 py-6 bg-white text-black rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-500 hover:text-white transition-all shadow-2xl flex items-center justify-center gap-3">
                     Get Full Integration Snippet <Code size={18} />
                 </button>
-            </Link>
+            </div>
         </div>
 
       </main>
