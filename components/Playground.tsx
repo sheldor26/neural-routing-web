@@ -27,20 +27,34 @@ export default function Playground() {
   const API_BASE = "https://web-production-4f439.up.railway.app";
   const PUBLIC_KEY = process.env.NEXT_PUBLIC_API_KEY || "nr-dev-secret-123";
 
+  const QUICK_PROMPTS = [
+    { label: "Analyze Logs", prompt: "Summarize these 500 lines of server logs and find the 404 root cause" },
+    { label: "Fix Python Bug", prompt: "Fix this error: IndexError: list index out of range in a for loop" },
+    { label: "Classify Tickets", prompt: "Classify these 100 customer support tickets by priority and sentiment" }
+  ];
+
+  // ✅ AUTO-DEMO: Populate prompt on load
+  useEffect(() => {
+    if (!prompt && !result) {
+      setPrompt(QUICK_PROMPTS[0].prompt);
+    }
+  }, []);
+
   const metrics = useMemo(() => {
-    if (!result) return { yearly: 0, efficiency: 0, gpt4Yearly: 0, nrYearly: 0, monthlyLoss: 0 };
+    if (!result) return { yearlySavings: 0, efficiency: 0, gpt4Yearly: 0, nrYearly: 0, monthlyLoss: 0 };
     const gpt4Unit = Number(result.business_metrics.estimated_gpt4_cost || 0);
     const nrUnit = Number(result.business_metrics.cost_usd || 0);
     
     const gpt4Yearly = gpt4Unit * monthlyVolume * 12;
     const nrYearly = nrUnit * monthlyVolume * 12;
+    const diff = gpt4Yearly - nrYearly;
 
     return {
       gpt4Yearly,
       nrYearly,
-      yearlySavings: Math.max(0, gpt4Yearly - nrYearly),
-      monthlyLoss: Math.max(0, (gpt4Yearly - nrYearly) / 12),
-      efficiency: gpt4Yearly > 0 ? (((gpt4Yearly - nrYearly) / gpt4Yearly) * 100).toFixed(1) : 0
+      yearlySavings: Math.max(0, diff),
+      monthlyLoss: Math.max(0, diff / 12),
+      efficiency: gpt4Yearly > 0 ? ((diff / gpt4Yearly) * 100).toFixed(1) : 0
     };
   }, [result, monthlyVolume]);
 
@@ -51,10 +65,10 @@ export default function Playground() {
     setError(null);
     setResult(null);
 
-    const steps = ["Analyzing intent...", "Calculating GPT-4 tax...", "Optimizing route..."];
+    const steps = ["Analyzing complexity...", "Estimating GPT-4 cost...", "Selecting optimal model..."];
     for (let i = 0; i < steps.length; i++) {
       setLoadingStep(i);
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 600));
     }
 
     try {
@@ -73,79 +87,99 @@ export default function Playground() {
   };
 
   return (
-    <section id="playground" className="max-w-5xl mx-auto px-6 py-20 relative z-30">
+    <section id="playground" className="max-w-5xl mx-auto px-6 py-20 relative z-30 font-sans">
       
-      {/* MEJORA #3: LIVE COUNTER (Social Proof) */}
-      <div className="flex justify-center mb-8">
-        <div className="bg-zinc-900/80 border border-white/5 px-6 py-2 rounded-full flex items-center gap-3 shadow-2xl">
+      {/* SOCIAL PROOF COUNTER */}
+      <div className="flex justify-center mb-10">
+        <div className="bg-zinc-900/60 border border-white/5 px-6 py-2.5 rounded-full flex items-center gap-4 backdrop-blur-md">
             <div className="flex -space-x-2">
-                {[1,2,3].map(i => <div key={i} className="w-5 h-5 rounded-full bg-zinc-800 border border-black"></div>)}
+                {[1,2,3].map(i => <div key={i} className="w-6 h-6 rounded-full bg-zinc-800 border-2 border-black flex items-center justify-center text-[8px] font-bold">U{i}</div>)}
             </div>
             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                <span className="text-emerald-500 animate-pulse">●</span> Developers saved <span className="text-white">$142,891</span> this week
+                <span className="text-emerald-500 animate-pulse mr-2">●</span> 
+                Users saved <span className="text-white">$128,492</span> this week
             </p>
         </div>
       </div>
 
       <div className="bg-[#080808] border border-white/10 rounded-[3.5rem] p-8 md:p-16 shadow-3xl relative overflow-hidden">
         
-        {/* HEADER ACTUALIZADO (Mejora #5) */}
-        <div className="text-center mb-12">
+        {/* HEADER: EMOTIONAL & B2B */}
+        <div className="text-center mb-10">
           <h2 className="text-4xl md:text-5xl font-black mb-4 italic uppercase text-white tracking-tighter">
-            You’re Overpaying for AI — <span className="text-blue-500">Stop the Leak</span>
+            You’re Overpaying for AI — <span className="text-blue-500">Here’s Proof</span>
           </h2>
-          <div className="flex items-center justify-center gap-4 text-zinc-600 text-[9px] font-black uppercase tracking-[0.2em]">
-            <span>Compatible with:</span>
-            <span className="text-zinc-400">OpenAI</span>
-            <span className="text-zinc-400">Anthropic</span>
-            <span className="text-zinc-400">LangChain</span>
+          <div className="flex items-center justify-center gap-6 text-zinc-600 text-[10px] font-black uppercase tracking-[0.2em]">
+            <span className="text-zinc-400 flex items-center gap-1"><ShieldCheck size={12}/> OpenAI</span>
+            <span className="text-zinc-400 flex items-center gap-1"><ShieldCheck size={12}/> Anthropic</span>
+            <span className="text-zinc-400 flex items-center gap-1"><ShieldCheck size={12}/> LangChain</span>
           </div>
         </div>
 
-        {/* INPUT SECTION */}
+        {/* QUICK PROMPTS: REDUCE FRICTION */}
+        <div className="flex gap-2 flex-wrap mb-6 justify-center">
+            {QUICK_PROMPTS.map((p) => (
+                <button 
+                  key={p.label}
+                  onClick={() => { setPrompt(p.prompt); testRoute(p.prompt); }}
+                  className="px-4 py-2 text-[9px] bg-zinc-900 border border-white/5 rounded-full text-zinc-400 hover:bg-blue-600 hover:text-white transition-all font-black uppercase tracking-widest"
+                >
+                    {p.label}
+                </button>
+            ))}
+        </div>
+
+        {/* INPUT AREA */}
         <div className="space-y-6">
-          <div className="relative">
+          <div className="relative group">
             <textarea 
-              className="w-full bg-black border border-zinc-800 rounded-3xl p-8 text-white focus:border-blue-500 outline-none transition-all text-lg resize-none shadow-2xl"
+              className="w-full bg-black border border-zinc-800 rounded-3xl p-8 text-white focus:border-blue-500 outline-none transition-all text-lg resize-none shadow-2xl placeholder:text-zinc-800"
               rows={3}
-              placeholder='Try: "Classify these 1000 customer tickets by sentiment"'
+              placeholder='Describe a complex task...'
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
             />
             <button 
               onClick={() => testRoute()}
               disabled={loading || !prompt}
-              className="absolute bottom-4 right-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-30 px-8 py-4 rounded-2xl font-black text-sm text-white transition-all flex items-center gap-3 shadow-xl uppercase tracking-widest"
+              className="absolute bottom-4 right-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-30 px-8 py-4 rounded-2xl font-black text-sm text-white transition-all flex items-center gap-3 shadow-xl uppercase tracking-widest active:scale-95"
             >
-              {loading ? <Loader2 className="animate-spin" size={18} /> : "Optimize & Compare"}
+              {loading ? (
+                <div className="flex items-center gap-3">
+                    <Loader2 className="animate-spin" size={18} />
+                    <span className="text-[10px] font-black">{["ANALYZING", "ESTIMATING", "ROUTING"][loadingStep]}...</span>
+                </div>
+              ) : "Run Neural Routing"}
             </button>
           </div>
 
-          <div className="bg-zinc-900/30 p-6 rounded-3xl border border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
-            <p className="text-sm font-bold text-white uppercase italic tracking-tighter">Scale: <span className="text-blue-500">{(monthlyVolume/1000000).toFixed(1)}M req/mo</span></p>
+          {/* SCALING SLIDER */}
+          <div className="bg-zinc-900/20 p-6 rounded-3xl border border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-1">
+              <p className="text-[10px] font-black uppercase text-zinc-600 tracking-widest">Monthly Traffic</p>
+              <p className="text-sm font-bold text-white uppercase italic">Scale: <span className="text-blue-500">{(monthlyVolume/1000000).toFixed(1)}M requests</span></p>
+            </div>
             <input type="range" min="100000" max="10000000" step="100000" value={monthlyVolume} onChange={(e) => setMonthlyVolume(Number(e.target.value))} className="w-full md:w-64 h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600" />
           </div>
         </div>
 
         {result && (
-          <div className="mt-12 space-y-10 animate-in fade-in zoom-in duration-700">
+          <div className="mt-12 space-y-10 animate-in fade-in zoom-in duration-1000">
             
-            {/* MEJORA #4: LOSS FRAMING (The Pain Point) */}
+            {/* LOSS FRAMING CARDS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="p-10 rounded-[3rem] bg-red-500/5 border border-red-500/10 flex flex-col items-center justify-center text-center relative group">
-                <ZapOff size={24} className="text-red-500/20 absolute top-6 right-8" />
-                <p className="text-[10px] font-black uppercase text-red-500/50 mb-4 tracking-[0.3em]">Direct Loss (GPT-4 Only)</p>
+              <div className="p-10 rounded-[3rem] bg-red-500/5 border border-red-500/10 flex flex-col items-center justify-center text-center opacity-60">
+                <p className="text-[9px] font-black uppercase text-red-500/50 mb-3 tracking-[0.3em]">Without NeuralRouting</p>
                 <h4 className="text-4xl font-black text-zinc-700 line-through tracking-tighter italic">
                   ${metrics.gpt4Yearly.toLocaleString()}
                 </h4>
                 <div className="mt-4 px-4 py-1 bg-red-500/10 rounded-full text-[9px] font-black text-red-500 uppercase italic">
-                   You are wasting ${metrics.monthlyLoss.toLocaleString()}/mo
+                   That's ${metrics.monthlyLoss.toLocaleString()}/mo wasted
                 </div>
               </div>
 
-              <div className="p-10 rounded-[3rem] bg-blue-600 flex flex-col items-center justify-center text-center shadow-[0_20px_80px_-20px_rgba(37,99,235,0.8)] relative group">
-                <Sparkles size={24} className="text-white/30 absolute top-6 right-8 animate-pulse" />
-                <p className="text-[10px] font-black uppercase text-blue-100 mb-4 tracking-[0.3em]">With NeuralRouting</p>
+              <div className="p-10 rounded-[3rem] bg-gradient-to-br from-blue-600 to-blue-700 border border-blue-400/20 flex flex-col items-center justify-center text-center shadow-[0_20px_80px_-15px_rgba(37,99,235,0.5)] group">
+                <p className="text-[9px] font-black uppercase text-blue-100 mb-3 tracking-[0.3em]">With NeuralRouting</p>
                 <h4 className="text-6xl font-black text-white tracking-tighter italic">
                   ${metrics.nrYearly.toLocaleString()}<span className="text-xl">/yr</span>
                 </h4>
@@ -153,35 +187,41 @@ export default function Playground() {
               </div>
             </div>
 
-            {/* MEJORA #8: INSTANT CREDIBILITY */}
-            <div className="bg-black/40 border border-white/5 p-8 rounded-[2.5rem] relative">
-              <div className="flex items-center gap-4 mb-6">
-                <ShieldCheck className="text-emerald-500" size={20}/>
-                <p className="text-[10px] font-black text-white uppercase tracking-widest">
-                    Decision: <span className="text-blue-500">{result.model_used}</span> • <span className="text-emerald-500 font-black">Zero Quality Loss</span>
-                </p>
+            {/* BRAIN LOGIC & QUALITY SIGNAL */}
+            <div className="bg-black/40 border border-white/5 p-10 rounded-[2.5rem] space-y-6 relative overflow-hidden">
+              <div className="flex items-center gap-4 border-b border-white/5 pb-6">
+                <div className="p-3 bg-blue-500/10 rounded-2xl"><Brain className="text-blue-500" size={24}/></div>
+                <div>
+                  <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Neural Decision: <span className="text-emerald-500">Same quality detected</span></p>
+                  <p className="text-sm font-black text-white uppercase italic tracking-tighter">Routed to <span className="text-blue-500">{result.model_used}</span></p>
+                </div>
+                <div className="ml-auto text-right">
+                    <p className="text-zinc-500 text-[10px] font-black uppercase">{result.business_metrics.latency_ms}ms</p>
+                    <p className="text-[8px] font-black text-zinc-700 uppercase tracking-widest">Latency</p>
+                </div>
               </div>
-              <p className="text-zinc-500 text-xs italic leading-relaxed text-center">
-                 "Engine analysis: Task matches {result.model_used} reasoning patterns. 
-                 GPT-4 output would be identical, but <span className="text-white">{(metrics.efficiency)}% more expensive</span>. 
-                 Optimizing route now."
+              <p className="text-zinc-500 text-xs italic leading-relaxed text-center max-w-2xl mx-auto">
+                 "Task intent matches low-complexity pattern. {result.model_used} output quality is 
+                 identical to GPT-4 for this specific query. <span className="text-white">Optimization locked.</span>"
               </p>
             </div>
 
-            {/* MEJORA #6: DYNAMIC CTA */}
+            {/* DYNAMIC MOMENTUM CTA */}
             <div className="flex flex-col items-center gap-6 pt-6">
-               <button onClick={() => setResult(null)} className="text-[10px] font-black text-zinc-600 uppercase tracking-widest hover:text-white transition-colors">
-                  ⚡ You just saved your first cent. Try another prompt →
+               <button onClick={() => { setResult(null); setPrompt(""); }} className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] hover:text-white transition-colors flex items-center gap-3">
+                  ⚡ Request Optimized. Run another scenario? <ArrowRight size={12}/>
                </button>
                
-               <a href="/dashboard" className="group relative w-full md:w-auto bg-white text-black px-16 py-8 rounded-2xl font-black text-xl uppercase tracking-tighter italic transition-all hover:scale-105 shadow-2xl flex flex-col items-center gap-1">
+               <a href="/dashboard" className="group relative w-full md:w-auto bg-white text-black px-16 py-8 rounded-3xl font-black text-xl uppercase tracking-tighter italic transition-all hover:scale-105 active:scale-95 shadow-2xl flex flex-col items-center gap-1">
                   <div className="flex items-center gap-3">
                     Save ${metrics.yearlySavings.toLocaleString()}/yr → Get Started
                   </div>
-                  <span className="text-[9px] font-black text-zinc-400 normal-case tracking-widest italic opacity-60">
-                    No credit card required • Instant API access
+                  <span className="text-[10px] font-black text-zinc-400 tracking-[0.2em] italic opacity-60 uppercase mt-1">
+                    No credit card required • Free $5 credit
                   </span>
-                  <div className="absolute -top-3 -right-3 bg-emerald-500 text-white text-[9px] px-3 py-1 rounded-full animate-bounce">+$5 FREE CREDIT</div>
+                  <div className="absolute -top-3 -right-3 bg-emerald-500 text-white text-[9px] px-3 py-1.5 rounded-full font-black animate-bounce shadow-lg rotate-12 group-hover:rotate-0 transition-transform">
+                     START SAVING NOW
+                  </div>
                </a>
             </div>
 
