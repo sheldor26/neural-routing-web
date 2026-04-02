@@ -3,15 +3,18 @@ import { useState } from 'react';
 import { Loader2, CheckCircle2, AlertCircle, Zap } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 
-// ✅ REPARACIÓN 1: Definimos la interface según el nuevo JSON del Backend
+// ✅ FIX 1: Interface matched to your actual Python 'business_metrics' structure
 interface RoutingResult {
   status: string;
-  model_used: string;    // Raíz
-  tier: string;          // Raíz
-  latency_ms: number;    // Raíz
-  confidence: number;    // Raíz
+  model_used: string;
   output: {
     ai_answer: string;
+  };
+  business_metrics: {
+    latency_ms: number;
+    cost_usd: number;
+    estimated_gpt4_cost: number;
+    savings_percentage: number;
   };
 }
 
@@ -22,6 +25,9 @@ export default function Playground() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Use the full Railway URL for the Landing Page
+  const API_BASE = "https://web-production-4f439.up.railway.app";
+
   const testRoute = async () => {
     if (!prompt || !isLoaded) return;
     
@@ -30,7 +36,8 @@ export default function Playground() {
     setResult(null);
 
     try {
-      const response = await fetch(`/v1/dispatch`, {
+      // ✅ FIX 2: Correct endpoint and body structure
+      const response = await fetch(`${API_BASE}/v1/dispatch`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -45,12 +52,12 @@ export default function Playground() {
         })
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || `Neural Node Error: ${response.status}`);
+        throw new Error(data.details || data.error || `Error: ${response.status}`);
       }
       
-      const data = await response.json();
       setResult(data);
     } catch (err: any) {
       console.error("❌ Dispatch Error:", err);
@@ -102,9 +109,9 @@ export default function Playground() {
           </div>
         )}
 
-        {/* ✅ REPARACIÓN 2: Acceso directo a las propiedades sin .routing */}
+        {/* ✅ FIX 3: Nested access to business_metrics */}
         {result && (
-          <div className="mt-10 p-8 bg-black border border-blue-500/20 rounded-[2rem] animate-in fade-in zoom-in duration-500 shadow-2xl">
+          <div className="mt-10 p-8 bg-black border border-blue-500/20 rounded-[2.5rem] animate-in fade-in zoom-in duration-500 shadow-2xl">
              <div className="flex flex-wrap justify-between items-center gap-4 mb-6 pb-6 border-b border-zinc-800">
                <div className="flex items-center gap-2">
                  <CheckCircle2 className="text-green-500" size={16} />
@@ -112,8 +119,8 @@ export default function Playground() {
                    Status: <span className="text-green-500">Neural Node Active</span>
                  </span>
                </div>
-               <div className="px-4 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 text-[9px] font-black uppercase">
-                 Tier: {result.tier}
+               <div className="px-4 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-emerald-400 text-[9px] font-black uppercase">
+                 Savings: {result.business_metrics?.savings_percentage?.toFixed(0)}%
                </div>
              </div>
 
@@ -134,11 +141,10 @@ export default function Playground() {
 
                <div className="flex justify-center gap-8">
                  <p className="text-center text-[9px] text-zinc-700 font-bold uppercase tracking-[0.3em]">
-                   Latency: {result.latency_ms}ms
+                   Latency: {result.business_metrics?.latency_ms}ms
                  </p>
                  <p className="text-center text-[9px] text-zinc-700 font-bold uppercase tracking-[0.3em]">
-                   {/* ✅ REPARACIÓN 3: Formateo de Confidence seguro */}
-                   Confidence: {(Number(result.confidence || 0) * 100).toFixed(0)}%
+                   Cost Saved: ${result.business_metrics?.savings_percentage > 0 ? (result.business_metrics?.estimated_gpt4_cost - result.business_metrics?.cost_usd).toFixed(4) : "0.0000"}
                  </p>
                </div>
              </div>
