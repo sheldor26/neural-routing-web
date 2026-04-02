@@ -25,7 +25,8 @@ export default function Dashboard() {
   const [usageData, setUsageData] = useState({
     used: 0,
     max: 50000,
-    planName: "Free Tier"
+    planName: "Free Tier",
+    credits: 0
   });
 
   const [testPrompt, setTestPrompt] = useState("");
@@ -51,6 +52,7 @@ export default function Dashboard() {
           { global: { headers: { Authorization: `Bearer ${token}` } } }
         );
 
+        // 1. Fetch API Key (Needed for the Dispatch calls)
         const { data: dbData, error: dbError } = await supabase
           .from('api_keys')
           .select('key, plan') 
@@ -58,38 +60,31 @@ export default function Dashboard() {
           .maybeSingle();
         
         if (dbError) throw dbError;
+        if (dbData) setApiData(dbData);
 
-        const planLimits: { [key: string]: number } = {
-          "Free Tier": 50000,
-          "Starter": 1500000,
-          "Growth": 5000000,
-          "Business": 999999999 
-        };
-
-        if (dbData) {
-          setApiData(dbData);
-          const currentPlan = dbData.plan || "Free Tier";
-          setUsageData(prev => ({
-            ...prev,
-            planName: currentPlan,
-            max: planLimits[currentPlan] || 50000
-          }));
-        }
-
+        // 2. Fetch Unified Stats & Balance from Railway
         const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`);
 
         if (res.ok) {
           const data = await res.json();
+          
           setStats({
             savings: Number(data.total_savings || 0),
             requests: Number(data.requests_count || 0),
             opt_opportunity_usd: Number(data.optimization_opportunity_usd || 0),
             last_requests: data.recent_decisions?.slice(0, 5) || []
           });
-          setUsageData(prev => ({ ...prev, used: Number(data.total_tokens_consumed || 0) }));
+
+          setUsageData({
+            used: Number(data.total_tokens_consumed || 0),
+            max: Number(data.total_tokens_limit || 50000),
+            planName: data.plan || "Free Tier",
+            credits: Number(data.credits || 0)
+          });
         } else if (res.status === 404) {
+          // New User fallback (while Trigger/Sync finishes)
           setStats({ savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] });
-          setUsageData(prev => ({ ...prev, used: 0 }));
+          setUsageData({ used: 0, max: 50000, planName: "Free Tier", credits: 5.00 });
         }
       } catch (e) { 
         console.error("Dashboard Sync Error:", e); 
@@ -138,7 +133,6 @@ export default function Dashboard() {
         requests: prev.requests + 1
       }));
       
-      // Update usage bar
       setUsageData(prev => ({ ...prev, used: prev.used + 1 }));
 
       setTimeout(() => setNotification(null), 4000);
@@ -167,9 +161,9 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-6">
             <div className="hidden md:flex flex-col text-right">
-              <span className="text-[9px] font-black uppercase text-emerald-500 tracking-widest italic">You're saving +18% vs last week</span>
-              <span className="text-[10px] font-bold text-zinc-500 uppercase flex items-center justify-end gap-1">
-                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"/> Network Healthy
+              <span className="text-[9px] font-black uppercase text-emerald-500 tracking-widest italic tracking-tighter">Savings Active</span>
+              <span className="text-[10px] font-bold text-zinc-500 uppercase flex items-center justify-end gap-1 tracking-tighter">
+                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"/> System Healthy
               </span>
             </div>
             <UserButton afterSignOutUrl="/" />
@@ -184,7 +178,7 @@ export default function Dashboard() {
                 <h2 className="text-xl font-black italic text-white uppercase italic">Scale your savings to production</h2>
             </div>
             <div className="flex flex-wrap justify-center gap-4">
-                <button className="px-8 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2">
+                <button className="px-8 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2 font-bold">
                     Go to Production Setup <ArrowRight size={14}/>
                 </button>
             </div>
@@ -210,7 +204,7 @@ export default function Dashboard() {
                 <button 
                   onClick={runLiveTest} 
                   disabled={testLoading || !testPrompt.trim()} 
-                  className="absolute bottom-4 right-4 px-8 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl disabled:opacity-50"
+                  className="absolute bottom-4 right-4 px-8 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl disabled:opacity-50 font-bold"
                 >
                     {testLoading ? <Loader2 size={14} className="animate-spin" /> : "Optimize This Request"}
                 </button>
@@ -241,7 +235,7 @@ export default function Dashboard() {
             </div>
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-100 z-10 italic">Accumulated Savings</span>
             <h3 className="text-7xl font-black italic text-white tracking-tighter z-10">${stats.savings.toFixed(2)}</h3>
-            <p className="text-[9px] font-bold text-blue-200 uppercase tracking-widest z-10 opacity-70">Total value saved by Neuralrouting</p>
+            <p className="text-[9px] font-bold text-blue-200 uppercase tracking-widest z-10 opacity-70 italic">Total value saved by Neuralrouting</p>
             <button className="mt-4 w-full py-5 bg-white text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 transition-colors z-10 font-bold">
                 Maximize My Savings →
             </button>
@@ -252,7 +246,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-6 shadow-inner">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-white font-black italic uppercase text-lg tracking-tight">Usage <span className="text-blue-600">& Limits</span></h3>
+                    <h3 className="text-white font-black italic uppercase text-lg tracking-tight tracking-tighter italic">Usage <span className="text-blue-600">& Limits</span></h3>
                     <Sparkles size={18} className="text-blue-500 animate-pulse" />
                 </div>
                 <div className="space-y-4">
@@ -265,6 +259,10 @@ export default function Dashboard() {
                     <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
                         <div className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-1000" style={{ width: `${usageData.planName === "Business" ? 100 : Math.min((usageData.used / usageData.max) * 100, 100)}%` }} />
                     </div>
+                    <div className="flex justify-between items-center">
+                        <span className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em] italic">Available Balance</span>
+                        <span className="text-sm font-black text-white italic">${usageData.credits.toFixed(2)} USD</span>
+                    </div>
                 </div>
                 <button className="w-full py-4 bg-white text-black rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-all font-bold">
                     Upgrade to avoid throttling →
@@ -273,7 +271,7 @@ export default function Dashboard() {
 
             <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-8 shadow-inner">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-white font-black italic uppercase text-lg tracking-tight">Ready to <span className="text-blue-600">Integrate</span></h3>
+                  <h3 className="text-white font-black italic uppercase text-lg tracking-tight tracking-tighter italic">Ready to <span className="text-blue-600">Integrate</span></h3>
                   <button className="text-[10px] font-black uppercase text-blue-500 flex items-center gap-2 hover:underline font-bold">
                     View Docs <ExternalLink size={12}/>
                   </button>
@@ -281,7 +279,7 @@ export default function Dashboard() {
                 <div className="bg-black/60 border border-zinc-800 rounded-2xl p-6 flex items-center justify-between group hover:border-zinc-700 transition-colors">
                     <div className="flex flex-col">
                       <span className="text-[8px] font-black text-zinc-600 uppercase mb-1 tracking-widest italic">Secret Production Key</span>
-                      <span className="text-zinc-200 font-mono text-xs tracking-widest">
+                      <span className="text-zinc-200 font-mono text-xs tracking-widest uppercase">
                         {showKey ? (apiData?.key || "No Key Found") : "•".repeat(32)}
                       </span>
                     </div>
@@ -297,28 +295,32 @@ export default function Dashboard() {
             </div>
         </div>
 
-        <div className="bg-zinc-900/10 border border-zinc-800 rounded-[2.5rem] p-10 space-y-6">
+        {/* RECENT OPTIMIZATIONS */}
+        <div className="bg-zinc-900/10 border border-zinc-800 rounded-[2.5rem] p-10 space-y-6 backdrop-blur-md">
             <div className="flex items-center gap-3">
               <History size={20} className="text-blue-600" />
-              <h3 className="text-white font-black italic uppercase text-lg tracking-tight italic">Recent <span className="text-blue-600">Optimizations</span></h3>
+              <h3 className="text-white font-black italic uppercase text-lg tracking-tight tracking-tighter italic">Recent <span className="text-blue-600">Optimizations</span></h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {stats.last_requests.map((req, i) => (
                     <div key={i} className="bg-black/40 border border-white/5 p-6 rounded-2xl flex flex-col gap-2 group hover:border-blue-500/30 transition-all">
                         <div className="flex justify-between items-center">
-                            <span className="text-[10px] font-black text-blue-500 uppercase italic">{req.model_used}</span>
-                            <span className="text-[9px] font-black text-emerald-400">-{req.business_metrics?.savings_percentage?.toFixed(1)}% cost</span>
+                            <span className="text-[10px] font-black text-blue-500 uppercase italic tracking-tighter">{req.model_used}</span>
+                            <span className="text-[9px] font-black text-emerald-500 italic">-{req.business_metrics?.savings_percentage?.toFixed(1)}% cost</span>
                         </div>
                         <div className="flex justify-between items-center text-xs font-mono">
-                            <span className="text-zinc-500">Optimized Cost:</span>
+                            <span className="text-zinc-500 italic">Optimized Cost:</span>
                             <span className="text-white font-bold">${req.business_metrics?.cost_usd?.toFixed(5)}</span>
                         </div>
                     </div>
                 ))}
+                {stats.last_requests.length === 0 && (
+                    <p className="text-[10px] text-zinc-600 font-black uppercase italic tracking-widest py-8 col-span-full text-center">No optimization data available yet.</p>
+                )}
             </div>
         </div>
 
-        {/* NEURAL NOTIFICATION SYSTEM - CYBERPUNK UPGRADE */}
+        {/* NEURAL NOTIFICATION SYSTEM */}
         {notification && (
           <div className="fixed bottom-10 right-10 z-[100] animate-in fade-in slide-in-from-right-10 duration-500">
             <div className={`relative p-[1.5px] rounded-2xl bg-gradient-to-br ${notification.type === 'error' ? 'from-red-500/80 via-red-500/20 to-transparent shadow-[0_0_30px_-10px_rgba(239,68,68,0.5)]' : 'from-blue-600/80 via-blue-400/20 to-transparent shadow-[0_0_30px_-10px_rgba(37,99,235,0.5)]'}`}>
