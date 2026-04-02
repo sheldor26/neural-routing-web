@@ -8,7 +8,11 @@ const nextConfig = {
     // Ignores type errors during build for faster deployment
     ignoreBuildErrors: true,
   },
-  // --- ADD THIS SECTION TO FIX THE 404 ---
+  
+  // --- FIX PARA EL WEBHOOK (EVITA EL 307) ---
+  // Esto evita que Next.js intente redireccionar por culpa de la barra final /
+  skipTrailingSlashRedirect: true,
+
   async rewrites() {
     return [
       {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs';
+import { dark } from '@clerk/themes'; // Mantenemos el tema oscuro para los modales de login
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,8 +18,8 @@ export const metadata: Metadata = {
   title: "NeuralRouting.io | Enterprise AI Infrastructure",
   description: "Intelligent prompt routing in milliseconds. Save up to 85% on token costs by automatically switching between Economy and Premium models.",
   icons: {
-    icon: "/favicon.ico", // Tu nueva Opción 2
-    apple: "/icon.png",   // Para la pantalla de inicio de iOS
+    icon: "/favicon.ico",
+    apple: "/icon.png",
   },
 };
 
@@ -28,7 +29,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      appearance={{
+        baseTheme: dark, // Los formularios de registro seguirán siendo oscuros al abrirse
+        variables: { colorPrimary: '#2563eb' }
+      }}
+    >
       <html
         lang="en"
         suppressHydrationWarning 
@@ -38,6 +44,8 @@ export default function RootLayout({
           className="min-h-full flex flex-col bg-[#09090b] text-zinc-200 selection:bg-blue-600/30"
           suppressHydrationWarning 
         >
+          {/* El Header con el botón SIGN IN ha sido eliminado */}
+          
           <main className="flex-grow">
             {children}
           </main>
