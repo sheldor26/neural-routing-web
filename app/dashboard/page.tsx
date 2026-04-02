@@ -30,7 +30,6 @@ export default function Dashboard() {
   const API_BASE = "https://web-production-4f439.up.railway.app";
   const INTERNAL_KEY = "nr-dev-secret-123"; 
 
-  // Fix Hydration Error #418
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -41,19 +40,17 @@ export default function Dashboard() {
       try {
         setLoading(true);
         
-        // Match Table Editor structure: user_id, key, plan
-        // Attempting to match the user_id seen in your DB screenshot (juan_dev_34)
-        const { data: dbData, error: dbError } = await supabase
+        // Search in api_keys table using either Clerk ID or the dev ID from your screenshot
+        const { data: dbData } = await supabase
           .from('api_keys')
           .select('key, plan') 
           .or(`user_id.eq.${user.id},user_id.eq.juan_dev_34`)
           .limit(1)
           .maybeSingle();
         
-        if (dbError) console.error("Supabase Error:", dbError.message);
         if (dbData) setApiData(dbData);
 
-        // Fetch Stats - Use Dev ID if real stats aren't found yet to avoid 404
+        // Use dev ID fallback to avoid 404 while setting up Clerk sync
         const fetchId = user.id || "juan_dev_34";
         const res = await fetch(`${API_BASE}/v1/user-stats/${fetchId}`, { 
             headers: { 'X-API-KEY': INTERNAL_KEY } 
@@ -69,7 +66,7 @@ export default function Dashboard() {
           });
         }
       } catch (e) { 
-        console.error("Dashboard Sync Error:", e); 
+        console.error("Sync Error:", e); 
       } finally { 
         setLoading(false); 
       }
@@ -92,12 +89,9 @@ export default function Dashboard() {
         })
       });
 
-      if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.details || errData.error || `Server Error: ${res.status}`);
-      }
-
       const data = await res.json();
+      if (!res.ok) throw new Error(data.details || data.error || `Error ${res.status}`);
+
       setTestResult(data);
       setStats(prev => ({ ...prev, last_requests: [data, ...prev.last_requests.slice(0, 4)] }));
     } catch (e: any) { 
