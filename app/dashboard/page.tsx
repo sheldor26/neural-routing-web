@@ -19,6 +19,9 @@ export default function Dashboard() {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   
+  // Custom Notification State
+  const [notification, setNotification] = useState<{msg: string, type: 'error' | 'success'} | null>(null);
+
   const [usageData, setUsageData] = useState({
     used: 0,
     max: 50000,
@@ -73,7 +76,6 @@ export default function Dashboard() {
           }));
         }
 
-        // Fix: Llamada resiliente al backend (maneja 404 para usuarios nuevos)
         const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`);
 
         if (res.ok) {
@@ -86,7 +88,6 @@ export default function Dashboard() {
           });
           setUsageData(prev => ({ ...prev, used: Number(data.total_tokens_consumed || 0) }));
         } else if (res.status === 404) {
-          // Usuario nuevo: inicializamos en ceros sin romper el dash
           setStats({ savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] });
           setUsageData(prev => ({ ...prev, used: 0 }));
         }
@@ -119,22 +120,24 @@ export default function Dashboard() {
 
       const data = await res.json();
 
-      // Fix: Manejo explícito de Error 402 (Saldo insuficiente)
       if (res.status === 402) {
-        alert("Free Tier limit reached. Please upgrade to continue optimizing.");
+        setNotification({ msg: "Free Tier reached. Upgrade to continue.", type: 'error' });
         return;
       }
 
       if (!res.ok) throw new Error(data.details || data.error || `Error ${res.status}`);
 
       setTestResult(data);
+      setNotification({ msg: "Route optimized successfully!", type: 'success' });
       setStats(prev => ({ 
         ...prev, 
         last_requests: [data, ...prev.last_requests.slice(0, 4)],
         savings: prev.savings + (data.business_metrics?.savings_usd || 0)
       }));
+      setTimeout(() => setNotification(null), 4000);
+
     } catch (e: any) { 
-      alert(e.message);
+      setNotification({ msg: e.message, type: 'error' });
     } finally { setTestLoading(false); }
   };
 
@@ -158,7 +161,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-6">
             <div className="hidden md:flex flex-col text-right">
               <span className="text-[9px] font-black uppercase text-emerald-500 tracking-widest italic">You're saving +18% vs last week</span>
-              <span className="text-[10px] font-bold text-zinc-500 uppercase flex items-center gap-1">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase flex items-center justify-end gap-1">
                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"/> Network Healthy
               </span>
             </div>
@@ -167,6 +170,7 @@ export default function Dashboard() {
       </nav>
 
       <main className="max-w-6xl mx-auto px-6 py-12 space-y-12">
+        {/* ACTION FUNNEL */}
         <div className="bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl shadow-blue-900/10">
             <div className="space-y-1 text-center md:text-left">
                 <p className="text-[10px] font-black uppercase text-blue-500 tracking-[0.2em]">Step 1: Deployment</p>
@@ -180,6 +184,7 @@ export default function Dashboard() {
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* LIVE OPTIMIZER */}
           <div className="lg:col-span-2 p-10 rounded-[3rem] bg-zinc-900/40 border border-white/5 space-y-6 backdrop-blur-md">
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">See how much you are <span className="text-blue-600">overpaying</span></h2>
@@ -206,22 +211,23 @@ export default function Dashboard() {
 
             {testResult && (
               <div className="animate-in slide-in-from-bottom-4 duration-500 p-8 bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] flex flex-col md:flex-row justify-between items-center gap-6">
-                  <div className="space-y-3 w-full">
+                  <div className="space-y-3 w-full text-center md:text-left">
                       <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest italic">Routing Result: {testResult.model_used}</p>
-                      <div className="flex items-end gap-3">
+                      <div className="flex items-end justify-center md:justify-start gap-3">
                         <p className="text-3xl font-black italic text-white uppercase tracking-tighter">
                           Cost: ${testResult.business_metrics?.cost_usd?.toFixed(5)} 
                         </p>
                         <span className="text-zinc-600 text-sm line-through mb-1 font-bold">vs ${testResult.business_metrics?.estimated_gpt4_cost?.toFixed(5)}</span>
                       </div>
                   </div>
-                  <div className="px-6 py-3 bg-emerald-500 text-black text-[10px] font-black uppercase italic rounded-xl shadow-lg shadow-emerald-500/20">
+                  <div className="px-6 py-3 bg-emerald-500 text-black text-[10px] font-black uppercase italic rounded-xl shadow-lg shadow-emerald-500/20 font-bold">
                      Saved {testResult.business_metrics?.savings_percentage?.toFixed(1)}%
                   </div>
               </div>
             )}
           </div>
 
+          {/* TOTAL SAVINGS CARD */}
           <div className="p-10 rounded-[3rem] bg-blue-600 flex flex-col justify-center items-center text-center space-y-4 shadow-[0_0_80px_-20px_rgba(37,99,235,0.5)] group relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform duration-700">
               <TrendingUp size={160} />
@@ -229,12 +235,13 @@ export default function Dashboard() {
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-100 z-10 italic">Accumulated Savings</span>
             <h3 className="text-7xl font-black italic text-white tracking-tighter z-10">${stats.savings.toFixed(2)}</h3>
             <p className="text-[9px] font-bold text-blue-200 uppercase tracking-widest z-10 opacity-70">Total value saved by Neuralrouting</p>
-            <button className="mt-4 w-full py-5 bg-white text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 transition-colors z-10">
+            <button className="mt-4 w-full py-5 bg-white text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 transition-colors z-10 font-bold">
                 Maximize My Savings →
             </button>
           </div>
         </div>
 
+        {/* USAGE & CREDENTIALS */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-6 shadow-inner">
                 <div className="flex items-center justify-between">
@@ -252,7 +259,7 @@ export default function Dashboard() {
                         <div className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-1000" style={{ width: `${usageData.planName === "Business" ? 100 : Math.min((usageData.used / usageData.max) * 100, 100)}%` }} />
                     </div>
                 </div>
-                <button className="w-full py-4 bg-white text-black rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-all">
+                <button className="w-full py-4 bg-white text-black rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-all font-bold">
                     Upgrade to avoid throttling →
                 </button>
             </div>
@@ -260,7 +267,7 @@ export default function Dashboard() {
             <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-8 shadow-inner">
                 <div className="flex justify-between items-center">
                   <h3 className="text-white font-black italic uppercase text-lg tracking-tight">Ready to <span className="text-blue-600">Integrate</span></h3>
-                  <button className="text-[10px] font-black uppercase text-blue-500 flex items-center gap-2 hover:underline">
+                  <button className="text-[10px] font-black uppercase text-blue-500 flex items-center gap-2 hover:underline font-bold">
                     View Docs <ExternalLink size={12}/>
                   </button>
                 </div>
@@ -283,7 +290,8 @@ export default function Dashboard() {
             </div>
         </div>
 
-        <div className="bg-zinc-900/10 border border-zinc-800 rounded-[2.5rem] p-10 space-y-6">
+        {/* RECENT OPTIMIZATIONS */}
+        <div className="bg-zinc-900/10 border border-zinc-800 rounded-[2.5rem] p-10 space-y-6 backdrop-blur-md">
             <div className="flex items-center gap-3">
               <History size={20} className="text-blue-600" />
               <h3 className="text-white font-black italic uppercase text-lg tracking-tight italic">Recent <span className="text-blue-600">Optimizations</span></h3>
@@ -303,6 +311,26 @@ export default function Dashboard() {
                 ))}
             </div>
         </div>
+
+        {/* NEURAL NOTIFICATION SYSTEM */}
+        {notification && (
+          <div className="fixed bottom-8 right-8 z-[100] animate-in slide-in-from-bottom-5 duration-300">
+            <div className={`p-[1px] rounded-2xl bg-gradient-to-br ${notification.type === 'error' ? 'from-red-500/50 to-transparent' : 'from-blue-500/50 to-transparent shadow-[0_0_40px_-10px_rgba(59,130,246,0.5)]'}`}>
+              <div className="bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl px-6 py-4 flex items-center gap-4 border border-white/5">
+                <div className={`p-2 rounded-full ${notification.type === 'error' ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                  {notification.type === 'error' ? <AlertCircle size={18}/> : <CheckCircle2 size={18}/>}
+                </div>
+                <div className="flex flex-col pr-4">
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 italic">Neural Message</span>
+                  <span className="text-xs font-bold text-white tracking-tight leading-tight">{notification.msg}</span>
+                </div>
+                <button onClick={() => setNotification(null)} className="text-zinc-700 hover:text-white transition-colors">
+                  <Code size={14} className="rotate-45" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
