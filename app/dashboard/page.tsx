@@ -54,7 +54,7 @@ export default function Dashboard() {
         );
 
         // 3. FETCH API KEY DATA
-        // Force user.id to String to match the 'text' column in Supabase
+        // FIXED: String(user.id) ensures the ID is sent as a string to match the TEXT column
         const { data: dbData, error: dbError } = await supabase
           .from('api_keys')
           .select('key, plan') 
