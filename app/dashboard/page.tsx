@@ -19,6 +19,13 @@ export default function Dashboard() {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   
+  // New State for Token Usage tracking
+  const [usageData, setUsageData] = useState({
+    used: 0,
+    max: 50000,
+    planName: "Free Tier"
+  });
+
   const [testPrompt, setTestPrompt] = useState("");
   const [testLoading, setTestLoading] = useState(false);
   const [testResult, setTestResult] = useState<any>(null);
@@ -54,7 +61,6 @@ export default function Dashboard() {
         );
 
         // 3. FETCH API KEY DATA
-        // FIXED: String(user.id) ensures the ID is sent as a string to match the TEXT column
         const { data: dbData, error: dbError } = await supabase
           .from('api_keys')
           .select('key, plan') 
@@ -63,10 +69,22 @@ export default function Dashboard() {
         
         if (dbError) throw dbError;
 
+        // Plan Mapping Logic according to Pricing
+        const planLimits: { [key: string]: number } = {
+          "Free Tier": 50000,
+          "Starter": 1500000,
+          "Growth": 5000000,
+          "Business": 999999999 // Unlimited
+        };
+
         if (dbData) {
           setApiData(dbData);
-        } else {
-          setApiData(null);
+          const currentPlan = dbData.plan || "Free Tier";
+          setUsageData(prev => ({
+            ...prev,
+            planName: currentPlan,
+            max: planLimits[currentPlan] || 50000
+          }));
         }
 
         // 4. FETCH ANALYTICS FROM RAILWAY BACKEND
@@ -77,12 +95,17 @@ export default function Dashboard() {
 
         if (res.ok) {
           const data = await res.json();
+          const tokensUsed = Number(data.total_tokens_consumed || 0);
+
           setStats({
             savings: Number(data.total_savings || 0),
             requests: Number(data.requests_count || 0),
             opt_opportunity_usd: Number(data.optimization_opportunity_usd || 0),
             last_requests: data.recent_decisions?.slice(0, 5) || []
           });
+
+          // Update usage with tokens from backend
+          setUsageData(prev => ({ ...prev, used: tokensUsed }));
         }
       } catch (e) { 
         console.error("Dashboard Sync Error:", e); 
@@ -238,8 +261,54 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* API ACCESS & SNIPPET */}
+        {/* API ACCESS & TOKEN USAGE GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            {/* TOKEN INVENTORY (NEW) */}
+            <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-6 shadow-inner">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-white font-black italic uppercase text-lg tracking-tight">Token <span className="text-blue-600">Inventory</span></h3>
+                    <Sparkles size={18} className="text-blue-500 animate-pulse" />
+                </div>
+
+                <div className="space-y-4">
+                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-500 italic">
+                        <span>Usage Status</span>
+                        <span className={usageData.used > usageData.max * 0.9 ? "text-red-500" : "text-emerald-500"}>
+                            {usageData.planName === "Business" ? "Unlimited Access" : `${((usageData.used / usageData.max) * 100).toFixed(1)}% Used`}
+                        </span>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                        <div 
+                            className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-1000"
+                            style={{ width: `${usageData.planName === "Business" ? 100 : Math.min((usageData.used / usageData.max) * 100, 100)}%` }}
+                        />
+                    </div>
+
+                    <div className="flex justify-between items-end pt-2">
+                        <div className="flex flex-col">
+                            <span className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em]">Current Consumption</span>
+                            <span className="text-xl font-black italic text-white uppercase">
+                                {usageData.used.toLocaleString()} <span className="text-xs text-zinc-500">Tokens</span>
+                            </span>
+                        </div>
+                        <div className="text-right">
+                            <span className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em]">Plan Limit</span>
+                            <p className="text-xs font-bold text-zinc-400">
+                                {usageData.planName === "Business" ? "∞" : usageData.max.toLocaleString()}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <button className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all">
+                    Upgrade Quota →
+                </button>
+            </div>
+
+            {/* ACCESS CREDENTIALS */}
             <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-8 shadow-inner">
                 <div className="flex items-center justify-between">
                   <h3 className="text-white font-black italic uppercase text-lg tracking-tight">Access <span className="text-blue-600">Credentials</span></h3>
@@ -275,17 +344,19 @@ export default function Dashboard() {
                 </div>
                 <p className="text-[9px] text-zinc-600 font-black uppercase italic tracking-widest">Never share your secret key in client-side code.</p>
             </div>
+        </div>
 
-            <div className="bg-zinc-900/10 border border-zinc-800 rounded-[2.5rem] p-10 space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
-                    <Terminal size={18} />
-                  </div>
-                  <h3 className="text-white font-black italic uppercase text-sm tracking-widest">Integration Snippet</h3>
-                </div>
-                
-                <div className="relative group">
-                  <pre className="bg-black/60 p-6 rounded-3xl border border-white/5 text-[11px] font-mono text-zinc-400 overflow-x-auto leading-relaxed">
+        {/* INTEGRATION SNIPPET SECTION */}
+        <div className="bg-zinc-900/10 border border-zinc-800 rounded-[2.5rem] p-10 space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
+                <Terminal size={18} />
+              </div>
+              <h3 className="text-white font-black italic uppercase text-sm tracking-widest">Integration Snippet</h3>
+            </div>
+            
+            <div className="relative group">
+              <pre className="bg-black/60 p-6 rounded-3xl border border-white/5 text-[11px] font-mono text-zinc-400 overflow-x-auto leading-relaxed">
 {`// NeuralRouting Endpoint
 const res = await fetch("${API_BASE}/v1/dispatch", {
   method: "POST",
@@ -297,11 +368,10 @@ const res = await fetch("${API_BASE}/v1/dispatch", {
     messages: [{ role: "user", content: "..." }] 
   })
 })`}
-                  </pre>
-                  <button onClick={() => navigator.clipboard.writeText(`${API_BASE}/v1/dispatch`)} className="absolute top-4 right-4 text-zinc-600 hover:text-white transition-colors">
-                    <Copy size={14}/>
-                  </button>
-                </div>
+              </pre>
+              <button onClick={() => navigator.clipboard.writeText(`${API_BASE}/v1/dispatch`)} className="absolute top-4 right-4 text-zinc-600 hover:text-white transition-colors">
+                <Copy size={14}/>
+              </button>
             </div>
         </div>
       </main>
