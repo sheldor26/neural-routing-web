@@ -7,12 +7,12 @@ import {
  CheckCircle2, History, Terminal, Sparkles, Play, MessageSquare, 
  Home, DollarSign, ExternalLink, Clock, AlertCircle, ArrowRight, Code
 } from 'lucide-react';
-import { useUser, UserButton, useAuth } from '@clerk/nextjs'; // useAuth is already added
+import { useUser, UserButton, useAuth } from '@clerk/nextjs';
 import { createClient } from '@supabase/supabase-js';
 
 export default function Dashboard() {
   const { user, isLoaded } = useUser();
-  const { getToken } = useAuth(); // Required for the secure JWT token
+  const { getToken } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [apiData, setApiData] = useState<any>(null);
   const [showKey, setShowKey] = useState(false);
@@ -37,11 +37,10 @@ export default function Dashboard() {
       try {
         setLoading(true);
         
-        // 1. GET THE SECURE TOKEN FROM CLERK
-        // This token tells Supabase exactly who is logged in based on your JWT template
+        // 1. FETCH SECURE SUPABASE TOKEN FROM CLERK
         const token = await getToken({ template: 'supabase' });
 
-        // 2. CREATE AN AUTHENTICATED SUPABASE CLIENT
+        // 2. INITIALIZE AUTHENTICATED SUPABASE CLIENT
         const supabase = createClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
           process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -54,28 +53,24 @@ export default function Dashboard() {
           }
         );
 
-        // 3. FETCH API KEY
-        // RLS policy "(auth.uid())::text = user_id" will now allow this request
+        // 3. FETCH API KEY DATA
+        // Force user.id to String to match the 'text' column in Supabase
         const { data: dbData, error: dbError } = await supabase
           .from('api_keys')
           .select('key, plan') 
-          .eq('user_id', user.id)
+          .eq('user_id', String(user.id))
           .maybeSingle();
         
         if (dbError) throw dbError;
 
         if (dbData) {
           setApiData(dbData);
-        } else if (user.id === 'user_3Bo8bDV0wvjHVfqYimprn8XdsVO' || user.username === 'juan_dev') {
-          // Fallback for your specific admin account
-          setApiData({ key: 'nr-dev-secret-123', plan: 'development' });
         } else {
           setApiData(null);
         }
 
-        // 4. FETCH ANALYTICS
-        // Using user.id to fetch specific stats if available, otherwise fallback to dev stats
-        const fetchId = user.id || "juan_dev_34"; 
+        // 4. FETCH ANALYTICS FROM RAILWAY BACKEND
+        const fetchId = user.id; 
         const res = await fetch(`${API_BASE}/v1/user-stats/${fetchId}`, { 
             headers: { 'X-API-KEY': INTERNAL_KEY } 
         });
@@ -90,13 +85,13 @@ export default function Dashboard() {
           });
         }
       } catch (e) { 
-        console.error("Sync Error:", e); 
+        console.error("Dashboard Sync Error:", e); 
       } finally { 
         setLoading(false); 
       }
     }
     loadData();
-  }, [isLoaded, user, mounted, getToken]); // Added getToken to dependencies
+  }, [isLoaded, user, mounted, getToken]);
 
   const runLiveTest = async () => {
     if (!testPrompt.trim()) return;
@@ -119,7 +114,7 @@ export default function Dashboard() {
       const data = await res.json();
       
       if (res.status === 402) {
-          alert(`Balance Required: ${data.details || "Please top up your account credits."}`);
+          alert(`Credits required: ${data.details || "Please top up your balance."}`);
           return;
       }
 
@@ -142,7 +137,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans pb-24 selection:bg-blue-500/30">
-      {/* NAVBAR */}
+      {/* NAVIGATION */}
       <nav className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50 h-20 flex items-center justify-between px-6 md:px-12">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-3">
@@ -162,11 +157,11 @@ export default function Dashboard() {
       </nav>
 
       <main className="max-w-6xl mx-auto px-6 py-12 space-y-12">
-        {/* ONBOARDING STEPPER */}
+        {/* STEPPER */}
         <div className="bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl shadow-blue-900/10">
             <div className="space-y-1 text-center md:text-left">
                 <p className="text-[10px] font-black uppercase text-blue-500 tracking-[0.2em]">Step 1: Deployment</p>
-                <h2 className="text-xl font-black italic text-white uppercase italic">Zero-Config Integration</h2>
+                <h2 className="text-xl font-black italic text-white uppercase">Zero-Config Integration</h2>
             </div>
             <div className="flex flex-wrap justify-center gap-4">
                 {["Copy Key", "Switch Endpoint", "Monitor Savings"].map((text, i) => (
@@ -177,8 +172,8 @@ export default function Dashboard() {
             </div>
         </div>
         
-        {/* MAIN GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* LIVE OPTIMIZER */}
           <div className="lg:col-span-2 p-10 rounded-[3rem] bg-zinc-900/40 border border-white/5 space-y-6 backdrop-blur-md">
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">Live <span className="text-blue-600">Optimizer</span></h2>
@@ -188,17 +183,17 @@ export default function Dashboard() {
             </div>
 
             <div className="relative">
-                <p className="text-[10px] font-bold text-zinc-600 uppercase mb-2 ml-2 italic">Test your production prompts here</p>
+                <p className="text-[10px] font-bold text-zinc-600 uppercase mb-2 ml-2 italic">Test your production prompts</p>
                 <textarea 
                   value={testPrompt} 
                   onChange={(e) => setTestPrompt(e.target.value)} 
-                  placeholder="Paste a prompt to see how much you could save..." 
+                  placeholder="Paste a prompt to analyze cost efficiency..." 
                   className="w-full bg-black/60 border border-zinc-800 rounded-3xl p-8 text-sm font-mono focus:border-blue-500/50 outline-none min-h-[160px] resize-none transition-all" 
                 />
                 <button 
                   onClick={runLiveTest} 
                   disabled={testLoading || !testPrompt.trim()} 
-                  className="absolute bottom-4 right-4 px-8 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl disabled:opacity-50 disabled:grayscale"
+                  className="absolute bottom-4 right-4 px-8 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl disabled:opacity-50"
                 >
                     {testLoading ? <Loader2 size={14} className="animate-spin" /> : "Analyze Route"}
                 </button>
@@ -229,6 +224,7 @@ export default function Dashboard() {
             )}
           </div>
 
+          {/* PROJECTED SAVINGS CARD */}
           <div className="p-10 rounded-[3rem] bg-blue-600 flex flex-col justify-center items-center text-center space-y-4 shadow-[0_0_80px_-20px_rgba(37,99,235,0.5)] group relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform duration-700">
               <TrendingUp size={160} />
@@ -242,7 +238,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* API ACCESS SECTION */}
+        {/* API ACCESS & SNIPPET */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-8 shadow-inner">
                 <div className="flex items-center justify-between">
