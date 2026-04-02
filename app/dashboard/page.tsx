@@ -30,19 +30,14 @@ export default function Dashboard() {
   const API_BASE = "https://web-production-4f439.up.railway.app";
   const INTERNAL_KEY = "nr-dev-secret-123"; 
 
-  // Prevent Hydration Error #418
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     async function loadData() {
       if (!isLoaded || !user || !mounted) return;
       try {
         setLoading(true);
-        
-        // Match Table Editor structure: user_id, key, plan
-        // Filters by Clerk ID or the Dev ID 'juan_dev_34' from your screenshot
+        // Supports Clerk ID or Dev ID with credits
         const { data: dbData } = await supabase
           .from('api_keys')
           .select('key, plan') 
@@ -52,8 +47,7 @@ export default function Dashboard() {
         
         if (dbData) setApiData(dbData);
 
-        // Fetch Stats
-        const fetchId = user.id || "juan_dev_34";
+        const fetchId = "juan_dev_34"; 
         const res = await fetch(`${API_BASE}/v1/user-stats/${fetchId}`, { 
             headers: { 'X-API-KEY': INTERNAL_KEY } 
         });
@@ -67,11 +61,7 @@ export default function Dashboard() {
             last_requests: data.recent_decisions?.slice(0, 5) || []
           });
         }
-      } catch (e) { 
-        console.error("Dashboard Sync Error:", e); 
-      } finally { 
-        setLoading(false); 
-      }
+      } catch (e) { console.error("Sync Error:", e); } finally { setLoading(false); }
     }
     loadData();
   }, [isLoaded, user, mounted]);
@@ -87,26 +77,28 @@ export default function Dashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
             messages: [{ role: "user", content: testPrompt }], 
-            user_id: user?.id || "juan_dev_34" 
+            user_id: "juan_dev_34" 
         })
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.details || data.error || `Status ${res.status}`);
+      
+      if (res.status === 402) {
+          alert(`Insufficient Balance: ${data.details || "Please check juan_dev_34 credits."}`);
+          return;
+      }
+
+      if (!res.ok) throw new Error(data.details || data.error || `Error ${res.status}`);
 
       setTestResult(data);
       setStats(prev => ({ ...prev, last_requests: [data, ...prev.last_requests.slice(0, 4)] }));
     } catch (e: any) { 
       console.error("Test Error:", e);
       alert(`Optimization failed: ${e.message}`);
-    } finally { 
-      setTestLoading(false); 
-    }
+    } finally { setTestLoading(false); }
   };
 
-  if (!mounted || !isLoaded || loading) {
-    return <div className="min-h-screen bg-[#050505] flex items-center justify-center"><Loader2 className="animate-spin text-blue-500" size={40}/></div>;
-  }
+  if (!mounted || !isLoaded || loading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center"><Loader2 className="animate-spin text-blue-500" size={40}/></div>;
 
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans pb-24">
@@ -118,6 +110,7 @@ export default function Dashboard() {
       </nav>
 
       <main className="max-w-6xl mx-auto px-6 py-12 space-y-12">
+        {/* STEPPER */}
         <div className="bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="space-y-1 text-center md:text-left">
                 <p className="text-[10px] font-black uppercase text-blue-500 tracking-[0.2em]">Step 2: Connect Your App</p>
@@ -132,6 +125,7 @@ export default function Dashboard() {
             </div>
         </div>
         
+        {/* OPTIMIZER & STATS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 p-10 rounded-[3rem] bg-zinc-900/40 border border-white/5 space-y-6">
             <div className="flex justify-between items-center">
@@ -151,8 +145,9 @@ export default function Dashboard() {
 
             {testResult && (
               <div className="animate-in zoom-in-95 duration-300 p-6 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex justify-between items-center">
-                  <div>
-                      <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2 mb-1"><Sparkles size={12}/> Result Found</p>
+                  <div className="max-w-[70%]">
+                      <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2 mb-1"><Sparkles size={12}/> Optimization Successful</p>
+                      <p className="text-sm font-mono text-zinc-400 line-clamp-2 italic mb-2">"{testResult.output?.ai_answer}"</p>
                       <p className="text-2xl font-black italic text-white uppercase leading-none">
                         Cost: ${testResult.business_metrics?.cost_usd?.toFixed(4) || "0.0000"} 
                         <span className="text-zinc-600 text-sm line-through ml-2">vs ${testResult.business_metrics?.estimated_gpt4_cost?.toFixed(4) || "0.0000"}</span>
@@ -175,6 +170,7 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* API KEY & SNIPPET SECTION */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-zinc-900/30 border border-white/5 rounded-[2.5rem] p-10 space-y-6">
                 <h3 className="text-white font-black italic uppercase text-lg tracking-tight">Your API <span className="text-blue-500">Key</span></h3>
