@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Loader2, CheckCircle2, AlertCircle, Zap, DollarSign, TrendingUp } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 
+// ✅ Interface sincronizada con el backend de Python
 interface RoutingResult {
   status: string;
   model_used: string;
@@ -26,13 +27,12 @@ export default function Playground() {
 
   const API_BASE = "https://web-production-4f439.up.railway.app";
 
-  // ✅ FIX MATEMÁTICO: Paréntesis para orden de operación y Math.abs para evitar negativos
+  // Lógica de impacto empresarial (1M de requests mensuales)
   const ESTIMATED_MONTHLY_VOLUME = 1000000; 
   const savingsPerRequest = result 
     ? (result.business_metrics.estimated_gpt4_cost - result.business_metrics.cost_usd) 
     : 0;
   
-  // Multiplicamos el valor absoluto del ahorro por el volumen mensual y por 12 meses
   const potentialYearlySavings = Math.abs(savingsPerRequest) * ESTIMATED_MONTHLY_VOLUME * 12;
 
   const testRoute = async () => {
@@ -111,28 +111,23 @@ export default function Playground() {
         {result && (
           <div className="mt-10 space-y-8 animate-in fade-in zoom-in duration-500">
             
-            {/* BIG IMPACT CARD: Potential Yearly Savings */}
+            {/* CARD DE IMPACTO ANUAL */}
             <div className="bg-blue-600/10 border border-blue-500/30 rounded-[2.5rem] p-10 text-center relative overflow-hidden group shadow-[0_0_50px_-12px_rgba(37,99,235,0.3)]">
               <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
                 <DollarSign size={120} className="text-blue-500" />
               </div>
-              
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-400 mb-4">
-                Estimated Enterprise Impact
-              </p>
-              
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-400 mb-4">Estimated Enterprise Impact</p>
               <h3 className="text-6xl font-black italic text-white tracking-tighter mb-4">
                 ${potentialYearlySavings.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 <span className="text-blue-600">/yr</span>
               </h3>
-              
               <div className="flex items-center justify-center gap-2 text-zinc-500 text-[10px] font-bold uppercase tracking-widest">
                 <TrendingUp size={14} className="text-emerald-500" />
                 Potential annual savings based on enterprise volume
               </div>
             </div>
 
-            {/* SECONDARY METRICS GRID */}
+            {/* GRID DE MÉTRICAS */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-zinc-950/50 border border-zinc-800 p-6 rounded-3xl text-center group hover:border-blue-500/30 transition-colors">
                 <p className="text-[9px] font-black text-zinc-600 uppercase mb-2 tracking-widest">Latency</p>
@@ -141,7 +136,13 @@ export default function Playground() {
               
               <div className="bg-zinc-950/50 border border-zinc-800 p-6 rounded-3xl text-center group hover:border-emerald-500/30 transition-colors">
                 <p className="text-[9px] font-black text-zinc-600 uppercase mb-2 tracking-widest">Efficiency</p>
-                <p className="text-xl font-black text-emerald-500 italic">+{Math.abs(result.business_metrics.savings_percentage).toFixed(1)}%</p>
+                <p className="text-xl font-black text-emerald-500 italic">
+                  {/* ✅ REPARACIÓN: Si el backend manda 0, calculamos el % real en el cliente */}
+                  +{result.business_metrics.savings_percentage > 0 
+                    ? result.business_metrics.savings_percentage.toFixed(1) 
+                    : (((result.business_metrics.estimated_gpt4_cost - result.business_metrics.cost_usd) / result.business_metrics.estimated_gpt4_cost) * 100).toFixed(1)
+                  }%
+                </p>
               </div>
 
               <div className="bg-zinc-950/50 border border-zinc-800 p-6 rounded-3xl text-center group hover:border-blue-500/30 transition-colors">
@@ -159,7 +160,6 @@ export default function Playground() {
                  "{result.output.ai_answer}"
                </p>
             </div>
-
           </div>
         )}
       </div>
