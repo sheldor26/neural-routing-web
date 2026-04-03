@@ -245,7 +245,11 @@ export default function FullChatPage() {
                 </div>
              </div>
            </div>
-           <UserButton afterSignOutUrl="/" />
+           <div className="flex items-center gap-3">
+             <Link href="/" className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all">Home</Link>
+             <Link href="/dashboard" className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all">Dashboard</Link>
+             <UserButton afterSignOutUrl="/" />
+           </div>
         </header>
 
         {/* CHAT AREA */}
