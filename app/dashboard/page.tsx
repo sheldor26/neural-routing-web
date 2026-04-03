@@ -66,26 +66,24 @@ export default function Dashboard() {
         const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`);
 
         if (res.ok) {
-          const data = await res.json();
-          
-          setStats({
-            savings: Number(data.total_savings || 0),
-            requests: Number(data.requests_count || 0),
-            opt_opportunity_usd: Number(data.optimization_opportunity_usd || 0),
-            last_requests: data.recent_decisions?.slice(0, 5) || []
-          });
+  const data = await res.json();
+  console.log("DEBUG BACKEND DATA:", data); // Mirá la consola del navegador (F12) para ver qué llega
 
-          setUsageData({
-            used: Number(data.requests_count || 0),
-            max: Number(data.total_tokens_limit || 50000), 
-            planName: data.plan || "Free Tier",
-            credits: Number(data.credits || 0)
-          });
-        } else if (res.status === 404) {
-          // New User default state
-          setStats({ savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] });
-          setUsageData({ used: 0, max: 50000, planName: "Free Tier", credits: 5.00 });
-        }
+  // Mapeo forzado para asegurar que las variables existan
+  setStats({
+    savings: Number(data.total_savings || data.savings || 0),
+    requests: Number(data.requests_count || data.used || 0),
+    opt_opportunity_usd: Number(data.optimization_opportunity_usd || 0),
+    last_requests: data.recent_decisions?.slice(0, 5) || []
+  });
+
+  setUsageData({
+    used: Number(data.requests_count || data.used || 0),
+    max: Number(data.total_tokens_limit || data.limit || 50000), 
+    planName: data.plan || "Free Tier",
+    credits: Number(data.credits || 0)
+  });
+}
       } catch (e) { 
         console.error("Dashboard Sync Error:", e); 
       } finally { 
