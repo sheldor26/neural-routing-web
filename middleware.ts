@@ -1,7 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-// 1. Definimos las rutas que REQUIEREN estar logueado
+// 1. Definimos las rutas PROTEGIDAS (Solo logueados)
 const isProtectedRoute = createRouteMatcher([
   '/chat(.*)',
   '/dashboard(.*)',
@@ -9,17 +9,23 @@ const isProtectedRoute = createRouteMatcher([
   '/blog/admin(.*)'
 ]);
 
-export default clerkMiddleware(async (auth, req) => {
-  const { pathname } = req.nextUrl;
+// 2. Definimos las rutas PÚBLICAS (Para evitar bucles de redirección)
+const isPublicRoute = createRouteMatcher([
+  '/', 
+  '/sign-in(.*)', 
+  '/sign-up(.*)',
+  '/api/webhooks/clerk(.*)' // Webhooks deben ser públicos
+]);
 
-  // 2. EXCEPCIÓN TOTAL PARA WEBHOOKS
-  // Esto permite que Clerk nos avise cuando un usuario se registra sin que el middleware lo bloquee
-  if (pathname.startsWith('/api/webhooks/clerk')) {
+export default clerkMiddleware(async (auth, req) => {
+  // Si es una ruta pública, no hacemos nada, dejamos pasar.
+  if (isPublicRoute(req)) {
     return NextResponse.next();
   }
 
-  // 3. PROTEGER RUTAS ESPECÍFICAS
-  // Si el usuario intenta entrar a /dashboard o /chat y no está logueado, lo manda al login
+  // 3. Proteger rutas específicas
+  // Si la ruta es protegida y no está logueado, auth.protect()
+  // lo enviará automáticamente al login configurado.
   if (isProtectedRoute(req)) {
     await auth.protect();
   }
@@ -29,8 +35,9 @@ export default clerkMiddleware(async (auth, req) => {
 
 export const config = {
   matcher: [
-    // Esto es lo que te pidió Clerk: ignora archivos estáticos y corre en las APIs
+    // Ignora archivos estáticos y internos de Next.js
     '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Siempre corre para rutas de API y TRPC
     '/(api|trpc)(.*)',
   ],
 };
