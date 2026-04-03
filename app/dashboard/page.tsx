@@ -63,7 +63,9 @@ useEffect(() => {
         if (dbData) setApiData(dbData);
 
         // 2. Pedir Estadísticas a Railway (Ahorros acumulados e Historial)
-        const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`);
+        const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`, {
+          headers: { 'X-API-KEY': dbData?.key || '' }
+        });
         
         if (res.ok) {
           const data = await res.json();
