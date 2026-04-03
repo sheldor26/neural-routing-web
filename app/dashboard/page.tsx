@@ -77,7 +77,7 @@ export default function Dashboard() {
 
           setUsageData({
             used: Number(data.requests_count || 0),
-            max: Number(data.requests_limit || 50000), 
+            max: Number(data.total_tokens_limit || 50000), 
             planName: data.plan || "Free Tier",
             credits: Number(data.credits || 0)
           });
@@ -270,7 +270,7 @@ export default function Dashboard() {
                     <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
                         <div 
                           className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-1000 ease-out" 
-                          style={{ width: `${usageData.planName === "Business" ? 100 : Math.min((usageData.used / usageData.max) * 100, 100)}%` }} 
+                          style={{width: `${usageData.planName === "Business" ? 100 : Math.max((usageData.used / usageData.max) * 100, 2)}%` }} 
                         />
                     </div>
                     <div className="flex justify-between items-center">
