@@ -35,7 +35,7 @@ export default function Dashboard() {
     savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] as any[]
   });
 
-  // URL de tu API en Railway
+  // Your Railway API URL
   const API_BASE = "https://web-production-4f439.up.railway.app";
   
   useEffect(() => { setMounted(true); }, []);
@@ -52,7 +52,7 @@ export default function Dashboard() {
           { global: { headers: { Authorization: `Bearer ${token}` } } }
         );
 
-        // 1. Fetch API Key desde Supabase
+        // 1. Fetch API Key from Supabase
         const { data: dbData, error: dbError } = await supabase
           .from('api_keys')
           .select('key, plan') 
@@ -62,7 +62,7 @@ export default function Dashboard() {
         if (dbError) throw dbError;
         if (dbData) setApiData(dbData);
 
-        // 2. Fetch Estadísticas Reales desde Railway
+        // 2. Fetch Real Stats from Railway
         const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`);
 
         if (res.ok) {
@@ -75,7 +75,6 @@ export default function Dashboard() {
             last_requests: data.recent_decisions?.slice(0, 5) || []
           });
 
-          // ACTUALIZACIÓN: Mapeo de UsageData con datos de la API
           setUsageData({
             used: Number(data.requests_count || 0),
             max: Number(data.requests_limit || 50000), 
@@ -83,6 +82,7 @@ export default function Dashboard() {
             credits: Number(data.credits || 0)
           });
         } else if (res.status === 404) {
+          // Fallback for new users
           setStats({ savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] });
           setUsageData({ used: 0, max: 50000, planName: "Free Tier", credits: 5.00 });
         }
@@ -125,7 +125,7 @@ export default function Dashboard() {
       setTestResult(data);
       setNotification({ msg: "Route optimized successfully!", type: 'success' });
       
-      // Actualización optimista de la UI
+      // Optimistic UI updates
       setStats(prev => ({ 
         ...prev, 
         last_requests: [data, ...prev.last_requests.slice(0, 4)],
@@ -159,13 +159,13 @@ export default function Dashboard() {
       <nav className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50 h-20 flex items-center justify-between px-6 md:px-12">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-3">
-              <Zap size={20} className="text-blue-500 fill-blue-500" />
+              <Zap size(20) className="text-blue-500 fill-blue-500" />
               <span className="text-xl font-black italic uppercase tracking-tighter text-white">Neuralrouting.io</span>
             </Link>
           </div>
           <div className="flex items-center gap-6">
             <div className="hidden md:flex flex-col text-right">
-              <span className="text-[9px] font-black uppercase text-emerald-500 tracking-widest italic tracking-tighter">Savings Active</span>
+              <span className="text-[9px] font-black uppercase text-emerald-500 tracking-widest italic">Savings Active</span>
               <span className="text-[10px] font-bold text-zinc-500 uppercase flex items-center justify-end gap-1 tracking-tighter">
                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"/> System Healthy
               </span>
@@ -246,7 +246,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* USAGE & CREDENTIALS - ESTA ES LA SECCIÓN QUE ACTUALIZAMOS */}
+        {/* USAGE & CREDENTIALS */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-6 shadow-inner">
                 <div className="flex items-center justify-between">
@@ -257,10 +257,10 @@ export default function Dashboard() {
                     <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-500 italic">
                         <span>{usageData.used.toLocaleString()} Requests used</span>
                         <span className={usageData.used > usageData.max * 0.9 ? "text-red-500" : "text-emerald-500"}>
-                            {usageData.planName === "Business" ? "Unlimited Access" : `${Math.round((usageData.used / usageData.max) * 100)}% of plan`}
+                            {usageData.planName === "Business" ? "Unlimited Access" : `${((usageData.used / usageData.max) * 100).toFixed(1)}% of plan`}
                         </span>
                     </div>
-                    {/* BARRA DE PROGRESO DINÁMICA */}
+                    {/* DYNAMIC PROGRESS BAR */}
                     <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
                         <div 
                           className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-1000 ease-out" 
@@ -325,7 +325,7 @@ export default function Dashboard() {
                     </div>
                 ))}
                 {stats.last_requests.length === 0 && (
-                    <p className="text-[10px] text-zinc-600 font-black uppercase italic tracking-widest py-8 col-span-full text-center">No optimization data available yet.</p>
+                    <p className="text-[10px] text-zinc-600 font-black uppercase italic py-8 col-span-full text-center">No optimization data available yet.</p>
                 )}
             </div>
         </div>
