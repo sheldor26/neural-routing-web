@@ -63,33 +63,28 @@ export default function Dashboard() {
         if (dbData) setApiData(dbData);
 
         // 2. Fetch Real-time Stats from Railway Backend
-        const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`);
+       try {
+    const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`);
+    const data = await res.json();
+    
+    if (res.ok) {
+        // ACTUALIZAMOS LOS ESTADOS CON LOS NOMBRES EXACTOS
+        setStats(prev => ({
+            ...prev,
+            savings: Number(data.total_savings || 0),
+            requests: Number(data.requests_count || 0)
+        }));
 
-       if (res.ok) {
-  const data = await res.json();
-  
-  // Sincronizamos Ahorros y Contadores
-  setStats({
-    savings: Number(data.total_savings || 0),
-    requests: Number(data.requests_count || 0),
-    opt_opportunity_usd: Number(data.optimization_opportunity_usd || 0),
-    last_requests: data.recent_decisions || [] // <--- ESTO ARREGLA LA IMAGEN f92fc8
-  });
-
-  // Sincronizamos Barra de Progreso y Créditos
-  setUsageData({
-    used: Number(data.requests_count || 0),
-    max: Number(data.total_tokens_limit || 50000), 
-    planName: data.plan || "Free Tier",
-    credits: Number(data.credits || 0)
-  });
-}
-      } catch (e) { 
-        console.error("Dashboard Sync Error:", e); 
-      } finally { 
-        setLoading(false); 
-      }
+        setUsageData({
+            used: Number(data.requests_count || 0),
+            max: Number(data.total_tokens_limit || 50000),
+            planName: data.plan || "Free Tier",
+            credits: Number(data.credits || 0)
+        });
     }
+} catch (err) {
+    console.error("No se pudo conectar con Railway:", err);
+}
     loadData();
   }, [isLoaded, user, mounted, getToken]);
 
