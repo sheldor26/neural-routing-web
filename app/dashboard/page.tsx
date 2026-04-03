@@ -46,7 +46,7 @@ useEffect(() => {
       try {
         setLoading(true);
 
-        // --- 1. CONEXIÓN CON SUPABASE PARA TRAER LA KEY (ESTO FALTABA) ---
+        // 1. Obtener Token y Conectar Supabase para la API KEY
         const token = await getToken({ template: 'supabase' });
         const supabase = createClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -54,32 +54,32 @@ useEffect(() => {
           { global: { headers: { Authorization: `Bearer ${token}` } } }
         );
 
-        const { data: dbData, error: dbError } = await supabase
+        const { data: dbData } = await supabase
           .from('api_keys')
           .select('key, plan') 
           .eq('user_id', String(user.id))
           .maybeSingle();
         
-        if (dbData) {
-          setApiData(dbData); // ✅ Esto llena el "Ready to Integrate" y habilita el dispatch
-        } else {
-          console.warn("No se encontró API Key en Supabase para este user_id");
-        }
-        // -------------------------------------------------------------
+        if (dbData) setApiData(dbData);
 
-        // 2. Pedir datos a Railway (Lo que ya tenías)
+        // 2. Pedir Estadísticas a Railway (Ahorros acumulados e Historial)
         const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`);
         
         if (res.ok) {
           const data = await res.json();
-          
+          console.log("📊 Dashboard Sync Data:", data); // Para que debugues en consola
+
+          // Sincronizar Ahorros y Cuadros de Abajo
           setStats({
+            // Usamos los nombres exactos que devuelve tu backend en Python
             savings: Number(data.total_savings || 0),
             requests: Number(data.requests_count || 0),
             opt_opportunity_usd: Number(data.optimization_opportunity_usd || 0),
-            last_requests: data.recent_decisions || []
+            // IMPORTANTE: Si 'recent_decisions' viene vacío, el historial no se ve
+            last_requests: Array.isArray(data.recent_decisions) ? data.recent_decisions : []
           });
 
+          // Sincronizar Barra de Progreso y Créditos
           setUsageData({
             used: Number(data.requests_count || 0),
             max: Number(data.total_tokens_limit || 50000),
@@ -88,7 +88,7 @@ useEffect(() => {
           });
         }
       } catch (e) {
-        console.error("Dashboard Sync Error:", e);
+        console.error("❌ Error en la carga del Dashboard:", e);
       } finally {
         setLoading(false);
       }
@@ -96,7 +96,7 @@ useEffect(() => {
 
     loadData();
   }, [isLoaded, user?.id, mounted, getToken]);
-  
+    
   const runLiveTest = async () => {
     if (!testPrompt.trim()) return;
     setTestLoading(true);
