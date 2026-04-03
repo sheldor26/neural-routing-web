@@ -35,7 +35,7 @@ export default function Dashboard() {
     savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] as any[]
   });
 
-  // Railway Production API URL
+  // Your Railway Production API URL
   const API_BASE = "https://web-production-4f439.up.railway.app";
   
   useEffect(() => { setMounted(true); }, []);
@@ -125,11 +125,13 @@ export default function Dashboard() {
       setTestResult(data);
       setNotification({ msg: "Route optimized successfully!", type: 'success' });
       
-      // Update UI optimistically to reflect live savings
+      // Update UI optimistically to reflect live savings and usage
+      const newSavings = data.business_metrics?.estimated_gpt4_cost - data.business_metrics?.cost_usd;
+      
       setStats(prev => ({ 
         ...prev, 
         last_requests: [data, ...prev.last_requests.slice(0, 4)],
-        savings: prev.savings + (data.business_metrics?.cost_usd ? (data.business_metrics.estimated_gpt4_cost - data.business_metrics.cost_usd) : 0),
+        savings: prev.savings + (newSavings > 0 ? newSavings : 0),
         requests: prev.requests + 1
       }));
       
