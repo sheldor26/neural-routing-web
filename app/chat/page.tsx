@@ -103,14 +103,12 @@ export default function FullChatPage() {
 
   const saveMessage = async (sessionId: string, role: 'user' | 'assistant', content: string) => {
     if (!supabaseRef.current || !user) return;
-    try {
-      await supabaseRef.current.from('chat_messages').insert({
-        session_id: sessionId,
-        role,
-        content,
-        user_id: user.id
-      });
-    } catch (e) { console.error('Failed to save message:', e); }
+    const { error } = await supabaseRef.current.from('chat_messages').insert({
+      session_id: sessionId,
+      role,
+      content,
+    });
+    if (error) console.error('Failed to save message:', error.message, error.details);
   };
 
   const handleSendMessage = async (overridePrompt?: string, modeOverride?: RoutingMode) => {
