@@ -78,7 +78,7 @@ useEffect(() => {
             opt_opportunity_usd: Number(data.optimization_opportunity_usd || 0),
             // PROTECCIÓN: Si recent_decisions no es un array, mandamos uno vacío
             last_requests: Array.isArray(data.recent_decisions)
-              ? data.recent_decisions.map(log => ({
+              ? data.recent_decisions.map((log: any) => ({
                   model_used: log.model_used || "Neural-Router",
                   savings_percentage: log.savings_percentage || 0,
                   cost_usd: log.cost_usd || 0
@@ -198,9 +198,9 @@ useEffect(() => {
                 <h2 className="text-xl font-black italic text-white uppercase">Scale your savings to production</h2>
             </div>
             <div className="flex flex-wrap justify-center gap-4">
-                <button className="px-8 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2 font-bold">
+                <Link href="/setup" className="px-8 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2 font-bold">
                     Go to Production Setup <ArrowRight size={14}/>
-                </button>
+                </Link>
             </div>
         </div>
         
