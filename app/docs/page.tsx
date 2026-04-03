@@ -1,139 +1,176 @@
 import React from 'react';
-import { ChevronRight, ArrowRightCircle, Copy, Cpu, Globe, Zap, Shield } from 'lucide-react';
+import Link from 'next/link';
+import { Terminal, Zap, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 export default function DocsPage() {
-  const codeSnippet = `curl -X POST https://api.neuralrouting.io/v1/route \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -H "X-Routing-Version: 2026-04-01" \\
-  -d '{
-    "origin": "aws-us-east-1",
-    "destination": "edge-buenos-aires",
-    "priority": "latency"
-  }'`;
-
   return (
-    <div className="min-h-screen bg-[#050505] text-slate-400 selection:bg-blue-500/30 relative overflow-hidden">
-      
-      {/* Background Decor - Reemplazamos imagen rota por un icono gigante con opacidad baja */}
-      <div className="absolute -right-20 -top-20 opacity-[0.03] pointer-events-none">
-        <Cpu size={400} className="text-blue-500" />
-      </div>
+    <div className="min-h-screen bg-[#050505] max-w-4xl mx-auto py-16 px-6 text-slate-300 font-sans selection:bg-blue-500/30">
 
-      {/* Navigation */}
-      <nav className="border-b border-white/5 bg-[#050505]/90 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {/* Logo alternativo con componente en lugar de imagen */}
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center p-2 shadow-lg shadow-blue-500/20">
-              <Cpu className="text-white w-full h-full" />
-            </div>
-            <span className="font-bold text-white tracking-tighter text-2xl italic">NeuralRouting<span className="text-blue-500">.io</span></span>
+      {/* 1. Header - The Hook */}
+      <section className="mb-20 text-center md:text-left">
+        <h1 className="text-5xl font-extrabold text-white mb-6 tracking-tight">
+          Route smarter. <span className="text-blue-500">Spend less.</span> Scale faster.
+        </h1>
+        <p className="text-xl text-slate-400 max-w-2xl">
+          Cut your AI costs from your first request with our intelligent multi-provider gateway.
+        </p>
+
+        {/* 2. Barra de CTA */}
+        <div className="mt-10 flex flex-wrap items-center gap-6 p-2 bg-slate-900/50 border border-slate-800 rounded-2xl w-fit">
+          <Link href="#quickstart" className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-blue-500 transition-all shadow-lg shadow-blue-900/20 flex items-center gap-2">
+            Start in 30s <ArrowRight size={16}/>
+          </Link>
+          <div className="flex gap-6 px-4">
+            <Link href="/setup" className="text-slate-400 hover:text-white font-medium transition-colors">Get API Key</Link>
+            <Link href="/dashboard" className="text-slate-400 hover:text-white font-medium transition-colors">Dashboard</Link>
           </div>
         </div>
-      </nav>
+      </section>
 
-      <div className="max-w-7xl mx-auto px-8 py-16 flex flex-col lg:flex-row gap-20 relative z-10">
-        {/* Sidebar */}
-        <aside className="w-full lg:w-64 flex-shrink-0">
-          <div className="sticky top-32 space-y-10">
-            <section>
-              <h5 className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-6">Introduction</h5>
-              <ul className="space-y-4 text-sm font-medium">
-                <li className="text-blue-500 flex items-center gap-2 italic cursor-pointer font-bold">Quickstart <ChevronRight className="w-3 h-3" /></li>
-                <li className="hover:text-white cursor-pointer transition-all">Core Concepts</li>
-                <li className="hover:text-white cursor-pointer transition-all">Global Nodes</li>
-              </ul>
-            </section>
-          </div>
-        </aside>
+      {/* 3. How it works */}
+      <section className="mb-20">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { step: "1. Request", desc: "Unified API" },
+            { step: "2. Optimize", desc: "Cost/Latency" },
+            { step: "3. Route", desc: "Best Provider" },
+            { step: "4. Fallback", desc: "100% Uptime" }
+          ].map((item, i) => (
+            <div key={i} className="p-4 bg-slate-900/30 border border-slate-800 rounded-xl text-center">
+              <p className="text-blue-400 font-bold text-sm mb-1">{item.step}</p>
+              <p className="text-xs text-slate-500">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
-        {/* Main Content */}
-        <main className="flex-1">
-          <header className="mb-16">
-            <h1 className="text-5xl md:text-6xl font-black text-white tracking-tight mb-6 leading-tight">
-              The Decision Layer <br /> 
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-400">for Global Traffic</span>
-            </h1>
-            <p className="text-xl text-slate-400 max-w-2xl leading-relaxed italic">
-              NeuralRouting automatically optimizes every request across providers, reducing latency and cost in real-time.
+      {/* 4. Why NeuralRouting */}
+      <section className="mb-24">
+        <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-2">
+          <Zap className="text-yellow-400" size={24} /> Why NeuralRouting?
+        </h2>
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="p-8 bg-slate-950 border border-slate-900 rounded-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-1 h-full bg-red-500/50" />
+            <h3 className="text-red-400 font-bold text-lg mb-3">Legacy Approach</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Single provider, fixed high costs, and a single point of failure. If OpenAI goes down, your business stops.
             </p>
-          </header>
+          </div>
+          <div className="p-8 bg-blue-600/5 border border-blue-500/20 rounded-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
+            <h3 className="text-blue-400 font-bold text-lg mb-3">NeuralRouting</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Multi-cloud resilience with real-time cost optimization. We pick the best model for every single prompt.
+            </p>
+          </div>
+        </div>
+        <div className="mt-8">
+          <p className="text-center italic text-slate-300 font-medium text-lg">
+            &quot;You don&apos;t pick the model. The best model is picked for you.&quot;
+          </p>
+          <p className="text-center text-sm text-slate-500 mt-2">
+            Zero config. Real-time optimization per request.
+          </p>
+        </div>
+      </section>
 
-          {/* Visualizer - FIX de imágenes rotas usando Lucide */}
-          <section className="mb-12">
-            <div className="bg-blue-500/5 border border-blue-500/20 rounded-3xl p-10 flex items-center justify-around text-center relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-              
-              <div className="relative z-10">
-                <div className="text-[10px] font-black text-slate-500 uppercase mb-3 flex items-center justify-center gap-1"><Globe size={10}/> Origin</div>
-                <div className="font-mono text-xs bg-white/5 px-4 py-2 rounded-xl border border-white/10 text-white italic">aws-us-east-1</div>
-              </div>
+      {/* 5. Quickstart */}
+      <section id="quickstart" className="mb-24">
+        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+          <Terminal className="text-emerald-400" size={24} /> Drop-in Integration
+        </h2>
+        <p className="mb-6 text-slate-400">Replace your OpenAI baseURL and start saving. No refactoring needed.</p>
 
-              <ArrowRightCircle className="text-blue-500/30 animate-pulse" size={24} />
+        <div className="bg-[#0f1117] p-6 rounded-t-2xl border-x border-t border-slate-800 font-mono text-sm shadow-2xl">
+          <pre className="text-emerald-500 whitespace-pre-wrap">
+{`import OpenAI from 'openai';
 
-              {/* Optimizer Core FIX */}
-              <div className="relative z-10 flex flex-col items-center gap-3">
-                <div className="p-4 bg-blue-500/20 rounded-full border border-blue-500/40 shadow-[0_0_20px_rgba(59,130,246,0.4)]">
-                   <Cpu className="text-blue-400 w-10 h-10 animate-spin-slow" style={{ animationDuration: '8s' }} />
-                </div>
-                <div>
-                  <div className="text-[10px] font-black text-blue-400 uppercase italic leading-none">Neural Optimizer</div>
-                  <div className="font-mono text-[10px] text-blue-400/50 mt-1 uppercase font-bold tracking-widest">relay-miami-core</div>
-                </div>
-              </div>
+const client = new OpenAI({
+  baseURL: "https://web-production-4f439.up.railway.app/v1",
+  apiKey: "nr_live_your_api_key"
+});
 
-              <ArrowRightCircle className="text-blue-500/30 animate-pulse" size={24} />
+const response = await client.chat.completions.create({
+  model: "neural-router-v2",
+  messages: [{ role: "user", content: "Analyze this data" }]
+});`}
+          </pre>
+        </div>
 
-              <div className="relative z-10">
-                <div className="text-[10px] font-black text-slate-500 uppercase mb-3 flex items-center justify-center gap-1"><Zap size={10}/> Destination</div>
-                <div className="font-mono text-xs bg-white/5 px-4 py-2 rounded-xl border border-white/10 text-white italic">edge-buenos-aires</div>
-              </div>
-            </div>
-          </section>
-
-          {/* Code Section */}
-          <div className="grid lg:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <span className="bg-blue-600 text-white text-[10px] font-black px-2 py-1 rounded tracking-tighter shadow-lg shadow-blue-500/20 uppercase">POST</span>
-                <code className="text-white font-bold text-lg font-mono tracking-tight">/v1/route</code>
-              </div>
-              <div className="bg-[#111] rounded-2xl border border-white/10 p-6 shadow-2xl overflow-hidden relative group h-full">
-                <Copy className="absolute top-4 right-4 w-4 h-4 text-slate-600 hover:text-white cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" />
-                <pre className="font-mono text-sm leading-relaxed text-blue-300 whitespace-pre-wrap italic">
-                  {codeSnippet}
-                </pre>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div className="flex items-center justify-between px-2">
-                <span className="text-xs font-black text-slate-600 uppercase tracking-widest italic">Expected Response</span>
-                <span className="bg-emerald-500/10 text-emerald-500 text-[10px] font-bold px-3 py-1 rounded-full border border-emerald-500/20 animate-pulse">118ms latency</span>
-              </div>
-              <div className="bg-[#0a0a0a] rounded-2xl border border-white/5 p-6 shadow-inner h-full">
-                <pre className="font-mono text-[13px] leading-relaxed text-emerald-400/90 italic">
+        <div className="bg-slate-900/80 p-6 rounded-b-2xl border border-slate-800 shadow-inner">
+          <p className="text-xs font-bold text-slate-500 mb-4 uppercase tracking-widest">Example Response</p>
+          <pre className="text-sm font-mono text-blue-400 whitespace-pre-wrap">
 {`{
   "status": "success",
-  "data": {
-    "route_id": "rt_987654321",
-    "selected_path": [
-       "aws-us-east-1",
-       "relay-miami-core",
-       "edge-buenos-aires"
-    ],
-    "metrics": {
-      "latency_ms": 118,
-      "cost_savings": "15%"
-    }
+  "model_used": "claude-3.5-sonnet",
+  "output": { "ai_answer": "..." },
+  "business_metrics": {
+    "cost_usd": 0.0020,
+    "estimated_gpt4_cost": 0.0052,
+    "savings_percentage": 61.5
   }
 }`}
-                </pre>
-              </div>
+          </pre>
+        </div>
+
+        <div className="mt-8 flex items-center gap-8">
+          <Link href="/setup" className="flex items-center gap-2 text-white font-bold hover:text-blue-400 transition-colors group">
+            <Zap size={18} className="text-blue-400 fill-blue-400" />
+            Get Production Key
+            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+          </Link>
+          <Link href="/dashboard" className="text-slate-500 hover:text-white font-medium transition-colors">
+            View Dashboard
+          </Link>
+        </div>
+      </section>
+
+      {/* 6. Use Cases */}
+      <section className="mb-24">
+        <h2 className="text-2xl font-bold text-white mb-10">Scale with confidence</h2>
+        <div className="grid md:grid-cols-3 gap-8">
+          {[
+            { title: "Reduce Costs", value: "70%", desc: "Instantly offload simple tasks to economical models." },
+            { title: "Increase Uptime", value: "99.9%+", desc: "Achieve total resilience without multi-provider complexity." },
+            { title: "Deploy Global", value: "0ms", desc: "Zero infrastructure setup. Global availability from day one." }
+          ].map((card, i) => (
+            <div key={i} className="space-y-3">
+              <div className="text-4xl font-black text-white">{card.value}</div>
+              <div className="text-blue-400 font-bold uppercase text-xs tracking-widest">{card.title}</div>
+              <p className="text-sm text-slate-500 leading-relaxed">{card.desc}</p>
             </div>
-          </div>
-        </main>
-      </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 7. Dashboard */}
+      <section className="mb-24 p-8 bg-slate-900/20 border border-slate-800 rounded-3xl">
+        <h2 className="text-2xl font-bold text-white mb-6">Financial Control Center</h2>
+        <ul className="space-y-4">
+          {[
+            "Pinpoint cost leaks by filtering by endpoint, user, or feature.",
+            "Detect expensive requests that don't require high-tier models.",
+            "Real-time audit logs for every cent spent and saved."
+          ].map((text, i) => (
+            <li key={i} className="flex items-start gap-3 text-slate-400">
+              <CheckCircle2 size={20} className="text-blue-500 shrink-0 mt-0.5" />
+              <span>{text}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* 8. Final CTA */}
+      <section className="mt-32 p-16 bg-gradient-to-br from-blue-600 to-indigo-900 rounded-[3rem] text-center shadow-2xl shadow-blue-500/20">
+        <h2 className="text-4xl font-black text-white mb-6">Start saving on every AI request.</h2>
+        <p className="text-blue-100 mb-10 text-lg max-w-xl mx-auto">
+          Join the teams optimizing their AI infrastructure. No credit card required to start.
+        </p>
+        <Link href="/setup" className="inline-block bg-white text-blue-700 px-10 py-5 rounded-2xl font-black text-xl hover:bg-slate-100 transition-all hover:scale-105 active:scale-95 shadow-xl">
+          Get Started Now
+        </Link>
+      </section>
     </div>
   );
 }
