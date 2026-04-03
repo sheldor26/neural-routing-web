@@ -75,11 +75,11 @@ useEffect(() => {
             requests: Number(data.requests_count || 0),
             opt_opportunity_usd: Number(data.optimization_opportunity_usd || 0),
             // PROTECCIÓN: Si recent_decisions no es un array, mandamos uno vacío
-            last_requests: Array.isArray(data.recent_decisions) 
+            last_requests: Array.isArray(data.recent_decisions)
               ? data.recent_decisions.map(log => ({
-                  model: log.model_used || "Neural-Router",
-                  savings: log.savings_percentage || 0,
-                  cost: log.cost_usd || 0
+                  model_used: log.model_used || "Neural-Router",
+                  savings_percentage: log.savings_percentage || 0,
+                  cost_usd: log.cost_usd || 0
                 }))
               : []
           });
@@ -135,9 +135,14 @@ useEffect(() => {
       // Update UI optimistically to reflect live savings and usage
       const newSavings = data.business_metrics?.estimated_gpt4_cost - data.business_metrics?.cost_usd;
       
-      setStats(prev => ({ 
-        ...prev, 
-        last_requests: [data, ...prev.last_requests.slice(0, 4)],
+      const newEntry = {
+        model_used: data.model_used || "Neural-Router",
+        savings_percentage: data.business_metrics?.savings_percentage || 0,
+        cost_usd: data.business_metrics?.cost_usd || 0
+      };
+      setStats(prev => ({
+        ...prev,
+        last_requests: [newEntry, ...prev.last_requests.slice(0, 4)],
         savings: prev.savings + (newSavings > 0 ? newSavings : 0),
         requests: prev.requests + 1
       }));
@@ -332,11 +337,11 @@ useEffect(() => {
                     <div key={i} className="bg-black/40 border border-white/5 p-6 rounded-2xl flex flex-col gap-2 group hover:border-blue-500/30 transition-all">
                         <div className="flex justify-between items-center">
                             <span className="text-[10px] font-black text-blue-500 uppercase italic tracking-tighter">{req.model_used}</span>
-                            <span className="text-[9px] font-black text-emerald-500 italic">-{req.business_metrics?.savings_percentage?.toFixed(1)}% cost</span>
+                            <span className="text-[9px] font-black text-emerald-500 italic">-{Number(req.savings_percentage).toFixed(1)}% cost</span>
                         </div>
                         <div className="flex justify-between items-center text-xs font-mono">
                             <span className="text-zinc-500 italic">Optimized Cost:</span>
-                            <span className="text-white font-bold">${req.business_metrics?.cost_usd?.toFixed(5)}</span>
+                            <span className="text-white font-bold">${Number(req.cost_usd).toFixed(5)}</span>
                         </div>
                     </div>
                 ))}
