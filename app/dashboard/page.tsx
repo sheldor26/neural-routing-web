@@ -39,64 +39,52 @@ export default function Dashboard() {
   const API_BASE = "https://web-production-4f439.up.railway.app";
   
   useEffect(() => { setMounted(true); }, []);
-
 useEffect(() => {
-    // Definimos la función dentro del efecto
     const loadData = async () => {
-      if (!isLoaded || !user || !mounted) return;
+      // 1. Verificación de seguridad
+      if (!isLoaded || !user || !mounted) {
+        console.log("⏳ Dashboard esperando a Clerk/Montaje...");
+        return;
+      }
 
       try {
         setLoading(true);
-        const token = await getToken({ template: 'supabase' });
-        
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          { global: { headers: { Authorization: `Bearer ${token}` } } }
-        );
+        console.log("🚀 Intentando conectar con Railway en:", `${API_BASE}/v1/user-stats/${user.id}`);
 
-        // 1. Traer API Key de Supabase
-        const { data: dbData, error: dbError } = await supabase
-          .from('api_keys')
-          .select('key, plan') 
-          .eq('user_id', String(user.id))
-          .maybeSingle();
-        
-        if (dbData) setApiData(dbData);
-
-        // 2. Traer Stats de Railway
+        // 2. Pedir datos a Railway
         const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`);
         
         if (res.ok) {
           const data = await res.json();
-          
-          // Actualizamos los números grandes (Accumulated Savings)
+          console.log("✅ DATOS RECIBIDOS:", data);
+
+          // 3. Sincronizar estados
           setStats({
             savings: Number(data.total_savings || 0),
             requests: Number(data.requests_count || 0),
             opt_opportunity_usd: Number(data.optimization_opportunity_usd || 0),
-            last_requests: data.recent_decisions || [] // Esto llena los cuadros de abajo
+            last_requests: data.recent_decisions || []
           });
 
-          // Actualizamos la Barra de Progreso y Créditos
           setUsageData({
             used: Number(data.requests_count || 0),
-            max: Number(data.total_tokens_limit || 50000), 
+            max: Number(data.total_tokens_limit || 50000),
             planName: data.plan || "Free Tier",
             credits: Number(data.credits || 0)
           });
+        } else {
+          console.error("❌ Railway respondió con error:", res.status);
         }
-      } catch (e) { 
-        console.error("Dashboard Sync Error:", e); 
-      } finally { 
-        setLoading(false); 
+      } catch (e) {
+        console.error("❌ FALLO CRÍTICO DE RED:", e);
+      } finally {
+        setLoading(false);
       }
     };
 
-    // LLAMAMOS a la función
     loadData();
+  }, [isLoaded, user?.id, mounted]); // Dependencias clave
 
-  }, [isLoaded, user?.id, mounted, getToken]); // Dependencias correctas
   const runLiveTest = async () => {
     if (!testPrompt.trim()) return;
     setTestLoading(true);
