@@ -181,9 +181,14 @@ const response = await fetch("https://neuralrouting.io/v1/dispatch", {
 
       <FAQ />
 
-      <footer className="py-20 border-t border-zinc-900 text-center opacity-40">
-        <div className="text-zinc-700 text-[10px] font-black uppercase tracking-[0.5em] italic">
+      <footer className="py-20 border-t border-zinc-900 text-center">
+        <div className="text-zinc-700 text-[10px] font-black uppercase tracking-[0.5em] italic mb-4">
           © 2026 NeuralRouting.io — Built for the Intelligent Enterprise.
+        </div>
+        <div className="flex items-center justify-center gap-6 text-[9px] font-black uppercase tracking-widest opacity-40">
+          <a href="/terms" className="text-zinc-600 hover:text-zinc-400 transition-colors">Terms of Service</a>
+          <span className="text-zinc-800">·</span>
+          <a href="/privacy" className="text-zinc-600 hover:text-zinc-400 transition-colors">Privacy Policy</a>
         </div>
       </footer>
     </div>
