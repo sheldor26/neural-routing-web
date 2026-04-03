@@ -1,7 +1,8 @@
 "use client";
 import { useState, useMemo, useEffect } from 'react';
 import { Loader2, CheckCircle2, AlertCircle, Zap, DollarSign, TrendingUp, Brain, ArrowRight, MousePointer2, Sparkles, ShieldCheck, ZapOff } from 'lucide-react';
-import { useUser } from '@clerk/nextjs';
+import { useUser, useAuth } from '@clerk/nextjs';
+import { createClient } from '@supabase/supabase-js';
 
 interface RoutingResult {
   status: string;
@@ -16,18 +17,18 @@ interface RoutingResult {
 }
 
 export default function Playground() {
-  const { isLoaded } = useUser();
+  const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState<RoutingResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadingStep, setLoadingStep] = useState(0);
-  const [monthlyVolume, setMonthlyVolume] = useState(1000000); 
+  const [monthlyVolume, setMonthlyVolume] = useState(1000000);
+  const [apiKey, setApiKey] = useState<string | null>(null);
 
   const API_BASE = "https://web-production-4f439.up.railway.app";
-  const PUBLIC_KEY = process.env.NEXT_PUBLIC_API_KEY || "nr-dev-secret-123";
 
-  // ✅ SIMPLIFIED QUICK PROMPTS (Business-ready English)
   const QUICK_PROMPTS = [
     { label: "Summarize Text", prompt: "Summarize this text in 3 key bullet points for a quick update." },
     { label: "Fix Email", prompt: "Correct the grammar and make this email sound more professional and polite." },
@@ -39,6 +40,29 @@ export default function Playground() {
       setPrompt(QUICK_PROMPTS[0].prompt);
     }
   }, []);
+
+  useEffect(() => {
+    const fetchKey = async () => {
+      if (!isLoaded || !user) return;
+      try {
+        const token = await getToken({ template: 'supabase' });
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          { global: { headers: { Authorization: `Bearer ${token}` } } }
+        );
+        const { data } = await supabase
+          .from('api_keys')
+          .select('key')
+          .eq('user_id', String(user.id))
+          .maybeSingle();
+        if (data?.key) setApiKey(data.key);
+      } catch (e) {
+        console.error('Failed to fetch API key:', e);
+      }
+    };
+    fetchKey();
+  }, [isLoaded, user?.id]);
 
   const metrics = useMemo(() => {
     if (!result) return { yearlySavings: 0, efficiency: 0, gpt4Yearly: 0, nrYearly: 0, monthlyLoss: 0 };
@@ -79,10 +103,9 @@ export default function Playground() {
     try {
       const response = await fetch(`${API_BASE}/v1/dispatch`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-API-KEY": PUBLIC_KEY },
-        body: JSON.stringify({ 
-          messages: [{ role: "user", content: finalPrompt.trim() }],
-          user_id: "juan_dev_34"
+        headers: { "Content-Type": "application/json", "X-API-KEY": apiKey || "" },
+        body: JSON.stringify({
+          messages: [{ role: "user", content: finalPrompt.trim() }]
         })
       });
       const data = await response.json();
