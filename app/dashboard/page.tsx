@@ -19,7 +19,6 @@ export default function Dashboard() {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   
-  // Custom Notification State
   const [notification, setNotification] = useState<{msg: string, type: 'error' | 'success'} | null>(null);
 
   const [usageData, setUsageData] = useState({
@@ -36,6 +35,7 @@ export default function Dashboard() {
     savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] as any[]
   });
 
+  // URL de tu API en Railway
   const API_BASE = "https://web-production-4f439.up.railway.app";
   
   useEffect(() => { setMounted(true); }, []);
@@ -52,7 +52,7 @@ export default function Dashboard() {
           { global: { headers: { Authorization: `Bearer ${token}` } } }
         );
 
-        // 1. Fetch API Key (Needed for the Dispatch calls)
+        // 1. Fetch API Key desde Supabase
         const { data: dbData, error: dbError } = await supabase
           .from('api_keys')
           .select('key, plan') 
@@ -62,7 +62,7 @@ export default function Dashboard() {
         if (dbError) throw dbError;
         if (dbData) setApiData(dbData);
 
-        // 2. Fetch Unified Stats & Balance from Railway
+        // 2. Fetch Estadísticas Reales desde Railway
         const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`);
 
         if (res.ok) {
@@ -75,14 +75,14 @@ export default function Dashboard() {
             last_requests: data.recent_decisions?.slice(0, 5) || []
           });
 
+          // ACTUALIZACIÓN: Mapeo de UsageData con datos de la API
           setUsageData({
-            used: Number(data.total_tokens_consumed || 0),
-            max: Number(data.total_tokens_limit || 50000),
+            used: Number(data.requests_count || 0),
+            max: Number(data.requests_limit || 50000), 
             planName: data.plan || "Free Tier",
             credits: Number(data.credits || 0)
           });
         } else if (res.status === 404) {
-          // New User fallback (while Trigger/Sync finishes)
           setStats({ savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] });
           setUsageData({ used: 0, max: 50000, planName: "Free Tier", credits: 5.00 });
         }
@@ -116,7 +116,7 @@ export default function Dashboard() {
       const data = await res.json();
 
       if (res.status === 402) {
-        setNotification({ msg: "Free Tier reached. Upgrade to continue.", type: 'error' });
+        setNotification({ msg: "Insufficient balance. Please upgrade.", type: 'error' });
         return;
       }
 
@@ -125,15 +125,19 @@ export default function Dashboard() {
       setTestResult(data);
       setNotification({ msg: "Route optimized successfully!", type: 'success' });
       
-      // Update local stats optimistically
+      // Actualización optimista de la UI
       setStats(prev => ({ 
         ...prev, 
         last_requests: [data, ...prev.last_requests.slice(0, 4)],
-        savings: prev.savings + (data.business_metrics?.savings_usd || 0),
+        savings: prev.savings + (data.business_metrics?.cost_usd ? (data.business_metrics.estimated_gpt4_cost - data.business_metrics.cost_usd) : 0),
         requests: prev.requests + 1
       }));
       
-      setUsageData(prev => ({ ...prev, used: prev.used + 1 }));
+      setUsageData(prev => ({ 
+        ...prev, 
+        used: prev.used + 1,
+        credits: prev.credits - (data.business_metrics?.cost_usd || 0)
+      }));
 
       setTimeout(() => setNotification(null), 4000);
 
@@ -222,7 +226,7 @@ export default function Dashboard() {
                       </div>
                   </div>
                   <div className="px-6 py-3 bg-emerald-500 text-black text-[10px] font-black uppercase italic rounded-xl shadow-lg shadow-emerald-500/20 font-bold">
-                     Saved {testResult.business_metrics?.savings_percentage?.toFixed(1)}%
+                       Saved {testResult.business_metrics?.savings_percentage?.toFixed(1)}%
                   </div>
               </div>
             )}
@@ -242,26 +246,32 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* USAGE & CREDENTIALS */}
+        {/* USAGE & CREDENTIALS - ESTA ES LA SECCIÓN QUE ACTUALIZAMOS */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-6 shadow-inner">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-white font-black italic uppercase text-lg tracking-tight tracking-tighter italic">Usage <span className="text-blue-600">& Limits</span></h3>
+                    <h3 className="text-white font-black italic uppercase text-lg tracking-tighter">Usage <span className="text-blue-600">& Limits</span></h3>
                     <Sparkles size={18} className="text-blue-500 animate-pulse" />
                 </div>
                 <div className="space-y-4">
                     <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-500 italic">
                         <span>{usageData.used.toLocaleString()} Requests used</span>
                         <span className={usageData.used > usageData.max * 0.9 ? "text-red-500" : "text-emerald-500"}>
-                            {usageData.planName === "Business" ? "Unlimited Access" : `${((usageData.used / usageData.max) * 100).toFixed(1)}% of plan`}
+                            {usageData.planName === "Business" ? "Unlimited Access" : `${Math.round((usageData.used / usageData.max) * 100)}% of plan`}
                         </span>
                     </div>
+                    {/* BARRA DE PROGRESO DINÁMICA */}
                     <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
-                        <div className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-1000" style={{ width: `${usageData.planName === "Business" ? 100 : Math.min((usageData.used / usageData.max) * 100, 100)}%` }} />
+                        <div 
+                          className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-1000 ease-out" 
+                          style={{ width: `${usageData.planName === "Business" ? 100 : Math.min((usageData.used / usageData.max) * 100, 100)}%` }} 
+                        />
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em] italic">Available Balance</span>
-                        <span className="text-sm font-black text-white italic">${usageData.credits.toFixed(2)} USD</span>
+                        <span className="text-xl font-black text-white italic tracking-tighter">
+                          ${usageData.credits.toFixed(2)} <span className="text-[10px] text-zinc-500 not-italic uppercase">USD</span>
+                        </span>
                     </div>
                 </div>
                 <button className="w-full py-4 bg-white text-black rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-all font-bold">
@@ -271,7 +281,7 @@ export default function Dashboard() {
 
             <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-8 shadow-inner">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-white font-black italic uppercase text-lg tracking-tight tracking-tighter italic">Ready to <span className="text-blue-600">Integrate</span></h3>
+                  <h3 className="text-white font-black italic uppercase text-lg tracking-tighter">Ready to <span className="text-blue-600">Integrate</span></h3>
                   <button className="text-[10px] font-black uppercase text-blue-500 flex items-center gap-2 hover:underline font-bold">
                     View Docs <ExternalLink size={12}/>
                   </button>
@@ -299,7 +309,7 @@ export default function Dashboard() {
         <div className="bg-zinc-900/10 border border-zinc-800 rounded-[2.5rem] p-10 space-y-6 backdrop-blur-md">
             <div className="flex items-center gap-3">
               <History size={20} className="text-blue-600" />
-              <h3 className="text-white font-black italic uppercase text-lg tracking-tight tracking-tighter italic">Recent <span className="text-blue-600">Optimizations</span></h3>
+              <h3 className="text-white font-black italic uppercase text-lg tracking-tighter">Recent <span className="text-blue-600">Optimizations</span></h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {stats.last_requests.map((req, i) => (
@@ -320,7 +330,7 @@ export default function Dashboard() {
             </div>
         </div>
 
-        {/* NEURAL NOTIFICATION SYSTEM */}
+        {/* NOTIFICATION SYSTEM */}
         {notification && (
           <div className="fixed bottom-10 right-10 z-[100] animate-in fade-in slide-in-from-right-10 duration-500">
             <div className={`relative p-[1.5px] rounded-2xl bg-gradient-to-br ${notification.type === 'error' ? 'from-red-500/80 via-red-500/20 to-transparent shadow-[0_0_30px_-10px_rgba(239,68,68,0.5)]' : 'from-blue-600/80 via-blue-400/20 to-transparent shadow-[0_0_30px_-10px_rgba(37,99,235,0.5)]'}`}>
