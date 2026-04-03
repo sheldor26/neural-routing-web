@@ -52,6 +52,7 @@ export default function FullChatPage() {
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const supabaseRef = useRef<any>(null);
   const API_BASE = "https://web-production-4f439.up.railway.app";
 
   const fetchUserStats = async (apiKey?: string) => {
@@ -78,6 +79,7 @@ export default function FullChatPage() {
       if (!isLoaded || !user) return;
       const token = await getToken({ template: 'supabase' });
       const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { global: { headers: { Authorization: `Bearer ${token}` } } });
+      supabaseRef.current = supabase;
       const { data } = await supabase.from('api_keys').select('key').eq('user_id', user.id).maybeSingle();
       if (data?.key) {
         setUserApiKey(data.key);
@@ -99,6 +101,18 @@ export default function FullChatPage() {
     }
   }, [messages, isTyping]);
 
+  const saveMessage = async (sessionId: string, role: 'user' | 'assistant', content: string) => {
+    if (!supabaseRef.current || !user) return;
+    try {
+      await supabaseRef.current.from('chat_messages').insert({
+        session_id: sessionId,
+        role,
+        content,
+        user_id: user.id
+      });
+    } catch (e) { console.error('Failed to save message:', e); }
+  };
+
   const handleSendMessage = async (overridePrompt?: string, modeOverride?: RoutingMode) => {
     const prompt = overridePrompt || input;
     let activeMode = modeOverride || routingMode;
@@ -112,6 +126,7 @@ export default function FullChatPage() {
     setMessages(prev => [...prev, { role: 'user', content: prompt }]);
     setInput("");
     setIsTyping(true);
+    await saveMessage(currentSessionId, 'user', prompt);
 
     try {
       const response = await fetch(`${API_BASE}/v1/dispatch`, {
@@ -151,6 +166,7 @@ export default function FullChatPage() {
         }]);
 
         setSessionSaved(prev => prev + Math.max(0, gpt4Ref - actualCost));
+        await saveMessage(currentSessionId, 'assistant', data.output.ai_answer);
         await fetchUserStats();
       }
     } catch (e) {
@@ -207,7 +223,7 @@ export default function FullChatPage() {
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col relative bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent">
+      <main className="flex-1 flex flex-col overflow-hidden bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent">
         
         {/* HEADER */}
         <header className="h-24 border-b border-white/5 flex items-center justify-between px-6 md:px-8 backdrop-blur-3xl z-20">
@@ -234,8 +250,8 @@ export default function FullChatPage() {
            <UserButton afterSignOutUrl="/" />
         </header>
 
-        {/* CHAT AREA - ✅ Fix pb-52 para evitar solapamiento con el input */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-10 space-y-20 max-w-5xl mx-auto w-full pt-12 scrollbar-hide pb-52">
+        {/* CHAT AREA */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-10 space-y-20 max-w-5xl mx-auto w-full pt-12 scrollbar-hide pb-8">
           
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center py-24 text-center space-y-10 animate-in fade-in duration-1000">
@@ -342,8 +358,8 @@ export default function FullChatPage() {
           )}
         </div>
 
-        {/* ✅ INPUT AREA - Ajuste de Z-Index, degradado y responsive del botón */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-[#050506] via-[#050506]/90 to-transparent z-40">
+        {/* INPUT AREA */}
+        <div className="flex-shrink-0 p-4 md:p-8 bg-gradient-to-t from-[#050506] via-[#050506]/95 to-transparent">
           <div className="max-w-4xl mx-auto relative group">
             <textarea 
               ref={textareaRef} 
