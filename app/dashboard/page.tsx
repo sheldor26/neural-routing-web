@@ -260,8 +260,11 @@ export default function Dashboard() {
                         <span>{usageData.used.toLocaleString()} Requests used</span>
                         <span className={usageData.used > usageData.max * 0.9 ? "text-red-500" : "text-emerald-500"}>
                             {usageData.planName === "Business" 
-                              ? "Unlimited Access" 
-                              : `${((usageData.used / usageData.max) * 100).toFixed(1)}% of plan`}
+  ? "Unlimited Access" 
+  : usageData.used > 0 && (usageData.used / usageData.max) * 100 < 0.01
+    ? "> 0.01% of plan" // Muestra que hay actividad aunque sea mínima
+    : `${((usageData.used / usageData.max) * 100).toFixed(2)}% of plan`
+}
                         </span>
                     </div>
                     {/* DYNAMIC PROGRESS BAR */}
