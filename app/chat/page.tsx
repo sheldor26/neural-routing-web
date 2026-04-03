@@ -50,9 +50,16 @@ export default function FullChatPage() {
   const [lastApplied, setLastApplied] = useState<string | null>(null);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
   
+  const [sessions, setSessions] = useState<{id: string, preview: string}[]>([]);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const supabaseRef = useRef<any>(null);
+  // Anon client for chat_messages (RLS disabled — no JWT needed)
+  const anonSupabase = useRef(createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  ));
   const API_BASE = "https://web-production-4f439.up.railway.app";
 
   const fetchUserStats = async (apiKey?: string) => {
@@ -101,9 +108,35 @@ export default function FullChatPage() {
     }
   }, [messages, isTyping]);
 
+  // Load session history from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('nr_chat_sessions');
+    if (stored) setSessions(JSON.parse(stored));
+  }, []);
+
+  const persistSession = (id: string, preview: string) => {
+    const stored = localStorage.getItem('nr_chat_sessions');
+    const existing: {id: string, preview: string}[] = stored ? JSON.parse(stored) : [];
+    const updated = [{ id, preview: preview.slice(0, 55) }, ...existing.filter(s => s.id !== id)].slice(0, 15);
+    localStorage.setItem('nr_chat_sessions', JSON.stringify(updated));
+    setSessions(updated);
+  };
+
+  const loadSession = async (id: string) => {
+    const { data, error } = await anonSupabase.current.from('chat_messages')
+      .select('role, content')
+      .eq('session_id', id)
+      .order('created_at');
+    if (error) { console.error('Failed to load session:', error.message); return; }
+    if (data) {
+      setMessages(data.map((m: any) => ({ role: m.role as 'user' | 'assistant', content: m.content })));
+      setSessionId(id);
+      setSessionSaved(0);
+    }
+  };
+
   const saveMessage = async (sessionId: string, role: 'user' | 'assistant', content: string) => {
-    if (!supabaseRef.current || !user) return;
-    const { error } = await supabaseRef.current.from('chat_messages').insert({
+    const { error } = await anonSupabase.current.from('chat_messages').insert({
       session_id: sessionId,
       role,
       content,
@@ -124,6 +157,7 @@ export default function FullChatPage() {
     setMessages(prev => [...prev, { role: 'user', content: prompt }]);
     setInput("");
     setIsTyping(true);
+    if (!sessionId) persistSession(currentSessionId, prompt);
     await saveMessage(currentSessionId, 'user', prompt);
 
     try {
@@ -202,6 +236,25 @@ export default function FullChatPage() {
         </div>
 
         <div className="flex-1 p-8 space-y-8 overflow-y-auto scrollbar-hide">
+
+           {/* SESSION HISTORY */}
+           {sessions.length > 0 && (
+             <div className="space-y-2">
+               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Recent Chats</span>
+               <div className="space-y-1">
+                 {sessions.map(s => (
+                   <button
+                     key={s.id}
+                     onClick={() => loadSession(s.id)}
+                     className={`w-full text-left px-3 py-2.5 rounded-xl border transition-all group ${sessionId === s.id ? 'bg-blue-600/10 border-blue-500/20 text-white' : 'border-transparent text-zinc-600 hover:bg-zinc-900/60 hover:text-zinc-300'}`}
+                   >
+                     <p className="text-[10px] font-bold truncate leading-snug">{s.preview}</p>
+                   </button>
+                 ))}
+               </div>
+             </div>
+           )}
+
            <div className="space-y-4">
               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Routing Strategy</span>
               <div className="grid grid-cols-1 gap-2">
