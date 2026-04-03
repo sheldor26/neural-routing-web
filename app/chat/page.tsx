@@ -1,9 +1,9 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
-import { 
-  Plus, Send, LayoutDashboard, Sparkles, ArrowUpRight, 
+import {
+  Plus, Send, LayoutDashboard, Sparkles, ArrowUpRight,
   Copy, RefreshCcw, ShieldCheck, DollarSign, Terminal,
-  Zap, Coins, CheckCircle2, ChevronDown, AlertCircle, TrendingDown, Lightbulb, MousePointerClick
+  Zap, Coins, CheckCircle2, ChevronDown, AlertCircle, TrendingDown, Lightbulb, MousePointerClick, Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 import { useUser, UserButton, useAuth } from "@clerk/nextjs";
@@ -44,6 +44,7 @@ export default function FullChatPage() {
   const [sessionId, setSessionId] = useState<string>("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [userApiKey, setUserApiKey] = useState<string | null>(null);
+  const [keyLoading, setKeyLoading] = useState(true);
   
   const [stats, setStats] = useState({ total_saved: 0, best_saving: 0, avg_saving: 0 });
   const [sessionSaved, setSessionSaved] = useState(0);
@@ -82,15 +83,23 @@ export default function FullChatPage() {
   };
 
   useEffect(() => {
+    if (!isLoaded) return;
+    if (!user) { setKeyLoading(false); return; }
     async function init() {
-      if (!isLoaded || !user) return;
-      const token = await getToken({ template: 'supabase' });
-      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { global: { headers: { Authorization: `Bearer ${token}` } } });
-      supabaseRef.current = supabase;
-      const { data } = await supabase.from('api_keys').select('key').eq('user_id', user.id).maybeSingle();
-      if (data?.key) {
-        setUserApiKey(data.key);
-        await fetchUserStats(data.key);
+      try {
+        const token = await getToken({ template: 'supabase' });
+        const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { global: { headers: { Authorization: `Bearer ${token}` } } });
+        supabaseRef.current = supabase;
+        const { data, error } = await supabase.from('api_keys').select('key').eq('user_id', user!.id).maybeSingle();
+        if (error) console.error('Failed to fetch API key:', error.message);
+        if (data?.key) {
+          setUserApiKey(data.key);
+          await fetchUserStats(data.key);
+        }
+      } catch (e) {
+        console.error('Init failed:', e);
+      } finally {
+        setKeyLoading(false);
       }
     }
     init();
@@ -425,14 +434,19 @@ export default function FullChatPage() {
               className="w-full bg-[#0a0a0b] border border-white/10 rounded-2xl md:rounded-[3.5rem] p-5 md:p-8 pr-16 md:pr-28 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 outline-none resize-none shadow-3xl backdrop-blur-3xl transition-all max-h-[250px] text-white placeholder:text-zinc-800" 
               rows={1} 
             />
-            <button 
-              onClick={() => handleSendMessage()} 
-              disabled={isTyping || !input.trim() || !userApiKey} 
+            <button
+              onClick={() => handleSendMessage()}
+              disabled={isTyping || !input.trim() || !userApiKey || keyLoading}
               className="absolute right-3 bottom-3 md:right-5 md:bottom-5 h-10 w-10 md:h-16 md:w-16 bg-blue-600 rounded-full md:rounded-[2rem] flex items-center justify-center hover:scale-110 active:scale-95 disabled:opacity-30 transition-all text-white shadow-2xl z-50"
             >
-              <Send className="w-5 h-5 md:w-7 md:h-7" strokeWidth={3} />
+              {keyLoading ? <Loader2 className="w-5 h-5 md:w-6 md:h-6 animate-spin" /> : <Send className="w-5 h-5 md:w-7 md:h-7" strokeWidth={3} />}
             </button>
           </div>
+          {!keyLoading && !userApiKey && (
+            <p className="text-center text-[10px] font-black text-red-500/60 uppercase tracking-widest mt-3">
+              No API key found — <a href="/setup" className="underline hover:text-red-400 transition-colors">get one here</a>
+            </p>
+          )}
         </div>
       </main>
     </div>
