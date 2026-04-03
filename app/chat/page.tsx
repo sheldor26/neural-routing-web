@@ -3,8 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { 
   Plus, Send, LayoutDashboard, Sparkles, ArrowUpRight, 
   Copy, RefreshCcw, ShieldCheck, DollarSign, Terminal,
-  Zap, Coins, CheckCircle2, ChevronDown, AlertCircle, TrendingDown, Lightbulb, MousePointerClick,
-  Wand2, ZapOff
+  Zap, Coins, CheckCircle2, ChevronDown, AlertCircle, TrendingDown, Lightbulb, MousePointerClick
 } from 'lucide-react';
 import Link from 'next/link';
 import { useUser, UserButton, useAuth } from "@clerk/nextjs";
@@ -41,7 +40,7 @@ export default function FullChatPage() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [routingMode, setRoutingMode] = useState<RoutingMode>('Auto');
-  const [autoOptimize, setAutoOptimize] = useState(false); // 🔥 EL TOGGLE INSANO
+  const [autoOptimize, setAutoOptimize] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [userApiKey, setUserApiKey] = useState<string | null>(null);
@@ -81,6 +80,18 @@ export default function FullChatPage() {
     }
     init();
   }, [isLoaded, user]);
+
+  // ✅ Auto-scroll con delay para asegurar renderizado de Markdown
+  useEffect(() => {
+    if (scrollRef.current) {
+      setTimeout(() => {
+        scrollRef.current?.scrollTo({ 
+          top: scrollRef.current.scrollHeight, 
+          behavior: 'smooth' 
+        });
+      }, 100);
+    }
+  }, [messages, isTyping]);
 
   const handleSendMessage = async (overridePrompt?: string, modeOverride?: RoutingMode) => {
     const prompt = overridePrompt || input;
@@ -153,7 +164,6 @@ export default function FullChatPage() {
              </div>
           </div>
           
-          {/* AUTO-OPTIMIZE TOGGLE (INSANO) */}
           <div className={`p-4 rounded-2xl border transition-all flex items-center justify-between ${autoOptimize ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-zinc-900/50 border-white/5'}`}>
              <div className="flex flex-col">
                <span className={`text-[9px] font-black uppercase ${autoOptimize ? 'text-emerald-500' : 'text-zinc-500'}`}>Auto-Optimize</span>
@@ -216,8 +226,8 @@ export default function FullChatPage() {
            <UserButton afterSignOutUrl="/" />
         </header>
 
-        {/* CHAT AREA */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-10 space-y-20 max-w-5xl mx-auto w-full pt-12 scrollbar-hide pb-40">
+        {/* CHAT AREA - ✅ Fix pb-52 para evitar solapamiento con el input */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 md:p-10 space-y-20 max-w-5xl mx-auto w-full pt-12 scrollbar-hide pb-52">
           
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center py-24 text-center space-y-10 animate-in fade-in duration-1000">
@@ -237,7 +247,6 @@ export default function FullChatPage() {
               <div className={`flex gap-4 max-w-[98%] md:max-w-[85%] ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                 <div className={`p-6 md:p-10 rounded-2xl md:rounded-[3rem] relative shadow-2xl transition-all ${m.role === 'user' ? 'bg-zinc-900 border border-white/10 text-white rounded-tr-none' : 'bg-[#0a0a0b] border border-white/5 text-zinc-200 rounded-tl-none'}`}>
                   
-                  {/* SAVINGS BADGE */}
                   {m.role === 'assistant' && m.stats && (
                     <div className="absolute -top-3 left-4 md:left-10 bg-emerald-500 text-black px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-2xl">
                       <TrendingDown size={12} strokeWidth={3} /> Saved ${(m.stats.gpt4_cost_ref - m.stats.cost).toFixed(4)} ({m.stats.savings_pct.toFixed(0)}%)
@@ -263,11 +272,8 @@ export default function FullChatPage() {
                     {m.content}
                   </ReactMarkdown>
                   
-                  {/* INSIGHTS & METRICS */}
                   {m.role === 'assistant' && m.stats && (
                     <div className="mt-12 pt-12 border-t border-white/5 space-y-10">
-                      
-                      {/* NEURAL INSIGHT - INSANO VERSION */}
                       {m.stats.insight && (
                         <div className="bg-blue-600/5 border border-blue-500/20 p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 group relative overflow-hidden">
                           <div className="flex items-center gap-5 relative z-10">
@@ -277,12 +283,11 @@ export default function FullChatPage() {
                               <p className="text-[10px] text-zinc-400 font-medium">Based on {m.stats.insight.reason}, switching to <strong>{m.stats.insight.recommended_mode} Mode</strong> could save an extra <strong>{m.stats.insight.extra_savings}%</strong>.</p>
                             </div>
                           </div>
-                          
                           <button 
                             onClick={() => { setRoutingMode(m.stats?.insight?.recommended_mode || 'Auto'); handleSendMessage(`Switch to ${m.stats?.insight?.recommended_mode} and optimize.`, m.stats?.insight?.recommended_mode); setLastApplied(i.toString()); }} 
                             className={`text-[10px] font-black uppercase px-6 py-3 rounded-2xl transition-all flex items-center gap-2 relative z-10 ${lastApplied === i.toString() ? 'bg-emerald-500 text-black' : 'bg-blue-600 text-white hover:bg-blue-500'}`}
                           >
-                            {lastApplied === i.toString() ? <>Applied <CheckCircle2 size={14} /></> : <>Switch to {m.stats.insight.recommended_mode} Mode <MousePointerClick size={14} /></>}
+                            {lastApplied === i.toString() ? <>Applied <CheckCircle2 size={14} /></> : <>Switch Mode <MousePointerClick size={14} /></>}
                           </button>
                         </div>
                       )}
@@ -320,8 +325,8 @@ export default function FullChatPage() {
           )}
         </div>
 
-        {/* INPUT AREA */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 bg-gradient-to-t from-[#050506] via-[#050506] to-transparent z-30">
+        {/* ✅ INPUT AREA - Ajuste de Z-Index, degradado y responsive del botón */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-[#050506] via-[#050506]/90 to-transparent z-40">
           <div className="max-w-4xl mx-auto relative group">
             <textarea 
               ref={textareaRef} 
@@ -329,15 +334,15 @@ export default function FullChatPage() {
               onChange={(e) => setInput(e.target.value)} 
               onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}} 
               placeholder="Ask anything. We'll optimize cost in real time." 
-              className="w-full bg-[#0a0a0b] border border-white/10 rounded-[2.5rem] md:rounded-[3.5rem] p-8 pr-28 text-sm focus:border-blue-500 focus:ring-8 focus:ring-blue-500/5 outline-none resize-none shadow-3xl backdrop-blur-3xl transition-all max-h-[350px] text-white placeholder:text-zinc-800" 
+              className="w-full bg-[#0a0a0b] border border-white/10 rounded-2xl md:rounded-[3.5rem] p-5 md:p-8 pr-16 md:pr-28 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 outline-none resize-none shadow-3xl backdrop-blur-3xl transition-all max-h-[250px] text-white placeholder:text-zinc-800" 
               rows={1} 
             />
             <button 
               onClick={() => handleSendMessage()} 
               disabled={isTyping || !input.trim() || !userApiKey} 
-              className="absolute right-5 bottom-5 p-6 bg-blue-600 rounded-3xl md:rounded-[2.5rem] hover:scale-110 active:scale-95 disabled:opacity-30 transition-all text-white shadow-2xl"
+              className="absolute right-3 bottom-3 md:right-5 md:bottom-5 h-10 w-10 md:h-16 md:w-16 bg-blue-600 rounded-full md:rounded-[2rem] flex items-center justify-center hover:scale-110 active:scale-95 disabled:opacity-30 transition-all text-white shadow-2xl z-50"
             >
-              <Send size={28} strokeWidth={3} />
+              <Send className="w-5 h-5 md:w-7 md:h-7" strokeWidth={3} />
             </button>
           </div>
         </div>
