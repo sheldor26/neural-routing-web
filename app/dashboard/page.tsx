@@ -41,24 +41,38 @@ export default function Dashboard() {
   useEffect(() => { setMounted(true); }, []);
 useEffect(() => {
     const loadData = async () => {
-      // 1. Verificación de seguridad
-      if (!isLoaded || !user || !mounted) {
-        console.log("⏳ Dashboard esperando a Clerk/Montaje...");
-        return;
-      }
+      if (!isLoaded || !user || !mounted) return;
 
       try {
         setLoading(true);
-        console.log("🚀 Intentando conectar con Railway en:", `${API_BASE}/v1/user-stats/${user.id}`);
 
-        // 2. Pedir datos a Railway
+        // --- 1. CONEXIÓN CON SUPABASE PARA TRAER LA KEY (ESTO FALTABA) ---
+        const token = await getToken({ template: 'supabase' });
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          { global: { headers: { Authorization: `Bearer ${token}` } } }
+        );
+
+        const { data: dbData, error: dbError } = await supabase
+          .from('api_keys')
+          .select('key, plan') 
+          .eq('user_id', String(user.id))
+          .maybeSingle();
+        
+        if (dbData) {
+          setApiData(dbData); // ✅ Esto llena el "Ready to Integrate" y habilita el dispatch
+        } else {
+          console.warn("No se encontró API Key en Supabase para este user_id");
+        }
+        // -------------------------------------------------------------
+
+        // 2. Pedir datos a Railway (Lo que ya tenías)
         const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`);
         
         if (res.ok) {
           const data = await res.json();
-          console.log("✅ DATOS RECIBIDOS:", data);
-
-          // 3. Sincronizar estados
+          
           setStats({
             savings: Number(data.total_savings || 0),
             requests: Number(data.requests_count || 0),
@@ -72,19 +86,17 @@ useEffect(() => {
             planName: data.plan || "Free Tier",
             credits: Number(data.credits || 0)
           });
-        } else {
-          console.error("❌ Railway respondió con error:", res.status);
         }
       } catch (e) {
-        console.error("❌ FALLO CRÍTICO DE RED:", e);
+        console.error("Dashboard Sync Error:", e);
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, [isLoaded, user?.id, mounted]); // Dependencias clave
-
+  }, [isLoaded, user?.id, mounted, getToken]);
+  
   const runLiveTest = async () => {
     if (!testPrompt.trim()) return;
     setTestLoading(true);
