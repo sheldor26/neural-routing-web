@@ -54,10 +54,14 @@ export default function FullChatPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const API_BASE = "https://web-production-4f439.up.railway.app";
 
-  const fetchUserStats = async () => {
+  const fetchUserStats = async (apiKey?: string) => {
     if (!user) return;
+    const key = apiKey || userApiKey;
+    if (!key) return;
     try {
-      const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`);
+      const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`, {
+        headers: { 'X-API-KEY': key }
+      });
       if (res.ok) {
         const data = await res.json();
         setStats({
@@ -75,8 +79,10 @@ export default function FullChatPage() {
       const token = await getToken({ template: 'supabase' });
       const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { global: { headers: { Authorization: `Bearer ${token}` } } });
       const { data } = await supabase.from('api_keys').select('key').eq('user_id', user.id).maybeSingle();
-      if (data?.key) setUserApiKey(data.key);
-      await fetchUserStats();
+      if (data?.key) {
+        setUserApiKey(data.key);
+        await fetchUserStats(data.key);
+      }
     }
     init();
   }, [isLoaded, user]);
@@ -124,28 +130,30 @@ export default function FullChatPage() {
       });
 
       const data = await response.json();
-      
-      if (data.output?.ai_answer) {
+
+      if (!response.ok) {
+        setErrorDetails(data.detail || data.details || `Error ${response.status}`);
+      } else if (data.output?.ai_answer) {
         const actualCost = data.business_metrics?.cost_usd || 0.0001;
-        const gpt4Ref = Math.max(data.business_metrics?.gpt4_cost_reference || 0, actualCost);
-        
+        const gpt4Ref = Math.max(data.business_metrics?.estimated_gpt4_cost || 0, actualCost);
+
         setMessages(prev => [...prev, {
           role: 'assistant',
           content: data.output.ai_answer,
           stats: {
-            model: data.business_metrics?.model_used || "Neural-Router",
+            model: data.model_used || "Neural-Router",
             cost: actualCost,
             gpt4_cost_ref: gpt4Ref,
             savings_pct: data.business_metrics?.savings_percentage || 0,
-            reasoning: data.business_metrics?.routing_reason || "Optimizing infrastructure...",
-            insight: data.business_metrics?.insight || null
+            reasoning: "Optimizing infrastructure...",
+            insight: undefined
           }
         }]);
-        
-        setSessionSaved(prev => prev + (gpt4Ref - actualCost));
-        await fetchUserStats(); 
+
+        setSessionSaved(prev => prev + Math.max(0, gpt4Ref - actualCost));
+        await fetchUserStats();
       }
-    } catch (e) { 
+    } catch (e) {
       setErrorDetails(`Request failed: Check credits or provider availability.`);
     } finally { setIsTyping(false); }
   };
@@ -253,14 +261,15 @@ export default function FullChatPage() {
                     </div>
                   )}
 
-                  <ReactMarkdown 
-                    remarkPlugins={[remarkGfm]} 
-                    className="text-sm md:text-base leading-relaxed prose prose-invert max-w-none"
+                  <div className="text-sm md:text-base leading-relaxed prose prose-invert max-w-none">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
                     components={{
-                      code({node, inline, className, children, ...props}) {
+                      code({node, className, children, ...props}) {
                         const match = /language-(\w+)/.exec(className || '')
-                        return !inline && match ? (
-                          <SyntaxHighlighter style={vscDarkPlus as any} language={match[1]} PreTag="div" {...props}>
+                        const isBlock = match || String(children).includes('\n')
+                        return isBlock ? (
+                          <SyntaxHighlighter style={vscDarkPlus as any} language={match?.[1] || 'text'} PreTag="div">
                             {String(children).replace(/\n$/, '')}
                           </SyntaxHighlighter>
                         ) : (
@@ -271,7 +280,8 @@ export default function FullChatPage() {
                   >
                     {m.content}
                   </ReactMarkdown>
-                  
+                  </div>
+
                   {m.role === 'assistant' && m.stats && (
                     <div className="mt-12 pt-12 border-t border-white/5 space-y-10">
                       {m.stats.insight && (
@@ -321,6 +331,13 @@ export default function FullChatPage() {
                 ))}
               </div>
               <span className="text-blue-500/50 text-[10px] font-black uppercase tracking-[0.5em] italic">Routing to optimal provider...</span>
+            </div>
+          )}
+
+          {errorDetails && (
+            <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">
+              <AlertCircle size={16} className="text-red-500 shrink-0" />
+              <p className="text-sm font-bold text-red-400">{errorDetails}</p>
             </div>
           )}
         </div>
