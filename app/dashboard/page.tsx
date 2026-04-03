@@ -67,19 +67,23 @@ useEffect(() => {
         
         if (res.ok) {
           const data = await res.json();
-          console.log("📊 Dashboard Sync Data:", data); // Para que debugues en consola
+          console.log("📊 DATOS CRUDOS DE RAILWAY:", data);
 
           // Sincronizar Ahorros y Cuadros de Abajo
           setStats({
-            // Usamos los nombres exactos que devuelve tu backend en Python
             savings: Number(data.total_savings || 0),
             requests: Number(data.requests_count || 0),
             opt_opportunity_usd: Number(data.optimization_opportunity_usd || 0),
-            // IMPORTANTE: Si 'recent_decisions' viene vacío, el historial no se ve
-            last_requests: Array.isArray(data.recent_decisions) ? data.recent_decisions : []
+            // PROTECCIÓN: Si recent_decisions no es un array, mandamos uno vacío
+            last_requests: Array.isArray(data.recent_decisions) 
+              ? data.recent_decisions.map(log => ({
+                  model: log.model_used || "Neural-Router",
+                  savings: log.savings_percentage || 0,
+                  cost: log.cost_usd || 0
+                }))
+              : []
           });
 
-          // Sincronizar Barra de Progreso y Créditos
           setUsageData({
             used: Number(data.requests_count || 0),
             max: Number(data.total_tokens_limit || 50000),
@@ -96,7 +100,7 @@ useEffect(() => {
 
     loadData();
   }, [isLoaded, user?.id, mounted, getToken]);
-    
+
   const runLiveTest = async () => {
     if (!testPrompt.trim()) return;
     setTestLoading(true);
