@@ -35,7 +35,7 @@ export default function Dashboard() {
     savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] as any[]
   });
 
-  // Your Railway API URL
+  // Railway Production API URL
   const API_BASE = "https://web-production-4f439.up.railway.app";
   
   useEffect(() => { setMounted(true); }, []);
@@ -62,7 +62,7 @@ export default function Dashboard() {
         if (dbError) throw dbError;
         if (dbData) setApiData(dbData);
 
-        // 2. Fetch Real Stats from Railway
+        // 2. Fetch Real-time Stats from Railway Backend
         const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`);
 
         if (res.ok) {
@@ -82,7 +82,7 @@ export default function Dashboard() {
             credits: Number(data.credits || 0)
           });
         } else if (res.status === 404) {
-          // Fallback for new users
+          // New User default state
           setStats({ savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] });
           setUsageData({ used: 0, max: 50000, planName: "Free Tier", credits: 5.00 });
         }
@@ -125,7 +125,7 @@ export default function Dashboard() {
       setTestResult(data);
       setNotification({ msg: "Route optimized successfully!", type: 'success' });
       
-      // Optimistic UI updates
+      // Update UI optimistically to reflect live savings
       setStats(prev => ({ 
         ...prev, 
         last_requests: [data, ...prev.last_requests.slice(0, 4)],
@@ -159,7 +159,7 @@ export default function Dashboard() {
       <nav className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50 h-20 flex items-center justify-between px-6 md:px-12">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-3">
-              <Zap size(20) className="text-blue-500 fill-blue-500" />
+              <Zap size={20} className="text-blue-500 fill-blue-500" />
               <span className="text-xl font-black italic uppercase tracking-tighter text-white">Neuralrouting.io</span>
             </Link>
           </div>
@@ -179,7 +179,7 @@ export default function Dashboard() {
         <div className="bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl shadow-blue-900/10">
             <div className="space-y-1 text-center md:text-left">
                 <p className="text-[10px] font-black uppercase text-blue-500 tracking-[0.2em]">Step 1: Deployment</p>
-                <h2 className="text-xl font-black italic text-white uppercase italic">Scale your savings to production</h2>
+                <h2 className="text-xl font-black italic text-white uppercase">Scale your savings to production</h2>
             </div>
             <div className="flex flex-wrap justify-center gap-4">
                 <button className="px-8 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2 font-bold">
@@ -238,7 +238,9 @@ export default function Dashboard() {
               <TrendingUp size={160} />
             </div>
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-100 z-10 italic">Accumulated Savings</span>
-            <h3 className="text-7xl font-black italic text-white tracking-tighter z-10">${stats.savings.toFixed(2)}</h3>
+            <h3 className="text-7xl font-black italic text-white tracking-tighter z-10">
+              {loading ? "$0.00" : `$${stats.savings.toFixed(2)}`}
+            </h3>
             <p className="text-[9px] font-bold text-blue-200 uppercase tracking-widest z-10 opacity-70 italic">Total value saved by Neuralrouting</p>
             <button className="mt-4 w-full py-5 bg-white text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 transition-colors z-10 font-bold">
                 Maximize My Savings →
@@ -257,7 +259,9 @@ export default function Dashboard() {
                     <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-500 italic">
                         <span>{usageData.used.toLocaleString()} Requests used</span>
                         <span className={usageData.used > usageData.max * 0.9 ? "text-red-500" : "text-emerald-500"}>
-                            {usageData.planName === "Business" ? "Unlimited Access" : `${((usageData.used / usageData.max) * 100).toFixed(1)}% of plan`}
+                            {usageData.planName === "Business" 
+                              ? "Unlimited Access" 
+                              : `${((usageData.used / usageData.max) * 100).toFixed(1)}% of plan`}
                         </span>
                     </div>
                     {/* DYNAMIC PROGRESS BAR */}
