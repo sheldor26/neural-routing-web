@@ -26,6 +26,7 @@ export default function Playground() {
   const [loadingStep, setLoadingStep] = useState(0);
   const [monthlyVolume, setMonthlyVolume] = useState(1000000);
   const [apiKey, setApiKey] = useState<string | null>(null);
+  const [keyLoading, setKeyLoading] = useState(true);
 
   const API_BASE = "https://web-production-4f439.up.railway.app";
 
@@ -59,6 +60,8 @@ export default function Playground() {
         if (data?.key) setApiKey(data.key);
       } catch (e) {
         console.error('Failed to fetch API key:', e);
+      } finally {
+        setKeyLoading(false);
       }
     };
     fetchKey();
@@ -109,7 +112,7 @@ export default function Playground() {
         })
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.details || "Error");
+      if (!response.ok) throw new Error(data.detail || data.details || `Error ${response.status}`);
       setResult(data);
     } catch (err: any) { setError(err.message); } finally { setLoading(false); }
   };
@@ -167,9 +170,9 @@ export default function Playground() {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
             />
-            <button 
+            <button
               onClick={() => testRoute()}
-              disabled={loading || !prompt}
+              disabled={loading || !prompt || keyLoading || !apiKey}
               className="absolute bottom-4 right-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-30 px-8 py-4 rounded-2xl font-black text-sm text-white transition-all flex items-center gap-3 shadow-xl uppercase tracking-widest active:scale-95"
             >
               {loading ? (
@@ -190,6 +193,13 @@ export default function Playground() {
             <input type="range" min="100000" max="10000000" step="100000" value={monthlyVolume} onChange={(e) => setMonthlyVolume(Number(e.target.value))} className="w-full md:w-64 h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600" />
           </div>
         </div>
+
+        {error && (
+          <div className="mt-6 flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">
+            <AlertCircle size={16} className="text-red-500 shrink-0" />
+            <p className="text-sm font-bold text-red-400">{error}</p>
+          </div>
+        )}
 
         {result && (
           <div className="mt-12 space-y-10 animate-in fade-in zoom-in duration-1000">
