@@ -461,6 +461,7 @@ useEffect(() => {
                     </button>
                   </div>
                 ) : (
+                <>
                 <div className="bg-black/60 border border-zinc-800 rounded-2xl p-6 flex items-center justify-between group hover:border-zinc-700 transition-colors">
                     <div className="flex flex-col">
                       <span className="text-[8px] font-black text-zinc-600 uppercase mb-1 tracking-widest italic">Secret Production Key</span>
@@ -528,6 +529,7 @@ useEffect(() => {
                     </div>
                   )}
                 </div>
+                </>
                 )}
             </div>
         </div>
