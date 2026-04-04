@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   Zap, Play, Loader2, ArrowLeft, CheckCircle2, AlertCircle,
-  Clock, DollarSign, Layers, ChevronDown, ChevronUp, Cpu,
+  Clock, DollarSign, Layers, ChevronDown, ChevronUp, Cpu, Copy,
 } from "lucide-react";
 import { useUser, UserButton, useAuth } from "@clerk/nextjs";
 import { createAuthClient } from "@/lib/supabase";
@@ -102,6 +102,7 @@ export default function WorkflowDetailPage() {
   const [running, setRunning] = useState(false);
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
+  const [copiedStep, setCopiedStep] = useState<number | null>(null);
 
   const [notification, setNotification] = useState<{ msg: string; type: "error" | "success" } | null>(null);
 
@@ -418,12 +419,23 @@ export default function WorkflowDetailPage() {
 
                       {expandedStep === i && (
                         <div className="px-6 pb-6 space-y-2 border-t border-white/5 pt-4">
-                          <p className="text-[8px] font-black uppercase tracking-widest text-zinc-600">
-                            Output — stored as{" "}
-                            <code className="text-blue-400">
-                              {"{{steps." + step.output_key + "}}"}
-                            </code>
-                          </p>
+                          <div className="flex items-center justify-between">
+                            <p className="text-[8px] font-black uppercase tracking-widest text-zinc-600">
+                              Output — stored as{" "}
+                              <code className="text-blue-400">{"{{steps." + step.output_key + "}}"}</code>
+                            </p>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(step.output);
+                                setCopiedStep(i);
+                                setTimeout(() => setCopiedStep(null), 2000);
+                              }}
+                              className={`flex items-center gap-1 text-[8px] font-black uppercase px-2 py-1 rounded-lg transition-all ${copiedStep === i ? "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20" : "text-zinc-600 hover:text-zinc-400 border border-zinc-800 hover:border-zinc-600"}`}
+                            >
+                              {copiedStep === i ? <CheckCircle2 size={10} /> : <Copy size={10} />}
+                              {copiedStep === i ? "Copied" : "Copy"}
+                            </button>
+                          </div>
                           <div className="bg-black/60 border border-zinc-800 rounded-xl p-4 text-sm font-mono text-zinc-300 whitespace-pre-wrap max-h-64 overflow-y-auto leading-relaxed">
                             {step.output}
                           </div>
