@@ -126,6 +126,79 @@ const response = await client.chat.completions.create({
         </div>
       </section>
 
+      {/* 5b. Streaming */}
+      <section className="mb-24">
+        <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+          <Zap className="text-blue-400" size={24} /> Streaming Responses
+        </h2>
+        <p className="mb-6 text-slate-400">
+          Use <code className="text-blue-400 bg-slate-900 px-1.5 py-0.5 rounded text-sm">/v1/dispatch/stream</code> to receive tokens as they are generated — ideal for chat UIs and real-time applications. Returns standard SSE (Server-Sent Events) in OpenAI-compatible format.
+        </p>
+
+        <div className="bg-[#0f1117] p-6 rounded-t-2xl border-x border-t border-slate-800 font-mono text-sm shadow-2xl">
+          <p className="text-slate-500 text-xs mb-3 uppercase tracking-widest font-bold">JavaScript / TypeScript</p>
+          <pre className="text-emerald-500 whitespace-pre-wrap overflow-x-auto">
+{`const res = await fetch("https://web-production-4f439.up.railway.app/v1/dispatch/stream", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-API-KEY": "nr_live_your_api_key",
+  },
+  body: JSON.stringify({
+    messages: [{ role: "user", content: "Explain streaming in one paragraph." }],
+    session_id: "my-session-01",
+  }),
+});
+
+const reader = res.body.getReader();
+const decoder = new TextDecoder();
+
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+
+  for (const line of decoder.decode(value).split("\\n")) {
+    if (!line.startsWith("data: ")) continue;
+    const raw = line.slice(6).trim();
+    if (raw === "[DONE]") break;
+
+    const chunk = JSON.parse(raw);
+
+    // Standard token chunks
+    if (chunk.object === "chat.completion.chunk") {
+      const token = chunk.choices?.[0]?.delta?.content;
+      if (token) process.stdout.write(token);
+    }
+
+    // NeuralRouting billing event (last event before [DONE])
+    if (chunk.object === "nr.billing") {
+      console.log("Model:", chunk.model_used);
+      console.log("Cost: $" + chunk.financials.billed_price.toFixed(6));
+    }
+  }
+}`}
+          </pre>
+        </div>
+
+        <div className="bg-slate-900/80 p-6 rounded-b-2xl border border-slate-800 shadow-inner">
+          <p className="text-xs font-bold text-slate-500 mb-4 uppercase tracking-widest">SSE Event Types</p>
+          <div className="space-y-3 text-sm font-mono">
+            <div className="flex gap-4">
+              <span className="text-blue-400 w-48 shrink-0">chat.completion.chunk</span>
+              <span className="text-slate-400">Token delta — same format as OpenAI streaming</span>
+            </div>
+            <div className="flex gap-4">
+              <span className="text-emerald-400 w-48 shrink-0">nr.billing</span>
+              <span className="text-slate-400">Final event with model, cost, savings, and token usage</span>
+            </div>
+            <div className="flex gap-4">
+              <span className="text-slate-500 w-48 shrink-0">[DONE]</span>
+              <span className="text-slate-400">Stream complete</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 6. Use Cases */}
       <section className="mb-24">
         <h2 className="text-2xl font-bold text-white mb-10">Scale with confidence</h2>

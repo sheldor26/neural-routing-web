@@ -65,6 +65,7 @@ export default function Dashboard() {
   const [testPrompt, setTestPrompt] = useState("");
   const [testLoading, setTestLoading] = useState(false);
   const [testResult, setTestResult] = useState<any>(null);
+  const [streamingText, setStreamingText] = useState("");
   const [stats, setStats] = useState({ 
     savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] as any[]
   });
@@ -139,60 +140,94 @@ useEffect(() => {
   const runLiveTest = async () => {
     if (!testPrompt.trim()) return;
     setTestLoading(true);
-    // ... resto del código
-    setTestResult(null); 
+    setTestResult(null);
+    setStreamingText("");
 
     try {
-      const res = await fetch(`${API_BASE}/v1/dispatch`, {
+      const res = await fetch(`${API_BASE}/v1/dispatch/stream`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'X-API-KEY': apiData?.key 
+          'X-API-KEY': apiData?.key,
         },
-        body: JSON.stringify({ 
-            messages: [{ role: "user", content: testPrompt }], 
-            session_id: "dashboard-test"
-        })
+        body: JSON.stringify({
+          messages: [{ role: "user", content: testPrompt }],
+          session_id: "dashboard-test",
+        }),
       });
-
-      const data = await res.json();
 
       if (res.status === 402) {
         setNotification({ msg: "Insufficient balance. Please upgrade.", type: 'error' });
         return;
       }
+      if (!res.ok || !res.body) throw new Error(`Error ${res.status}`);
 
-      if (!res.ok) throw new Error(data?.details || data?.error || `Error ${res.status}`);
-      if (!data) throw new Error("Empty response from server");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let billingData: any = null;
+      let accumulated = "";
 
-      setTestResult(data);
-      setNotification({ msg: "Route optimized successfully!", type: 'success' });
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      // Update UI optimistically to reflect live savings and usage
-      const newSavings = (data.business_metrics?.estimated_gpt4_cost ?? 0) - (data.business_metrics?.cost_usd ?? 0);
-      
-      const newEntry = {
-        model_used: data.model_used || "Neural-Router",
-        savings_percentage: data.business_metrics?.savings_percentage || 0,
-        cost_usd: data.business_metrics?.cost_usd || 0
-      };
-      setStats(prev => ({
-        ...prev,
-        last_requests: [newEntry, ...prev.last_requests.slice(0, 4)],
-        savings: prev.savings + (newSavings > 0 ? newSavings : 0),
-        requests: prev.requests + 1
-      }));
-      
-      setUsageData(prev => ({
-        ...prev,
-        used: prev.used + 1,
-      }));
+        const chunk = decoder.decode(value, { stream: true });
+        for (const line of chunk.split("\n")) {
+          if (!line.startsWith("data: ")) continue;
+          const raw = line.slice(6).trim();
+          if (raw === "[DONE]") break;
 
-      setTimeout(() => setNotification(null), 4000);
+          try {
+            const parsed = JSON.parse(raw);
+            if (parsed.object === "nr.billing") {
+              billingData = parsed;
+            } else {
+              const content = parsed.choices?.[0]?.delta?.content;
+              if (content) {
+                accumulated += content;
+                setStreamingText(accumulated);
+              }
+            }
+          } catch { /* partial chunk, ignore */ }
+        }
+      }
 
-    } catch (e: any) { 
+      if (billingData) {
+        const fin = billingData.financials ?? {};
+        const billed    = fin.billed_price ?? 0;
+        const gpt4ref   = fin.gpt4o_reference ?? 0;
+        const savingsPct = gpt4ref > 0 ? ((gpt4ref - billed) / gpt4ref) * 100 : 0;
+
+        const result = {
+          model_used: billingData.model_used,
+          business_metrics: {
+            cost_usd:            billed,
+            estimated_gpt4_cost: gpt4ref,
+            savings_percentage:  savingsPct,
+          },
+        };
+        setTestResult(result);
+        setNotification({ msg: "Route optimized successfully!", type: 'success' });
+
+        const newSavings = Math.max(gpt4ref - billed, 0);
+        setStats(prev => ({
+          ...prev,
+          last_requests: [
+            { model_used: billingData.model_used, savings_percentage: savingsPct, cost_usd: billed },
+            ...prev.last_requests.slice(0, 4),
+          ],
+          savings:  prev.savings + newSavings,
+          requests: prev.requests + 1,
+        }));
+        setUsageData(prev => ({ ...prev, used: prev.used + 1 }));
+        setTimeout(() => setNotification(null), 4000);
+      }
+
+    } catch (e: any) {
       setNotification({ msg: e.message, type: 'error' });
-    } finally { setTestLoading(false); }
+    } finally {
+      setTestLoading(false);
+    }
   };
 
   console.log('[Dashboard] mounted:', mounted, '| isLoaded:', isLoaded, '| loading:', loading, '| user:', user?.id ?? 'null');
@@ -266,20 +301,35 @@ useEffect(() => {
                 </button>
             </div>
 
+            {(testLoading && streamingText) && (
+              <div className="animate-in fade-in duration-300 p-6 bg-zinc-900/60 border border-zinc-800 rounded-[2rem]">
+                <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-3">Streaming response...</p>
+                <p className="text-sm text-zinc-300 leading-relaxed font-mono whitespace-pre-wrap">
+                  {streamingText}<span className="inline-block w-1.5 h-4 bg-blue-500 ml-0.5 animate-pulse align-middle" />
+                </p>
+              </div>
+            )}
+
             {testResult && (
-              <div className="animate-in slide-in-from-bottom-4 duration-500 p-8 bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] flex flex-col md:flex-row justify-between items-center gap-6">
+              <div className="animate-in slide-in-from-bottom-4 duration-500 space-y-4">
+                <div className="p-6 bg-zinc-900/60 border border-zinc-800 rounded-[2rem]">
+                  <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">Response</p>
+                  <p className="text-sm text-zinc-300 leading-relaxed font-mono whitespace-pre-wrap">{streamingText}</p>
+                </div>
+                <div className="p-8 bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] flex flex-col md:flex-row justify-between items-center gap-6">
                   <div className="space-y-3 w-full text-center md:text-left">
-                      <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest italic">Routing Result: {testResult.model_used}</p>
-                      <div className="flex items-end justify-center md:justify-start gap-3">
-                        <p className="text-3xl font-black italic text-white uppercase tracking-tighter">
-                          Cost: ${testResult.business_metrics?.cost_usd?.toFixed(5)} 
-                        </p>
-                        <span className="text-zinc-600 text-sm line-through mb-1 font-bold">vs ${testResult.business_metrics?.estimated_gpt4_cost?.toFixed(5)}</span>
-                      </div>
+                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest italic">Routing Result: {testResult.model_used}</p>
+                    <div className="flex items-end justify-center md:justify-start gap-3">
+                      <p className="text-3xl font-black italic text-white uppercase tracking-tighter">
+                        Cost: ${testResult.business_metrics?.cost_usd?.toFixed(5)}
+                      </p>
+                      <span className="text-zinc-600 text-sm line-through mb-1 font-bold">vs ${testResult.business_metrics?.estimated_gpt4_cost?.toFixed(5)}</span>
+                    </div>
                   </div>
                   <div className="px-6 py-3 bg-emerald-500 text-black text-[10px] font-black uppercase italic rounded-xl shadow-lg shadow-emerald-500/20 font-bold">
-                       Saved {testResult.business_metrics?.savings_percentage?.toFixed(1)}%
+                    Saved {testResult.business_metrics?.savings_percentage?.toFixed(1)}%
                   </div>
+                </div>
               </div>
             )}
           </div>
