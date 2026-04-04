@@ -113,7 +113,7 @@ const comparisonRows = [
   { label: "Routing Modes",      values: ["Auto Only", "Auto & Cost", "All Modes", "Custom Rules"] },
   { label: "Rate Limit",         values: ["3 RPM", "60 RPM", "250 RPM", "1,000+ RPM"] },
   { label: "Uptime Guard",       values: ["Basic", "Standard", "Smart Fallback", "Priority Edge"] },
-  { label: "Insights",           values: ["Basic", "Basic", "Advanced", "Predictive"] },
+  { label: "Insights",           values: ["—", "—", "Soon", "Soon"] },
   { label: "Support",            values: ["Community", "Email", "Priority", "Dedicated Slack"] },
 ];
 
