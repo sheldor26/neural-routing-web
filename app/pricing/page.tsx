@@ -31,7 +31,7 @@ const tiers = [
   },
   {
     name: "Starter",
-    price: "19",
+    price: "29",
     period: "/ mo",
     description: "Perfect for side projects and independent developers.",
     credits: "50,000 credits",
@@ -41,7 +41,7 @@ const tiers = [
     uptimeGuard: "Standard",
     insights: "Basic",
     support: "Email",
-    savingLabel: "SAVE $110 / MO",
+    savingLabel: "SAVE $125 / MO",
     highlight: false,
     cta: "Start Saving",
     icon: <Rocket className="text-zinc-500" size={18} />,
@@ -56,7 +56,7 @@ const tiers = [
   },
   {
     name: "Growth",
-    price: "69",
+    price: "89",
     period: "/ mo",
     description: "Scalable infrastructure for growing AI companies.",
     credits: "200,000 credits",
@@ -66,7 +66,7 @@ const tiers = [
     uptimeGuard: "Smart Fallback",
     insights: "Advanced",
     support: "Priority",
-    savingLabel: "SAVE $420 / MO",
+    savingLabel: "SAVE $500 / MO",
     highlight: true,
     tag: "MOST POPULAR",
     cta: "Get Started",
@@ -82,7 +82,7 @@ const tiers = [
   },
   {
     name: "Business",
-    price: "249",
+    price: "349",
     period: "/ mo",
     description: "Total control and maximum efficiency for enterprises.",
     credits: "1,000,000 credits",
@@ -108,7 +108,7 @@ const tiers = [
 ];
 
 const comparisonRows = [
-  { label: "Monthly Price",      values: ["$0", "$19", "$69", "$249"] },
+  { label: "Monthly Price",      values: ["$0", "$29", "$89", "$349"] },
   { label: "Included Credits",   values: ["5,000 (once)", "50,000 /mo", "200,000 /mo", "1,000,000 /mo"] },
   { label: "Routing Modes",      values: ["Auto Only", "Auto & Cost", "All Modes", "Custom Rules"] },
   { label: "Rate Limit",         values: ["3 RPM", "60 RPM", "250 RPM", "1,000+ RPM"] },
