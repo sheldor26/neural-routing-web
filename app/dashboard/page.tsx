@@ -19,6 +19,9 @@ export default function Dashboard() {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [generatingKey, setGeneratingKey] = useState(false);
+  const [budgetInput, setBudgetInput] = useState("");
+  const [savingBudget, setSavingBudget] = useState(false);
+  const [editingBudget, setEditingBudget] = useState(false);
 
   const [notification, setNotification] = useState<{msg: string, type: 'error' | 'success'} | null>(null);
 
@@ -41,6 +44,28 @@ export default function Dashboard() {
       setNotification({ msg: e.message, type: 'error' });
     } finally {
       setGeneratingKey(false);
+    }
+  };
+
+  const saveBudget = async (remove = false) => {
+    if (!apiData?.id) return;
+    setSavingBudget(true);
+    try {
+      const value = remove ? null : (budgetInput ? parseFloat(budgetInput) : null);
+      const res = await fetch(`${API_BASE}/v1/account/keys/${apiData.id}/budget`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ monthly_budget_usd: value }),
+      });
+      if (!res.ok) throw new Error('Failed to save budget');
+      setApiData((prev: any) => ({ ...prev, monthly_budget_usd: value }));
+      if (remove) setBudgetInput("");
+      setEditingBudget(false);
+      setNotification({ msg: remove ? 'Budget cap removed.' : `Budget cap set to $${value}/mo`, type: 'success' });
+    } catch (e: any) {
+      setNotification({ msg: e.message, type: 'error' });
+    } finally {
+      setSavingBudget(false);
     }
   };
 
@@ -84,11 +109,14 @@ useEffect(() => {
 
         const { data: dbData } = await supabase
           .from('api_keys')
-          .select('key, plan') 
+          .select('id, key, plan, monthly_budget_usd')
           .eq('user_id', String(user.id))
           .maybeSingle();
-        
-        if (dbData) setApiData(dbData);
+
+        if (dbData) {
+          setApiData(dbData);
+          setBudgetInput(dbData.monthly_budget_usd != null ? String(dbData.monthly_budget_usd) : "");
+        }
 
         // 2. Pedir Estadísticas a Railway (Ahorros acumulados e Historial)
         const res = await fetch(`${API_BASE}/v1/user-stats/${user.id}`, {
@@ -448,6 +476,57 @@ useEffect(() => {
                             {copied ? <CheckCircle2 size={20} /> : <Copy size={20} />}
                         </button>
                     </div>
+                </div>
+
+                {/* Budget cap */}
+                <div className="bg-black/40 border border-white/5 rounded-2xl p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Monthly Budget Cap</span>
+                      {apiData.monthly_budget_usd != null ? (
+                        <p className="text-sm font-black text-white mt-0.5">${Number(apiData.monthly_budget_usd).toFixed(2)}<span className="text-zinc-500 text-xs font-normal">/mo</span></p>
+                      ) : (
+                        <p className="text-xs text-zinc-600 mt-0.5">No cap set — unlimited spend</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setEditingBudget(v => !v)}
+                      className="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest border border-white/10 rounded-xl text-zinc-500 hover:text-white hover:border-white/20 transition-all"
+                    >
+                      {editingBudget ? "Cancel" : "Edit"}
+                    </button>
+                  </div>
+                  {editingBudget && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-zinc-500 text-sm">$</span>
+                      <input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        placeholder="e.g. 50.00"
+                        value={budgetInput}
+                        onChange={e => setBudgetInput(e.target.value)}
+                        className="flex-1 bg-zinc-900 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500/50"
+                      />
+                      <span className="text-zinc-600 text-xs">/mo</span>
+                      <button
+                        onClick={() => saveBudget(false)}
+                        disabled={savingBudget || !budgetInput}
+                        className="px-4 py-2 bg-blue-600 rounded-xl text-[9px] font-black uppercase tracking-widest text-white hover:bg-blue-500 transition-all disabled:opacity-40"
+                      >
+                        {savingBudget ? <Loader2 size={12} className="animate-spin" /> : "Save"}
+                      </button>
+                      {apiData.monthly_budget_usd != null && (
+                        <button
+                          onClick={() => saveBudget(true)}
+                          disabled={savingBudget}
+                          className="px-4 py-2 border border-red-500/30 rounded-xl text-[9px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-all disabled:opacity-40"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
                 )}
             </div>
