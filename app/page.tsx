@@ -46,12 +46,22 @@ export default function LandingPage() {
 
       {/* --- HERO SECTION (MAX IMPACT) --- */}
       <header className="relative pt-16 pb-12 px-6 text-center max-w-6xl mx-auto flex flex-col items-center z-10">
-        <div className="inline-flex items-center gap-3 mb-10 p-1 pr-4 bg-red-500/5 border border-red-500/20 backdrop-blur-md rounded-full">
-          <div className="px-3 py-1 rounded-full bg-red-600 text-white text-[9px] font-black tracking-widest uppercase italic animate-pulse">Efficiency Leak</div>
-          <span className="text-[10px] font-bold text-red-100 uppercase tracking-tight">
-             Neural Node: ${globalStats.savings.toLocaleString()} saved this month.
-          </span>
-        </div>
+        {!globalStats.loading && globalStats.savings > 0 && (
+          <div className="inline-flex items-center gap-3 mb-10 p-1 pr-4 bg-red-500/5 border border-red-500/20 backdrop-blur-md rounded-full">
+            <div className="px-3 py-1 rounded-full bg-red-600 text-white text-[9px] font-black tracking-widest uppercase italic animate-pulse">Efficiency Leak</div>
+            <span className="text-[10px] font-bold text-red-100 uppercase tracking-tight">
+              Neural Node: ${globalStats.savings.toLocaleString()} saved since launch.
+            </span>
+          </div>
+        )}
+        {(globalStats.loading || globalStats.savings === 0) && (
+          <div className="inline-flex items-center gap-3 mb-10 p-1 pr-4 bg-blue-500/5 border border-blue-500/20 backdrop-blur-md rounded-full">
+            <div className="px-3 py-1 rounded-full bg-blue-600 text-white text-[9px] font-black tracking-widest uppercase italic">Live</div>
+            <span className="text-[10px] font-bold text-blue-100 uppercase tracking-tight">
+              Intelligent routing · 450+ dev teams · Free tier available
+            </span>
+          </div>
+        )}
 
         <h1 className="relative z-10 text-5xl md:text-[5.5rem] font-black tracking-tighter mb-6 leading-[0.9] bg-gradient-to-b from-white via-white to-zinc-600 bg-clip-text text-transparent italic uppercase">
           Stop sending every <br/> AI request to GPT-4.

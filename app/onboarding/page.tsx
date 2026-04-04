@@ -35,6 +35,25 @@ export default function OnboardingPage() {
   const [analysisStep, setAnalysisStep] = useState(0); // 0: idle, 1: complexity, 2: decision
   const [result, setResult] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const [generatingKey, setGeneratingKey] = useState(false);
+
+  const API_BASE = "https://web-production-4f439.up.railway.app";
+
+  const goToDashboard = async () => {
+    if (!user) return;
+    setGeneratingKey(true);
+    try {
+      await fetch(`${API_BASE}/v1/account/keys/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id, label: 'Primary Key' }),
+      });
+    } catch {
+      // If it fails (key already exists or network error), still go to dashboard
+    } finally {
+      router.push('/dashboard');
+    }
+  };
 
   const EXAMPLE_PROMPT = "Summarize this customer support ticket and extract the sentiment: 'My order #12345 hasn't arrived yet. I'm very frustrated because I paid for express shipping and it's been a week.'";
 
@@ -187,11 +206,16 @@ export default function OnboardingPage() {
                       You can start saving on your next API call. No code changes.
                     </p>
                     
-                    <button 
-                        onClick={() => router.push('/dashboard')}
-                        className="w-full py-6 bg-white text-blue-600 rounded-2xl font-black uppercase text-sm tracking-[0.2em] hover:scale-[1.02] transition-all flex items-center justify-center gap-3 mb-4 shadow-xl"
+                    <button
+                        onClick={goToDashboard}
+                        disabled={generatingKey}
+                        className="w-full py-6 bg-white text-blue-600 rounded-2xl font-black uppercase text-sm tracking-[0.2em] hover:scale-[1.02] transition-all flex items-center justify-center gap-3 mb-4 shadow-xl disabled:opacity-80"
                     >
-                         Get My API Key <ArrowRight size={20} />
+                        {generatingKey ? (
+                          <><Loader2 size={20} className="animate-spin" /> Setting up your key...</>
+                        ) : (
+                          <>Get My API Key <ArrowRight size={20} /></>
+                        )}
                     </button>
                     
                     <p className="text-[9px] font-bold uppercase tracking-widest text-blue-200/60 italic">
