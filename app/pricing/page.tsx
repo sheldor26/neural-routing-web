@@ -94,7 +94,7 @@ const tiers = [
     support: "Dedicated Slack",
     savingLabel: "MAX ROI",
     highlight: false,
-    cta: "Contact Sales",
+    cta: "Get Started",
     icon: <Crown className="text-zinc-500" size={18} />,
     features: [
       { label: "1,000,000 credits / month", included: true },
@@ -207,8 +207,6 @@ export default function Pricing() {
                   className={`w-full py-5 rounded-2xl font-black uppercase italic text-[10px] tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${
                     tier.highlight
                       ? "bg-blue-600 text-white hover:bg-blue-500 shadow-xl shadow-blue-600/20 active:scale-95"
-                      : tier.name === "Business"
-                      ? "bg-zinc-800 text-white border border-white/20 hover:bg-zinc-700 active:scale-95"
                       : "bg-white text-black hover:bg-zinc-200 shadow-xl active:scale-95"
                   }`}
                 >

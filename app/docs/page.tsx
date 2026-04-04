@@ -199,6 +199,89 @@ while (true) {
         </div>
       </section>
 
+      {/* 5c. Agent Integration */}
+      <section className="mb-24">
+        <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+          <Zap className="text-purple-400" size={24} /> AI Agent Integration
+        </h2>
+        <p className="mb-2 text-slate-400">
+          NeuralRouting exposes a fully OpenAI-compatible <code className="text-blue-400 bg-slate-900 px-1.5 py-0.5 rounded text-sm">/v1/chat/completions</code> endpoint — including tool/function calling. Point any agent framework at NeuralRouting and every step in your loop gets routed to the cheapest model that can handle it.
+        </p>
+        <p className="mb-6 text-slate-500 text-sm">
+          Complex reasoning steps → GPT-4o. Simple decisions and summaries → Llama (budget). Automatically, per request.
+        </p>
+
+        <div className="bg-[#0f1117] p-6 rounded-t-2xl border-x border-t border-slate-800 font-mono text-sm shadow-2xl">
+          <p className="text-slate-500 text-xs mb-3 uppercase tracking-widest font-bold">LangChain / Python</p>
+          <pre className="text-emerald-500 whitespace-pre-wrap overflow-x-auto">
+{`from langchain_openai import ChatOpenAI
+from langchain.agents import AgentExecutor, create_openai_tools_agent
+from langchain_core.prompts import ChatPromptTemplate
+
+# Just change the base_url — everything else stays the same
+llm = ChatOpenAI(
+    base_url="https://web-production-4f439.up.railway.app/v1",
+    api_key="nr_live_your_api_key",
+    model="neural-optimizer",
+)
+
+# Your tools, prompts, and agent logic — unchanged
+agent = create_openai_tools_agent(llm, tools, prompt)
+executor = AgentExecutor(agent=agent, tools=tools)
+result = executor.invoke({"input": "Research and summarize AI pricing trends"})`}
+          </pre>
+        </div>
+
+        <div className="bg-[#0f1117] p-6 border-x border-t border-slate-800 font-mono text-sm">
+          <p className="text-slate-500 text-xs mb-3 uppercase tracking-widest font-bold">OpenAI SDK (any framework)</p>
+          <pre className="text-emerald-500 whitespace-pre-wrap overflow-x-auto">
+{`from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://web-production-4f439.up.railway.app/v1",
+    api_key="nr_live_your_api_key",
+)
+
+# Full tool/function calling support
+response = client.chat.completions.create(
+    model="neural-optimizer",
+    messages=[{"role": "user", "content": "What is 15% of 2400?"}],
+    tools=[{
+        "type": "function",
+        "function": {
+            "name": "calculate",
+            "description": "Evaluate a math expression",
+            "parameters": {
+                "type": "object",
+                "properties": {"expression": {"type": "string"}},
+                "required": ["expression"]
+            }
+        }
+    }],
+    tool_choice="auto",
+)`}
+          </pre>
+        </div>
+
+        <div className="bg-slate-900/80 p-6 rounded-b-2xl border border-slate-800 shadow-inner">
+          <p className="text-xs font-bold text-slate-500 mb-4 uppercase tracking-widest">Why this matters for agents</p>
+          <div className="grid md:grid-cols-3 gap-6 text-sm">
+            <div>
+              <p className="text-white font-bold mb-1">Agent loops are expensive</p>
+              <p className="text-slate-500">A typical research agent makes 10–30 LLM calls per task. Sending all of them to GPT-4o is wasteful.</p>
+            </div>
+            <div>
+              <p className="text-white font-bold mb-1">Not every step needs GPT-4o</p>
+              <p className="text-slate-500">Tool selection, intermediate summaries, and simple decisions route to budget models automatically.</p>
+            </div>
+            <div>
+              <p className="text-white font-bold mb-1">10x cost reduction</p>
+              <p className="text-slate-500">An agent that costs $0.50/task with GPT-4o can drop to $0.05 with intelligent per-step routing.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 6. Use Cases */}
       <section className="mb-24">
         <h2 className="text-2xl font-bold text-white mb-10">Scale with confidence</h2>
