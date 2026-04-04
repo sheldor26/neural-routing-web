@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { 
- Zap, Cpu, TrendingUp, Loader2, Shield, Key, Copy, Eye, EyeOff, 
- CheckCircle2, History, Terminal, Sparkles, Play, MessageSquare, 
- Home, DollarSign, ExternalLink, Clock, AlertCircle, ArrowRight, Code
+import {
+ Cpu, TrendingUp, Loader2, Shield, Key, Copy, Eye, EyeOff,
+ CheckCircle2, History, Terminal, Sparkles, Play, MessageSquare,
+ DollarSign, ExternalLink, Clock, AlertCircle, ArrowRight, Code
 } from 'lucide-react';
-import { useUser, UserButton, useAuth } from '@clerk/nextjs';
+import { useUser, useAuth } from '@clerk/nextjs';
 import { createAuthClient } from '@/lib/supabase';
+import DashboardNav from '@/components/DashboardNav';
 
 export default function Dashboard() {
   const { user, isLoaded } = useUser();
@@ -269,26 +270,7 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans pb-24 selection:bg-blue-500/30">
-      {/* NAVIGATION */}
-      <nav className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50 h-20 flex items-center justify-between px-6 md:px-12">
-          <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-3">
-              <Zap size={20} className="text-blue-500 fill-blue-500" />
-              <span className="text-xl font-black italic uppercase tracking-tighter text-white">Neuralrouting.io</span>
-            </Link>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/" className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all">Home</Link>
-            <Link href="/pricing" className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all">Pricing</Link>
-            <Link href="/chat" className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all">Chat</Link>
-            <Link href="/workflows" className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all">Workflows</Link>
-            <Link href="/analytics" className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all">Analytics</Link>
-            <Link href="/logs"        className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all">Logs</Link>
-            <Link href="/attribution" className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all">Attribution</Link>
-            <Link href="/quality"     className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all">Quality</Link>
-            <UserButton afterSignOutUrl="/" />
-          </div>
-      </nav>
+      <DashboardNav />
 
       <main className="max-w-6xl mx-auto px-6 py-12 space-y-12">
         {/* ACTION FUNNEL */}

@@ -7,11 +7,11 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import {
-  Zap, Loader2, ShieldCheck, AlertTriangle, Activity,
-  ArrowLeft, Eye,
+  Loader2, ShieldCheck, AlertTriangle, Activity, Eye,
 } from "lucide-react";
-import { useUser, UserButton, useAuth } from "@clerk/nextjs";
+import { useUser, useAuth } from "@clerk/nextjs";
 import { createAuthClient } from "@/lib/supabase";
+import DashboardNav from "@/components/DashboardNav";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -169,20 +169,7 @@ export default function QualityPage() {
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans pb-24 selection:bg-blue-500/30">
 
-      {/* NAV */}
-      <nav className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50 h-20 flex items-center justify-between px-6 md:px-12">
-        <Link href="/" className="flex items-center gap-3">
-          <Zap size={20} className="text-blue-500 fill-blue-500" />
-          <span className="text-xl font-black italic uppercase tracking-tighter text-white">Neuralrouting.io</span>
-        </Link>
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard"   className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all flex items-center gap-2"><ArrowLeft size={12} /> Dashboard</Link>
-          <Link href="/analytics"   className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all">Analytics</Link>
-          <Link href="/logs"        className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all">Logs</Link>
-          <Link href="/attribution" className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all">Attribution</Link>
-          <UserButton afterSignOutUrl="/" />
-        </div>
-      </nav>
+      <DashboardNav />
 
       <main className="max-w-6xl mx-auto px-6 py-12 space-y-10">
 
