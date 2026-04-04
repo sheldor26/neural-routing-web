@@ -69,9 +69,6 @@ export default function Dashboard() {
     savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] as any[]
   });
 
-  // Your Railway Production API URL
-  const API_BASE = "https://web-production-4f439.up.railway.app";
-  
   useEffect(() => { setMounted(true); }, []);
 useEffect(() => {
     const loadData = async () => {
