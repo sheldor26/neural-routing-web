@@ -131,3 +131,33 @@ Charts powered by Recharts (already installed).
 2. **Email on low credits** — notify users before they run out so they upgrade proactively (needs email provider: Resend or similar).
 3. **Onboarding step 2 polish** — after the "Get My API Key" CTA, verify the user actually has a key before redirecting to dashboard.
 4. **Public stats minimum floor** — once real numbers are low, consider a "Since launch" framing instead of "this month" to avoid showing $0.
+
+Done. Esto es todo lo que se hizo:
+
+migrations/002_user_stats_email.sql — ejecutalo en Supabase SQL Editor:
+
+Agrega columna email TEXT a user_stats
+Agrega columna low_credits_notified BOOLEAN DEFAULT FALSE
+email_service.py — módulo nuevo:
+
+send_low_credits_email() — manda el email via Resend con HTML template oscuro (match del diseño del producto), barra de créditos restantes, y CTA de upgrade
+Nunca tira exception — si falla solo loguea
+main.py — finalize_and_charge — después de cada request:
+
+Si los créditos bajan al 20% del plan total → manda el email
+Marca low_credits_notified = TRUE → no manda duplicados
+Fire-and-forget con asyncio.create_task para no bloquear la respuesta
+webhooks.py — guarda el email del usuario al crear la cuenta
+
+requirements.txt — agrega resend==2.7.0
+
+Para activar necesitás dos cosas:
+
+Ejecutar la migración SQL en Supabase
+Agregar en Railway:
+
+RESEND_API_KEY=re_xxxxxxxxxx
+EMAIL_FROM=NeuralRouting <noreply@neuralrouting.io>
+El dominio neuralrouting.io tiene que estar verificado en Resend. ¿Ya tenés cuenta en Resend?
+
+

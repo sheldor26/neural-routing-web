@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git -C /c/Users/juanl/neural-routing-web rebase --continue)"
+      "Bash(git -C /c/Users/juanl/neural-routing-web rebase --continue)",
+      "Bash(python test_attribution.py)",
+      "Bash(pip install:*)",
+      "Bash(python test_budget_caps.py)"
     ]
   }
 }
