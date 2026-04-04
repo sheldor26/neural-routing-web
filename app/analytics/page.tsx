@@ -162,9 +162,9 @@ export default function AnalyticsPage() {
           <span className="text-xl font-black italic uppercase tracking-tighter text-white">Neuralrouting.io</span>
         </Link>
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all flex items-center gap-2">
-            <ArrowLeft size={12} /> Dashboard
-          </Link>
+          <Link href="/dashboard"   className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all flex items-center gap-2"><ArrowLeft size={12} /> Dashboard</Link>
+          <Link href="/logs"        className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all">Logs</Link>
+          <Link href="/attribution" className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all">Attribution</Link>
           <UserButton afterSignOutUrl="/" />
         </div>
       </nav>
