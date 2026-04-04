@@ -142,13 +142,14 @@ useEffect(() => {
         return;
       }
 
-      if (!res.ok) throw new Error(data.details || data.error || `Error ${res.status}`);
+      if (!res.ok) throw new Error(data?.details || data?.error || `Error ${res.status}`);
+      if (!data) throw new Error("Empty response from server");
 
       setTestResult(data);
       setNotification({ msg: "Route optimized successfully!", type: 'success' });
-      
+
       // Update UI optimistically to reflect live savings and usage
-      const newSavings = data.business_metrics?.estimated_gpt4_cost - data.business_metrics?.cost_usd;
+      const newSavings = (data.business_metrics?.estimated_gpt4_cost ?? 0) - (data.business_metrics?.cost_usd ?? 0);
       
       const newEntry = {
         model_used: data.model_used || "Neural-Router",
@@ -162,10 +163,9 @@ useEffect(() => {
         requests: prev.requests + 1
       }));
       
-      setUsageData(prev => ({ 
-        ...prev, 
+      setUsageData(prev => ({
+        ...prev,
         used: prev.used + 1,
-        credits: prev.credits - (data.business_metrics?.cost_usd || 0)
       }));
 
       setTimeout(() => setNotification(null), 4000);
