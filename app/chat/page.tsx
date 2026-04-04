@@ -1,13 +1,12 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
 import {
-  Plus, Send, LayoutDashboard, Sparkles, ArrowUpRight,
-  Copy, RefreshCcw, ShieldCheck, DollarSign, Terminal,
-  Zap, Coins, CheckCircle2, ChevronDown, AlertCircle, TrendingDown, Lightbulb, MousePointerClick, Loader2
+  Plus, Send, Zap, CheckCircle2, AlertCircle, TrendingDown, Lightbulb, MousePointerClick, Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 import { useUser, UserButton, useAuth } from "@clerk/nextjs";
 import { createClient } from '@supabase/supabase-js';
+import { supabase as anonSupabaseClient } from '@/lib/supabase';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -56,11 +55,6 @@ export default function FullChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const supabaseRef = useRef<any>(null);
-  // Anon client for chat_messages (RLS disabled — no JWT needed)
-  const anonSupabase = useRef(createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  ));
   const API_BASE = "https://web-production-4f439.up.railway.app";
 
   const fetchUserStats = async (apiKey?: string) => {
@@ -132,7 +126,7 @@ export default function FullChatPage() {
   };
 
   const loadSession = async (id: string) => {
-    const { data, error } = await anonSupabase.current.from('chat_messages')
+    const { data, error } = await anonSupabaseClient.from('chat_messages')
       .select('role, content')
       .eq('session_id', id)
       .order('created_at');
@@ -145,7 +139,7 @@ export default function FullChatPage() {
   };
 
   const saveMessage = async (sessionId: string, role: 'user' | 'assistant', content: string) => {
-    const { error } = await anonSupabase.current.from('chat_messages').insert({
+    const { error } = await anonSupabaseClient.from('chat_messages').insert({
       session_id: sessionId,
       role,
       content,
