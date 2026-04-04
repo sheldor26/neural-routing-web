@@ -158,6 +158,8 @@ useEffect(() => {
     } finally { setTestLoading(false); }
   };
 
+  console.log('[Dashboard] mounted:', mounted, '| isLoaded:', isLoaded, '| loading:', loading, '| user:', user?.id ?? 'null');
+
   if (!mounted || !isLoaded || loading) return (
     <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center gap-4">
       <Loader2 className="animate-spin text-blue-600" size={40}/>
