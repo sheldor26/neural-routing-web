@@ -21,21 +21,21 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  const { pathname } = req.nextUrl;
-
-  // A. Prioridad máxima: Rutas Públicas (No hacemos nada, dejamos pasar)
   if (isPublicRoute(req)) {
     return NextResponse.next();
   }
 
-  // B. Rutas Protegidas: Forzamos autenticación
   if (isProtectedRoute(req)) {
-    await auth.protect();
+    const { userId } = await auth();
+    if (!userId) {
+      // Use relative redirect_url so Clerk doesn't need it in the allowlist
+      const signInUrl = new URL('/sign-in', req.url);
+      signInUrl.searchParams.set('redirect_url', req.nextUrl.pathname);
+      return NextResponse.redirect(signInUrl);
+    }
     return NextResponse.next();
   }
 
-  // C. Para cualquier otra ruta no definida arriba, dejamos que Next.js maneje
-  // Esto evita 404s en archivos internos o rutas no mapeadas
   return NextResponse.next();
 });
 
