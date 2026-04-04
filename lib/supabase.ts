@@ -3,16 +3,23 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-// Singleton anon client — shared across the app (no auth session)
+const BASE_AUTH_OPTIONS = {
+  persistSession: false,
+  autoRefreshToken: false,
+  detectSessionInUrl: false,
+} as const;
+
+// Singleton anon client — shared across the app
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  auth: { ...BASE_AUTH_OPTIONS, storageKey: 'nr-anon' },
 });
 
-// For JWT-authenticated requests (Clerk token + Supabase RLS)
-// Does NOT persist a session — avoids multiple GoTrueClient instances
+// JWT-authenticated client for Clerk + Supabase RLS
+// Each call gets a unique storageKey so GoTrueClient instances don't collide
+let authClientCounter = 0;
 export function createAuthClient(token: string) {
   return createClient(supabaseUrl, supabaseAnonKey, {
     global: { headers: { Authorization: `Bearer ${token}` } },
-    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    auth: { ...BASE_AUTH_OPTIONS, storageKey: `nr-auth-${++authClientCounter}` },
   });
 }
