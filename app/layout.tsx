@@ -30,8 +30,10 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider
+      signInForceRedirectUrl="/dashboard"
+      signUpForceRedirectUrl="/dashboard"
       appearance={{
-        baseTheme: dark, // Los formularios de registro seguirán siendo oscuros al abrirse
+        baseTheme: dark,
         variables: { colorPrimary: '#2563eb' }
       }}
     >

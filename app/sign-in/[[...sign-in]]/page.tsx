@@ -8,11 +8,7 @@ export default function Page() {
         path="/sign-in" 
         
         // 2. Usamos la nueva prop de Clerk v5 (reemplaza a afterSignInUrl)
-        fallbackRedirectUrl="/dashboard"
-        
-        // 3. Opcional: Si querés forzar que SIEMPRE vaya al dashboard 
-        // aunque el usuario viniera de otra URL:
-        // forceRedirectUrl="/dashboard"
+        forceRedirectUrl="/dashboard"
 
         // 4. Apariencia para que combine con tu fondo oscuro
         appearance={{

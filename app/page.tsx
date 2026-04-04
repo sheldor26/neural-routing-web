@@ -20,25 +20,7 @@ export default function LandingPage() {
   });
 
   useEffect(() => {
-    async function fetchGlobalStats() {
-      try {
-        const response = await fetch('https://web-production-4f439.up.railway.app/v1/user-stats/global_stats', {
-           headers: { 'X-API-KEY': 'nr-dev-secret-123' }
-        });
-        const data = await response.json();
-        if (data && data.total_savings) {
-          setGlobalStats({
-            savings: Number(data.total_savings),
-            requests: Number(data.requests_count || 1240500),
-            avgLatency: 118, // Telemetría real del router
-            loading: false
-          });
-        }
-      } catch (error) {
-        setGlobalStats(prev => ({ ...prev, loading: false }));
-      }
-    }
-    fetchGlobalStats();
+    setGlobalStats(prev => ({ ...prev, loading: false }));
   }, []);
 
   return (
