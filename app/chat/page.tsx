@@ -46,7 +46,28 @@ export default function FullChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [userApiKey, setUserApiKey] = useState<string | null>(null);
   const [keyLoading, setKeyLoading] = useState(true);
-  
+  const [userPlan, setUserPlan] = useState<string>('Free Tier');
+
+  const PLAN_ALLOWED_MODES: Record<string, RoutingMode[]> = {
+    'Free Tier': ['Auto'],
+    'free': ['Auto'],
+    'Starter': ['Auto', 'Cost'],
+    'starter': ['Auto', 'Cost'],
+    'Growth': ['Auto', 'Cost', 'Speed', 'Quality'],
+    'growth': ['Auto', 'Cost', 'Speed', 'Quality'],
+    'Business': ['Auto', 'Cost', 'Speed', 'Quality'],
+    'business': ['Auto', 'Cost', 'Speed', 'Quality'],
+  };
+
+  const FORCE_MODELS = [
+    { label: 'Auto (Router decides)', value: '' },
+    { label: 'GPT-4o (Premium)', value: 'gpt-4o' },
+    { label: 'GPT-4o Mini (Medium)', value: 'gpt-4o-mini' },
+    { label: 'Llama 3.1 8B (Budget)', value: 'llama-3.1-8b-instant' },
+    { label: 'Llama 3.1 70B (Fast+)', value: 'llama-3.1-70b-versatile' },
+  ];
+  const [forceModel, setForceModel] = useState<string>('');
+
   const [stats, setStats] = useState({ total_saved: 0, best_saving: 0, avg_saving: 0 });
   const [sessionSaved, setSessionSaved] = useState(0);
   const [lastApplied, setLastApplied] = useState<string | null>(null);
@@ -74,6 +95,7 @@ export default function FullChatPage() {
           best_saving: data.best_saving_pct || 0,
           avg_saving: data.avg_saving_pct || 0
         });
+        if (data.plan) setUserPlan(data.plan);
       }
     } catch (e) { console.error(e); }
   };
@@ -168,11 +190,12 @@ export default function FullChatPage() {
     try {
       const response = await fetch(`${API_BASE}/v1/dispatch`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json', 
+        headers: {
+          'Content-Type': 'application/json',
           'X-API-KEY': userApiKey,
           'X-Routing-Mode': activeMode.toLowerCase(),
-          'X-Auto-Optimize': autoOptimize.toString() 
+          'X-Auto-Optimize': autoOptimize.toString(),
+          ...(forceModel ? { 'X-Force-Model': forceModel } : {}),
         },
         body: JSON.stringify({ 
           messages: [...messages.map(m=>({role:m.role,content:m.content})), {role:'user',content:prompt}], 
@@ -264,20 +287,67 @@ export default function FullChatPage() {
            )}
 
            <div className="space-y-4">
-              <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Routing Strategy</span>
-              <div className="grid grid-cols-1 gap-2">
-                {[
-                  { m: 'Auto', d: 'Balanced Cost & Intelligence' },
-                  { m: 'Cost', d: 'Strictly lowest price models' },
-                  { m: 'Speed', d: 'Lowest latency providers' },
-                  { m: 'Quality', d: 'Elite reasoning models' }
-                ].map(item => (
-                  <button key={item.m} onClick={() => setRoutingMode(item.m as RoutingMode)} className={`p-4 rounded-xl text-left border transition-all ${routingMode === item.m ? 'bg-white text-black border-white' : 'bg-transparent text-zinc-500 border-white/5 hover:border-white/10'}`}>
-                    <div className="text-[10px] font-black uppercase">{item.m}</div>
-                    <div className="text-[8px] opacity-60 font-medium leading-tight mt-1">{item.d}</div>
-                  </button>
-                ))}
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Routing Strategy</span>
+                <span className={`text-[7px] font-black uppercase px-2 py-0.5 rounded-full border ${
+                  userPlan === 'Business' ? 'text-amber-400 border-amber-500/30 bg-amber-500/10' :
+                  userPlan === 'Growth'   ? 'text-purple-400 border-purple-500/30 bg-purple-500/10' :
+                  userPlan === 'Starter'  ? 'text-blue-400 border-blue-500/30 bg-blue-500/10' :
+                  'text-zinc-500 border-white/10 bg-white/5'
+                }`}>{userPlan}</span>
               </div>
+              <div className="grid grid-cols-1 gap-2">
+                {([
+                  { m: 'Auto',    d: 'Balanced Cost & Intelligence' },
+                  { m: 'Cost',    d: 'Strictly lowest price models' },
+                  { m: 'Speed',   d: 'Lowest latency providers' },
+                  { m: 'Quality', d: 'Elite reasoning models' }
+                ] as { m: RoutingMode; d: string }[]).map(item => {
+                  const allowed = (PLAN_ALLOWED_MODES[userPlan] ?? ['Auto']).includes(item.m);
+                  return (
+                    <button
+                      key={item.m}
+                      disabled={!allowed}
+                      onClick={() => allowed && setRoutingMode(item.m)}
+                      title={!allowed ? `Upgrade to unlock ${item.m} mode` : undefined}
+                      className={`p-4 rounded-xl text-left border transition-all relative ${
+                        routingMode === item.m && allowed
+                          ? 'bg-white text-black border-white'
+                          : allowed
+                          ? 'bg-transparent text-zinc-500 border-white/5 hover:border-white/10'
+                          : 'bg-transparent text-zinc-700 border-white/5 cursor-not-allowed opacity-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase">{item.m}</span>
+                        {!allowed && <span className="text-[7px] text-zinc-600 uppercase font-black">🔒 Upgrade</span>}
+                      </div>
+                      <div className="text-[8px] opacity-60 font-medium leading-tight mt-1">{item.d}</div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Force Model picker — available for Starter and above */}
+              {(PLAN_ALLOWED_MODES[userPlan] ?? []).includes('Cost') && (
+                <div className="space-y-2 pt-2 border-t border-white/5">
+                  <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Force Model</span>
+                  <select
+                    value={forceModel}
+                    onChange={e => setForceModel(e.target.value)}
+                    className="w-full bg-zinc-900 border border-white/10 rounded-xl px-3 py-2.5 text-[10px] font-bold text-zinc-300 uppercase tracking-wide focus:border-blue-500 outline-none"
+                  >
+                    {FORCE_MODELS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                  {forceModel && (
+                    <p className="text-[8px] text-amber-400 font-bold uppercase tracking-widest">
+                      ⚡ Router overridden — using {forceModel}
+                    </p>
+                  )}
+                </div>
+              )}
            </div>
         </div>
       </aside>
