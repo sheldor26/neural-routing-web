@@ -20,6 +20,9 @@ interface ChatMessage {
     cost: number;
     gpt4_cost_ref: number;
     savings_pct: number;
+    credits_used: number;
+    credits_saved: number;
+    credit_tier: string;
     reasoning?: string;
     insight?: {
       recommended_mode: RoutingMode;
@@ -194,6 +197,9 @@ export default function FullChatPage() {
             cost: actualCost,
             gpt4_cost_ref: gpt4Ref,
             savings_pct: data.business_metrics?.savings_percentage || 0,
+            credits_used: data.business_metrics?.credits_used || 1,
+            credits_saved: data.business_metrics?.credits_saved || 0,
+            credit_tier: data.business_metrics?.credit_tier || "budget",
             reasoning: "Optimizing infrastructure...",
             insight: undefined
           }
@@ -330,7 +336,8 @@ export default function FullChatPage() {
                   
                   {m.role === 'assistant' && m.stats && (
                     <div className="absolute -top-3 left-4 md:left-10 bg-emerald-500 text-black px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-2xl">
-                      <TrendingDown size={12} strokeWidth={3} /> Saved ${(m.stats.gpt4_cost_ref - m.stats.cost).toFixed(4)} ({m.stats.savings_pct.toFixed(0)}%)
+                      <TrendingDown size={12} strokeWidth={3} />
+                      {m.stats.credits_used} cr used · saved {m.stats.credits_saved} cr ({m.stats.savings_pct.toFixed(0)}% off GPT-4o)
                     </div>
                   )}
 
@@ -375,18 +382,29 @@ export default function FullChatPage() {
                         </div>
                       )}
 
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                         <div className="bg-black/40 p-5 rounded-2xl border border-white/5 text-center group">
-                            <span className="text-[8px] font-black text-zinc-700 uppercase block mb-1 group-hover:text-red-400 transition-colors">GPT-4 Standard</span>
-                            <span className="text-xs font-bold text-red-400/30 italic">${m.stats.gpt4_cost_ref.toFixed(5)}</span>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                         <div className="bg-black/40 p-4 rounded-2xl border border-white/5 text-center group">
+                            <span className="text-[7px] font-black text-zinc-700 uppercase block mb-1 group-hover:text-red-400 transition-colors">GPT-4 Price</span>
+                            <span className="text-xs font-bold text-red-400/40 italic">${m.stats.gpt4_cost_ref.toFixed(5)}</span>
                          </div>
-                         <div className="bg-blue-600/5 p-5 rounded-2xl border border-blue-500/20 text-center">
-                            <span className="text-[8px] font-black text-blue-500 uppercase block mb-1">Neural Cost</span>
+                         <div className="bg-blue-600/5 p-4 rounded-2xl border border-blue-500/20 text-center">
+                            <span className="text-[7px] font-black text-blue-500 uppercase block mb-1">Neural Cost</span>
                             <span className="text-xs font-black text-blue-400">${m.stats.cost.toFixed(5)}</span>
                          </div>
-                         <div className="bg-emerald-600/5 p-5 rounded-2xl border border-emerald-500/20 text-center">
-                            <span className="text-[8px] font-black text-emerald-500 uppercase block mb-1">Cost Reduction</span>
-                            <span className="text-xs font-black text-emerald-400">{m.stats.savings_pct.toFixed(0)}% OFF</span>
+                         <div className={`p-4 rounded-2xl border text-center ${
+                           m.stats.credit_tier === 'premium' ? 'bg-purple-600/5 border-purple-500/20' :
+                           m.stats.credit_tier === 'medium'  ? 'bg-blue-600/5 border-blue-500/20' :
+                           'bg-emerald-600/5 border-emerald-500/20'
+                         }`}>
+                            <span className="text-[7px] font-black text-zinc-500 uppercase block mb-1">Credits Used</span>
+                            <span className={`text-xs font-black ${
+                              m.stats.credit_tier === 'premium' ? 'text-purple-400' :
+                              m.stats.credit_tier === 'medium'  ? 'text-blue-400' : 'text-emerald-400'
+                            }`}>{m.stats.credits_used} cr</span>
+                         </div>
+                         <div className="bg-emerald-600/5 p-4 rounded-2xl border border-emerald-500/20 text-center">
+                            <span className="text-[7px] font-black text-emerald-500 uppercase block mb-1">Saved</span>
+                            <span className="text-xs font-black text-emerald-400">{m.stats.savings_pct.toFixed(0)}% off</span>
                          </div>
                       </div>
                     </div>

@@ -21,11 +21,22 @@ export default function Dashboard() {
   
   const [notification, setNotification] = useState<{msg: string, type: 'error' | 'success'} | null>(null);
 
+  const PLAN_CREDITS: Record<string, number> = {
+    "Free Tier": 5_000, "free": 5_000,
+    "Starter": 50_000, "starter": 50_000,
+    "Growth": 200_000, "growth": 200_000,
+    "Business": 1_000_000, "business": 1_000_000,
+  };
+  const PLAN_COLOR: Record<string, string> = {
+    "Free Tier": "text-zinc-400", "Starter": "text-blue-400",
+    "Growth": "text-purple-400", "Business": "text-amber-400",
+  };
+
   const [usageData, setUsageData] = useState({
     used: 0,
-    max: 50000,
+    creditsBalance: 0,
+    creditsLimit: 5000,
     planName: "Free Tier",
-    credits: 0
   });
 
   const [testPrompt, setTestPrompt] = useState("");
@@ -68,25 +79,31 @@ useEffect(() => {
           console.log("📊 DATOS CRUDOS DE RAILWAY:", data);
 
           // Sincronizar Ahorros y Cuadros de Abajo
+          const planName = data.plan || "Free Tier";
+          // Handle legacy USD credits (< 1000) by converting to credit units
+          const rawCredits = Number(data.credits || 0);
+          const creditsBalance = rawCredits < 1000 ? Math.round(rawCredits * 1000) : Math.round(rawCredits);
+          const creditsLimit = PLAN_CREDITS[planName] || 5000;
+
           setStats({
             savings: Number(data.total_savings || 0),
             requests: Number(data.requests_count || 0),
             opt_opportunity_usd: Number(data.optimization_opportunity_usd || 0),
-            // PROTECCIÓN: Si recent_decisions no es un array, mandamos uno vacío
             last_requests: Array.isArray(data.recent_decisions)
               ? data.recent_decisions.map((log: any) => ({
                   model_used: log.model_used || "Neural-Router",
                   savings_percentage: log.savings_percentage || 0,
-                  cost_usd: log.cost_usd || 0
+                  credits_used: log.credits_used || 0,
+                  credit_tier: log.credit_tier || "budget",
                 }))
               : []
           });
 
           setUsageData({
             used: Number(data.requests_count || 0),
-            max: Number(data.total_tokens_limit || 50000),
-            planName: data.plan || "Free Tier",
-            credits: Number(data.credits || 0)
+            creditsBalance,
+            creditsLimit,
+            planName,
           });
         }
       } catch (e) {
@@ -266,38 +283,52 @@ useEffect(() => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-6 shadow-inner">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-white font-black italic uppercase text-lg tracking-tighter">Usage <span className="text-blue-600">& Limits</span></h3>
-                    <Sparkles size={18} className="text-blue-500 animate-pulse" />
+                    <h3 className="text-white font-black italic uppercase text-lg tracking-tighter">Credits <span className="text-blue-600">& Plan</span></h3>
+                    <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
+                      usageData.planName === "Business" ? "border-amber-500/30 bg-amber-500/10 text-amber-400" :
+                      usageData.planName === "Growth"   ? "border-purple-500/30 bg-purple-500/10 text-purple-400" :
+                      usageData.planName === "Starter"  ? "border-blue-500/30 bg-blue-500/10 text-blue-400" :
+                      "border-white/10 bg-white/5 text-zinc-400"
+                    }`}>{usageData.planName}</span>
                 </div>
                 <div className="space-y-4">
-                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-500 italic">
-                        <span>{usageData.used.toLocaleString()} Requests used</span>
-                        <span className={usageData.used > usageData.max * 0.9 ? "text-red-500" : "text-emerald-500"}>
-                            {usageData.planName === "Business" 
-  ? "Unlimited Access" 
-  : usageData.used > 0 && (usageData.used / usageData.max) * 100 < 0.01
-    ? "> 0.01% of plan" // Muestra que hay actividad aunque sea mínima
-    : `${((usageData.used / usageData.max) * 100).toFixed(2)}% of plan`
-}
+                    {/* Credits balance */}
+                    <div className="flex justify-between items-baseline">
+                        <span className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em]">Credits Remaining</span>
+                        <span className="text-2xl font-black text-white italic tracking-tighter">
+                          {usageData.creditsBalance.toLocaleString()}
+                          <span className="text-[9px] text-zinc-600 not-italic font-bold ml-1">/ {usageData.creditsLimit.toLocaleString()}</span>
                         </span>
                     </div>
-                    {/* DYNAMIC PROGRESS BAR */}
-                    <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
-                        <div 
-                          className="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-1000 ease-out" 
-                          style={{width: `${usageData.planName === "Business" ? 100 : Math.max((usageData.used / usageData.max) * 100, 2)}%` }} 
+                    {/* Progress bar */}
+                    <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                        <div
+                          className={`h-full transition-all duration-1000 ease-out rounded-full ${
+                            usageData.creditsBalance / usageData.creditsLimit < 0.2
+                              ? "bg-gradient-to-r from-red-600 to-red-400"
+                              : "bg-gradient-to-r from-blue-600 to-blue-400"
+                          }`}
+                          style={{ width: `${Math.min(100, (usageData.creditsBalance / usageData.creditsLimit) * 100)}%` }}
                         />
                     </div>
-                    <div className="flex justify-between items-center">
-                        <span className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em] italic">Available Balance</span>
-                        <span className="text-xl font-black text-white italic tracking-tighter">
-                          ${usageData.credits.toFixed(2)} <span className="text-[10px] text-zinc-500 not-italic uppercase">USD</span>
-                        </span>
+                    {/* Credit tier legend */}
+                    <div className="grid grid-cols-3 gap-2 pt-1">
+                      {[
+                        { label: "Budget", cost: "1 cr / 1K", color: "text-emerald-400", note: "Llama 3" },
+                        { label: "Medium", cost: "10 cr / 1K", color: "text-blue-400", note: "GPT-4o mini" },
+                        { label: "Premium", cost: "100 cr / 1K", color: "text-purple-400", note: "GPT-4o" },
+                      ].map(t => (
+                        <div key={t.label} className="bg-black/30 rounded-xl p-3 border border-white/5 text-center">
+                          <span className={`text-[8px] font-black uppercase block ${t.color}`}>{t.label}</span>
+                          <span className="text-[9px] font-bold text-white block mt-0.5">{t.cost}</span>
+                          <span className="text-[7px] text-zinc-600 uppercase">{t.note}</span>
+                        </div>
+                      ))}
                     </div>
                 </div>
-                <button className="w-full py-4 bg-white text-black rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-all font-bold">
-                    Upgrade to avoid throttling →
-                </button>
+                <a href="/pricing" className="block w-full py-4 bg-white text-black rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-all text-center">
+                    Upgrade for more credits →
+                </a>
             </div>
 
             <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-8 shadow-inner">
@@ -333,18 +364,29 @@ useEffect(() => {
               <h3 className="text-white font-black italic uppercase text-lg tracking-tighter">Recent <span className="text-blue-600">Optimizations</span></h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {stats.last_requests.map((req, i) => (
-                    <div key={i} className="bg-black/40 border border-white/5 p-6 rounded-2xl flex flex-col gap-2 group hover:border-blue-500/30 transition-all">
-                        <div className="flex justify-between items-center">
-                            <span className="text-[10px] font-black text-blue-500 uppercase italic tracking-tighter">{req.model_used}</span>
-                            <span className="text-[9px] font-black text-emerald-500 italic">-{Number(req.savings_percentage).toFixed(1)}% cost</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs font-mono">
-                            <span className="text-zinc-500 italic">Optimized Cost:</span>
-                            <span className="text-white font-bold">${Number(req.cost_usd).toFixed(5)}</span>
-                        </div>
-                    </div>
-                ))}
+                {stats.last_requests.map((req, i) => {
+                    const tierColor = req.credit_tier === "premium" ? "text-purple-400 border-purple-500/20 bg-purple-500/5"
+                      : req.credit_tier === "medium" ? "text-blue-400 border-blue-500/20 bg-blue-500/5"
+                      : "text-emerald-400 border-emerald-500/20 bg-emerald-500/5";
+                    return (
+                      <div key={i} className="bg-black/40 border border-white/5 p-6 rounded-2xl flex flex-col gap-3 group hover:border-blue-500/30 transition-all">
+                          <div className="flex justify-between items-center">
+                              <span className="text-[10px] font-black text-blue-500 uppercase italic tracking-tighter truncate pr-2">{req.model_used}</span>
+                              <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full border ${tierColor}`}>
+                                {req.credit_tier || "budget"}
+                              </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                              <span className="text-[9px] text-zinc-600 uppercase font-bold">Credits used</span>
+                              <span className="text-white font-black text-sm">{req.credits_used || 1} cr</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                              <span className="text-[9px] text-zinc-600 uppercase font-bold">Savings</span>
+                              <span className="text-emerald-400 font-black text-[10px]">{Number(req.savings_percentage).toFixed(1)}% off GPT-4o</span>
+                          </div>
+                      </div>
+                    );
+                })}
                 {stats.last_requests.length === 0 && (
                     <p className="text-[10px] text-zinc-600 font-black uppercase italic py-8 col-span-full text-center">No optimization data available yet.</p>
                 )}
