@@ -194,13 +194,10 @@ useEffect(() => {
               <span className="text-xl font-black italic uppercase tracking-tighter text-white">Neuralrouting.io</span>
             </Link>
           </div>
-          <div className="flex items-center gap-6">
-            <div className="hidden md:flex flex-col text-right">
-              <span className="text-[9px] font-black uppercase text-emerald-500 tracking-widest italic">Savings Active</span>
-              <span className="text-[10px] font-bold text-zinc-500 uppercase flex items-center justify-end gap-1 tracking-tighter">
-                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"/> System Healthy
-              </span>
-            </div>
+          <div className="flex items-center gap-3">
+            <Link href="/" className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all">Home</Link>
+            <Link href="/pricing" className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all">Pricing</Link>
+            <Link href="/chat" className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-white/5 hover:border-white/20 rounded-xl transition-all">Chat</Link>
             <UserButton afterSignOutUrl="/" />
           </div>
       </nav>
@@ -273,9 +270,9 @@ useEffect(() => {
               {loading ? "$0.00" : `$${stats.savings.toFixed(2)}`}
             </h3>
             <p className="text-[9px] font-bold text-blue-200 uppercase tracking-widest z-10 opacity-70 italic">Total value saved by Neuralrouting</p>
-            <button className="mt-4 w-full py-5 bg-white text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 transition-colors z-10 font-bold">
+            <Link href="/pricing" className="mt-4 block w-full py-5 bg-white text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 transition-colors z-10 text-center">
                 Maximize My Savings →
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -334,9 +331,9 @@ useEffect(() => {
             <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-8 shadow-inner">
                 <div className="flex justify-between items-center">
                   <h3 className="text-white font-black italic uppercase text-lg tracking-tighter">Ready to <span className="text-blue-600">Integrate</span></h3>
-                  <button className="text-[10px] font-black uppercase text-blue-500 flex items-center gap-2 hover:underline font-bold">
+                  <Link href="/docs" className="text-[10px] font-black uppercase text-blue-500 flex items-center gap-2 hover:underline">
                     View Docs <ExternalLink size={12}/>
-                  </button>
+                  </Link>
                 </div>
                 <div className="bg-black/60 border border-zinc-800 rounded-2xl p-6 flex items-center justify-between group hover:border-zinc-700 transition-colors">
                     <div className="flex flex-col">
