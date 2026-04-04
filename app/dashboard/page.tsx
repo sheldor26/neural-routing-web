@@ -243,9 +243,11 @@ useEffect(() => {
           <div className="lg:col-span-2 p-10 rounded-[3rem] bg-zinc-900/40 border border-white/5 space-y-6 backdrop-blur-md">
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">See how much you are <span className="text-blue-600">overpaying</span></h2>
-                <span className="text-[9px] font-black text-red-500 uppercase flex items-center gap-2 animate-pulse bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20">
+                {stats.requests > 0 && (
+                  <span className="text-[9px] font-black text-red-500 uppercase flex items-center gap-2 animate-pulse bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20">
                     <AlertCircle size={12}/> Loss Opportunity: ~${stats.opt_opportunity_usd.toFixed(2)}/mo
-                </span>
+                  </span>
+                )}
             </div>
 
             <div className="relative">
@@ -288,9 +290,15 @@ useEffect(() => {
               <TrendingUp size={160} />
             </div>
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-100 z-10 italic">Accumulated Savings</span>
-            <h3 className="text-7xl font-black italic text-white tracking-tighter z-10">
-              {loading ? "$0.00" : `$${stats.savings.toFixed(2)}`}
-            </h3>
+            {!loading && stats.savings === 0 ? (
+              <p className="text-xl font-black italic text-white tracking-tight z-10 px-4">
+                Your first saving is one request away
+              </p>
+            ) : (
+              <h3 className="text-7xl font-black italic text-white tracking-tighter z-10">
+                {loading ? <Loader2 className="animate-spin" size={40} /> : `$${stats.savings.toFixed(2)}`}
+              </h3>
+            )}
             <p className="text-[9px] font-bold text-blue-200 uppercase tracking-widest z-10 opacity-70 italic">Total value saved by Neuralrouting</p>
             <Link href="/pricing" className="mt-4 block w-full py-5 bg-white text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 transition-colors z-10 text-center">
                 Maximize My Savings →
