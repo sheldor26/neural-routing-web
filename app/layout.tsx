@@ -30,8 +30,8 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider
-      signInForceRedirectUrl="/dashboard"
-      signUpForceRedirectUrl="/dashboard"
+      signInForceRedirectUrl="/"
+      signUpForceRedirectUrl="/"
       appearance={{
         baseTheme: dark,
         variables: { colorPrimary: '#2563eb' }

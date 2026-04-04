@@ -8,11 +8,7 @@ export default function Page() {
         path="/sign-up" 
         
         // 2. Reemplaza al viejo afterSignUpUrl para evitar conflictos
-        fallbackRedirectUrl="/dashboard"
-        
-        // 3. Si querés que después de registrarse vayan SIEMPRE al dashboard
-        // sin importar de dónde venían, podés usar:
-        // forceRedirectUrl="/dashboard"
+        forceRedirectUrl="/"
 
         // 4. Estética coherente con tu App
         appearance={{

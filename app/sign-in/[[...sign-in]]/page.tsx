@@ -8,7 +8,7 @@ export default function Page() {
         path="/sign-in" 
         
         // 2. Usamos la nueva prop de Clerk v5 (reemplaza a afterSignInUrl)
-        forceRedirectUrl="/dashboard"
+        forceRedirectUrl="/"
 
         // 4. Apariencia para que combine con tu fondo oscuro
         appearance={{
