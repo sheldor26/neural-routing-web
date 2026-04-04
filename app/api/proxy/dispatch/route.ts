@@ -1,61 +1,52 @@
 import { NextResponse } from 'next/server';
-import { getAuth } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
+
+const RAILWAY_ENDPOINT = 'https://web-production-4f439.up.railway.app/v1/dispatch';
 
 export async function POST(req: Request) {
   try {
-    // 1. Validar Sesión de Clerk
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized: No Clerk Session" }, { status: 0 }); // Usamos 401
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 2. Validar que el Body sea JSON válido
-    let body;
+    let body: any;
     try {
       body = await req.json();
-    } catch (e) {
-      return NextResponse.json({ error: "Invalid JSON in request body" }, { status: 400 });
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
-    // 3. Configuración de Backend
-    const apiKey = process.env.NR_PRIVATE_KEY || 'nr-dev-secret-123';
-    const RAILWAY_ENDPOINT = 'https://web-production-4f439.up.railway.app/v1/dispatch';
+    const apiKey = process.env.NR_PRIVATE_KEY;
+    if (!apiKey) {
+      console.error('NR_PRIVATE_KEY env var is not set');
+      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+    }
 
-    // 4. Llamada al Backend de Railway
     const response = await fetch(RAILWAY_ENDPOINT, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'X-API-KEY': apiKey
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         messages: body.messages || [],
-        user_id: userId, // Usamos el ID verificado de Clerk
-        session_id: "dashboard_live_test"
+        user_id: userId,
+        session_id: body.session_id || 'proxy',
       }),
-      cache: 'no-store'
+      cache: 'no-store',
     });
 
-    // 5. Manejar errores del Backend (Railway)
+    const data = await response.json();
+
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Railway Error [${response.status}]:`, errorText);
-      return NextResponse.json({ 
-        error: "Railway Backend Failed", 
-        status: response.status,
-        details: errorText 
-      }, { status: response.status });
+      console.error(`Railway error [${response.status}]:`, data);
+      return NextResponse.json(data, { status: response.status });
     }
 
-    const data = await response.json();
     return NextResponse.json(data);
-
   } catch (error: any) {
-    // Aquí es donde ocurría el error 500 sin explicación
-    console.error("CRITICAL PROXY ERROR:", error.message);
-    return NextResponse.json({ 
-      error: "Internal Server Error in Proxy", 
-      details: error.message 
-    }, { status: 500 });
+    console.error('PROXY_ERROR:', error.message);
+    return NextResponse.json({ error: 'Internal proxy error', details: error.message }, { status: 500 });
   }
 }

@@ -12,15 +12,23 @@ const HeroAuth = dynamic(() => import('@/components/AuthInterface').then(mod => 
 const Playground = dynamic(() => import('@/components/Playground'), { ssr: false });
 
 export default function LandingPage() {
-  const [globalStats, setGlobalStats] = useState({ 
-    savings: 145280.40, 
-    requests: 1240500,
+  const [globalStats, setGlobalStats] = useState({
+    savings: 0,
+    requests: 0,
     avgLatency: 118,
-    loading: true 
+    loading: true,
   });
 
   useEffect(() => {
-    setGlobalStats(prev => ({ ...prev, loading: false }));
+    fetch('https://web-production-4f439.up.railway.app/v1/public/stats')
+      .then((r) => r.json())
+      .then((d) => setGlobalStats({
+        savings: d.total_savings_usd ?? 0,
+        requests: d.total_requests ?? 0,
+        avgLatency: 118,
+        loading: false,
+      }))
+      .catch(() => setGlobalStats(prev => ({ ...prev, loading: false })));
   }, []);
 
   return (

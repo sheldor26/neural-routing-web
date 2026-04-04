@@ -18,8 +18,31 @@ export default function Dashboard() {
   const [showKey, setShowKey] = useState(false);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
-  
+  const [generatingKey, setGeneratingKey] = useState(false);
+
   const [notification, setNotification] = useState<{msg: string, type: 'error' | 'success'} | null>(null);
+
+  const API_BASE = "https://web-production-4f439.up.railway.app";
+
+  const generateApiKey = async () => {
+    if (!user) return;
+    setGeneratingKey(true);
+    try {
+      const res = await fetch(`${API_BASE}/v1/account/keys/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id, label: 'Primary Key' }),
+      });
+      if (!res.ok) throw new Error('Could not generate key');
+      const data = await res.json();
+      setApiData({ key: data.key, plan: 'free' });
+      setNotification({ msg: 'API Key generated successfully!', type: 'success' });
+    } catch (e: any) {
+      setNotification({ msg: e.message, type: 'error' });
+    } finally {
+      setGeneratingKey(false);
+    }
+  };
 
   const PLAN_CREDITS: Record<string, number> = {
     "Free Tier": 5_000, "free": 5_000,
@@ -337,22 +360,39 @@ useEffect(() => {
                     View Docs <ExternalLink size={12}/>
                   </Link>
                 </div>
+                {!apiData?.key ? (
+                  <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-6 flex items-center justify-between gap-4">
+                    <div>
+                      <span className="text-[8px] font-black text-amber-500 uppercase mb-1 tracking-widest block">No API Key Found</span>
+                      <p className="text-xs text-zinc-500">Your key may not have been created yet. Generate one now.</p>
+                    </div>
+                    <button
+                      onClick={generateApiKey}
+                      disabled={generatingKey}
+                      className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all disabled:opacity-50 whitespace-nowrap"
+                    >
+                      {generatingKey ? <Loader2 size={14} className="animate-spin" /> : <Key size={14} />}
+                      {generatingKey ? 'Generating...' : 'Generate Key'}
+                    </button>
+                  </div>
+                ) : (
                 <div className="bg-black/60 border border-zinc-800 rounded-2xl p-6 flex items-center justify-between group hover:border-zinc-700 transition-colors">
                     <div className="flex flex-col">
                       <span className="text-[8px] font-black text-zinc-600 uppercase mb-1 tracking-widest italic">Secret Production Key</span>
                       <span className="text-zinc-200 font-mono text-xs tracking-widest uppercase">
-                        {showKey ? (apiData?.key || "No Key Found") : "•".repeat(32)}
+                        {showKey ? apiData.key : "•".repeat(32)}
                       </span>
                     </div>
                     <div className="flex gap-2">
                         <button onClick={() => setShowKey(!showKey)} className="p-2 text-zinc-600 hover:text-white transition-colors">
                           {showKey ? <EyeOff size={20} /> : <Eye size={20} />}
                         </button>
-                        <button onClick={() => { navigator.clipboard.writeText(apiData?.key || ""); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className={`p-3 rounded-xl transition-all ${copied ? "bg-emerald-500 text-black" : "bg-zinc-800 text-blue-500 hover:bg-blue-600 hover:text-white"}`}>
+                        <button onClick={() => { navigator.clipboard.writeText(apiData.key); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className={`p-3 rounded-xl transition-all ${copied ? "bg-emerald-500 text-black" : "bg-zinc-800 text-blue-500 hover:bg-blue-600 hover:text-white"}`}>
                             {copied ? <CheckCircle2 size={20} /> : <Copy size={20} />}
                         </button>
                     </div>
                 </div>
+                )}
             </div>
         </div>
 

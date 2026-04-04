@@ -105,9 +105,29 @@ Charts powered by Recharts (already installed).
 
 ---
 
+---
+
+## Critical Bug Fixes (Session 2)
+
+### 1. Onboarding proxy — `app/api/proxy/dispatch/route.ts`
+**Bug:** imported `getAuth` but called `auth()` (undefined). Also used status code `0` instead of `401`.
+**Fix:** Replaced with correct `import { auth } from '@clerk/nextjs/server'` + `await auth()`. Fixed status codes. Removed hardcoded fallback key — now errors explicitly if `NR_PRIVATE_KEY` env var is missing.
+
+### 2. Dashboard — API key generation fallback
+**Bug:** If the Clerk webhook failed on signup, user arrived at dashboard with no API key and no way to get one.
+**Fix:** Added a `generateApiKey()` function that calls `POST /v1/account/keys/generate`. When `apiData.key` is null, the key section shows an amber warning + "Generate Key" button instead of the masked key display.
+
+### 3. Landing page — real aggregate stats
+**Bug:** `globalStats` was hardcoded (`savings: 145280.40`, `requests: 1240500`) — fake numbers that hurt credibility.
+**Fix:**
+- Added `GET /v1/public/stats` endpoint to backend (no auth) — aggregates `total_savings` and `requests_count` from `user_stats` table.
+- Landing page `useEffect` now fetches real data on mount. Falls back gracefully on error.
+
+---
+
 ## What's Next (Priority Order)
 
 1. **Lemon Squeezy integration** — checkout + webhook → update plan/credits in Supabase. Blocked on validation.
-2. **Onboarding improvement** — ensure new users get API key auto-generated and land in the dashboard correctly.
-3. **Landing page social proof** — live counter "X users saved $Y this month" pulls from aggregate stats.
-4. **Email on low credits** — notify users before they run out so they upgrade proactively.
+2. **Email on low credits** — notify users before they run out so they upgrade proactively (needs email provider: Resend or similar).
+3. **Onboarding step 2 polish** — after the "Get My API Key" CTA, verify the user actually has a key before redirecting to dashboard.
+4. **Public stats minimum floor** — once real numbers are low, consider a "Since launch" framing instead of "this month" to avoid showing $0.
