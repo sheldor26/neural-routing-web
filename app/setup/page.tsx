@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Zap, Copy, CheckCircle2, Eye, EyeOff, ArrowLeft, Terminal, Code, ExternalLink, Loader2 } from 'lucide-react';
 import { useUser, UserButton, useAuth } from '@clerk/nextjs';
-import { createClient } from '@supabase/supabase-js';
+import { createAuthClient } from '@/lib/supabase';
 
 const ENDPOINT = "https://web-production-4f439.up.railway.app";
 
@@ -21,11 +21,7 @@ export default function SetupPage() {
       if (!isLoaded || !user) return;
       try {
         const token = await getToken({ template: 'supabase' });
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          { global: { headers: { Authorization: `Bearer ${token}` } } }
-        );
+        const supabase = createAuthClient(token!);
         const { data } = await supabase
           .from('api_keys')
           .select('key')

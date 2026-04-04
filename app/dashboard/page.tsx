@@ -8,7 +8,7 @@ import {
  Home, DollarSign, ExternalLink, Clock, AlertCircle, ArrowRight, Code
 } from 'lucide-react';
 import { useUser, UserButton, useAuth } from '@clerk/nextjs';
-import { createClient } from '@supabase/supabase-js';
+import { createAuthClient } from '@/lib/supabase';
 
 export default function Dashboard() {
   const { user, isLoaded } = useUser();
@@ -48,11 +48,7 @@ useEffect(() => {
 
         // 1. Obtener Token y Conectar Supabase para la API KEY
         const token = await getToken({ template: 'supabase' });
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          { global: { headers: { Authorization: `Bearer ${token}` } } }
-        );
+        const supabase = createAuthClient(token!);
 
         const { data: dbData } = await supabase
           .from('api_keys')

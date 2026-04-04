@@ -5,8 +5,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useUser, UserButton, useAuth } from "@clerk/nextjs";
-import { createClient } from '@supabase/supabase-js';
-import { supabase as anonSupabaseClient } from '@/lib/supabase';
+import { supabase as anonSupabaseClient, createAuthClient } from '@/lib/supabase';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -82,7 +81,7 @@ export default function FullChatPage() {
     async function init() {
       try {
         const token = await getToken({ template: 'supabase' });
-        const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { global: { headers: { Authorization: `Bearer ${token}` } } });
+        const supabase = createAuthClient(token!);
         supabaseRef.current = supabase;
         const { data, error } = await supabase.from('api_keys').select('key').eq('user_id', user!.id).maybeSingle();
         if (error) console.error('Failed to fetch API key:', error.message);
