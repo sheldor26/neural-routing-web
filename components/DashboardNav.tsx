@@ -7,7 +7,7 @@ import { UserButton } from "@clerk/nextjs";
 import {
   Zap, Menu, X,
   LayoutDashboard, BarChart2, ScrollText, Users, ShieldCheck,
-  Workflow, MessageSquare, Home, DollarSign, TrendingUp, UsersRound,
+  Workflow, MessageSquare, Home, DollarSign, TrendingUp, UsersRound, GitMerge,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -30,6 +30,7 @@ const NAV_GROUPS = [
       { href: "/attribution", label: "Attribution", icon: Users           },
       { href: "/quality",     label: "Quality",     icon: ShieldCheck     },
       { href: "/finops",      label: "FinOps ROI",  icon: TrendingUp      },
+      { href: "/rules",       label: "Rules",       icon: GitMerge        },
     ],
   },
   {

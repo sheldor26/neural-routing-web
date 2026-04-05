@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
  Cpu, TrendingUp, Loader2, Shield, Key, Copy, Eye, EyeOff,
  CheckCircle2, History, Terminal, Sparkles, Play, MessageSquare,
- DollarSign, ExternalLink, Clock, AlertCircle, ArrowRight, Code, FileText
+ DollarSign, ExternalLink, Clock, AlertCircle, ArrowRight, Code, FileText, Zap
 } from 'lucide-react';
 import { useUser, useAuth } from '@clerk/nextjs';
 import { createAuthClient } from '@/lib/supabase';
@@ -92,9 +92,10 @@ export default function Dashboard() {
   const [testLoading, setTestLoading] = useState(false);
   const [testResult, setTestResult] = useState<any>(null);
   const [streamingText, setStreamingText] = useState("");
-  const [stats, setStats] = useState({ 
+  const [stats, setStats] = useState({
     savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] as any[]
   });
+  const [cacheStats, setCacheStats] = useState({ cached_entries: 0, total_hits: 0, estimated_saved_usd: 0 });
 
   useEffect(() => { setMounted(true); }, []);
 useEffect(() => {
@@ -156,6 +157,12 @@ useEffect(() => {
             planName,
           });
         }
+        // Cache stats (fire-and-forget, non-blocking)
+        fetch(`${API_BASE}/v1/account/cache/stats`)
+          .then(r => r.json())
+          .then(d => setCacheStats(d))
+          .catch(() => {});
+
       } catch (e) {
         console.error("❌ Error en la carga del Dashboard:", e);
       } finally {
@@ -289,6 +296,33 @@ useEffect(() => {
             </div>
         </div>
         
+        {/* ── SEMANTIC CACHE STATS ───────────────────────────────────── */}
+        {cacheStats.total_hits > 0 && (
+          <div className="flex flex-wrap gap-4 p-5 rounded-2xl bg-yellow-500/5 border border-yellow-500/15 items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-yellow-500/10 rounded-xl">
+                <Zap size={14} className="text-yellow-400 fill-yellow-400" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-yellow-500">Semantic Cache Active</p>
+                <p className="text-[10px] text-zinc-500 font-bold">Similar prompts served instantly — no model call</p>
+              </div>
+            </div>
+            <div className="flex gap-6">
+              {[
+                { label: "Entries", value: cacheStats.cached_entries.toLocaleString() },
+                { label: "Cache Hits", value: cacheStats.total_hits.toLocaleString() },
+                { label: "Saved by Cache", value: `$${cacheStats.estimated_saved_usd.toFixed(4)}` },
+              ].map(s => (
+                <div key={s.label} className="text-center">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-zinc-600">{s.label}</p>
+                  <p className="text-sm font-black text-white">{s.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* LIVE OPTIMIZER */}
           <div className="lg:col-span-2 p-10 rounded-[3rem] bg-zinc-900/40 border border-white/5 space-y-6 backdrop-blur-md">
