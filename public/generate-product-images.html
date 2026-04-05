@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>NeuralRouting — Product Image Generator</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #111; font-family: system-ui; padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  h1 { color: #fff; font-size: 18px; letter-spacing: 4px; text-transform: uppercase; font-style: italic; margin-bottom: 10px; }
+  .plan-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  canvas { border: 1px solid #333; border-radius: 8px; width: 800px; height: 600px; }
+  button {
+    padding: 12px 32px; background: #2563EB; color: #fff; border: none;
+    border-radius: 10px; font-size: 13px; font-weight: 900; letter-spacing: 3px;
+    text-transform: uppercase; cursor: pointer; transition: background .2s;
+  }
+  button:hover { background: #1d4ed8; }
+  p { color: #555; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<h1>NeuralRouting · Product Image Generator</h1>
+<p>Click "Download PNG" under each plan · 1600×1200px</p>
+
+<script>
+const plans = [
+  {
+    id: "starter",
+    name: "STARTER",
+    price: "$29",
+    period: "/mo",
+    tagline: "Start saving on every AI request.",
+    badge: "SAVE UP TO $125/MO",
+    badgeColor: "#16a34a",
+    credits: "50,000 CREDITS / MONTH",
+    features: ["Auto & Cost routing", "60 requests / minute", "7-day savings history", "Prompt Injection Shield", "Semantic Cache"],
+    accentColor: "#2563EB",
+    labelColor: "#3b82f6",
+  },
+  {
+    id: "growth",
+    name: "GROWTH",
+    price: "$89",
+    period: "/mo",
+    tagline: "Route smarter. Scale faster.",
+    badge: "MOST POPULAR · SAVE $500/MO",
+    badgeColor: "#2563EB",
+    credits: "200,000 CREDITS / MONTH",
+    features: ["All routing modes", "250 requests / minute", "Smart Fallback (99.9% uptime)", "FinOps ROI Dashboard", "Advanced insights · 30-day logs"],
+    accentColor: "#2563EB",
+    labelColor: "#60a5fa",
+  },
+  {
+    id: "business",
+    name: "BUSINESS",
+    price: "$349",
+    period: "/mo",
+    tagline: "Maximum efficiency. Zero surprises.",
+    badge: "MAX ROI · ENTERPRISE GRADE",
+    badgeColor: "#7c3aed",
+    credits: "1,000,000 CREDITS / MONTH",
+    features: ["Custom routing rules", "1,000+ requests / minute", "Priority Edge infrastructure", "Predictive insights & alerts", "Dedicated Slack channel"],
+    accentColor: "#7c3aed",
+    labelColor: "#a78bfa",
+  },
+];
+
+const W = 1600, H = 1200;
+
+function drawPlan(plan) {
+  const canvas = document.getElementById("canvas-" + plan.id);
+  const ctx = canvas.getContext("2d");
+  canvas.width = W;
+  canvas.height = H;
+
+  // Background
+  ctx.fillStyle = "#050505";
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle radial glow
+  const glow = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, 700);
+  glow.addColorStop(0, plan.accentColor + "18");
+  glow.addColorStop(1, "transparent");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, W, H);
+
+  // Top accent line
+  ctx.fillStyle = plan.accentColor;
+  ctx.fillRect(0, 0, W, 6);
+
+  // Badge
+  const badgePad = 28, badgeH = 54;
+  const badgeText = plan.badge;
+  ctx.font = "900 26px 'Arial Black', Arial";
+  const badgeW = ctx.measureText(badgeText).width + badgePad * 2;
+  const badgeX = 80, badgeY = 80;
+  ctx.fillStyle = plan.badgeColor + "22";
+  roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 10);
+  ctx.fillStyle = plan.badgeColor;
+  roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 10);
+  ctx.fillStyle = "#fff";
+  ctx.font = "900 22px 'Arial Black', Arial";
+  ctx.letterSpacing = "3px";
+  ctx.fillText(badgeText, badgeX + badgePad, badgeY + 34);
+
+  // Plan name
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "italic 900 200px 'Arial Black', Arial";
+  ctx.fillText(plan.name, 76, 390);
+
+  // Price
+  ctx.font = "italic 900 130px 'Arial Black', Arial";
+  const priceWidth = ctx.measureText(plan.price).width;
+  ctx.fillStyle = plan.labelColor;
+  ctx.fillText(plan.price, 76, 540);
+  ctx.fillStyle = "#52525b";
+  ctx.font = "italic 900 60px Arial";
+  ctx.fillText(plan.period, 76 + priceWidth + 16, 510);
+
+  // Tagline
+  ctx.fillStyle = "#a1a1aa";
+  ctx.font = "italic 500 46px Arial";
+  ctx.fillText(plan.tagline, 76, 620);
+
+  // Divider
+  ctx.strokeStyle = "#27272a";
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(76, 670); ctx.lineTo(W - 76, 670); ctx.stroke();
+
+  // Credits badge
+  ctx.fillStyle = plan.accentColor + "22";
+  const credW = 620, credH = 60;
+  roundRect(ctx, 76, 700, credW, credH, 10);
+  ctx.fillStyle = plan.accentColor + "22";
+  ctx.fillRect(0,0,0,0);
+  // pill
+  ctx.beginPath();
+  ctx.roundRect(76, 700, credW, credH, 10);
+  ctx.fillStyle = plan.accentColor + "30";
+  ctx.fill();
+  ctx.strokeStyle = plan.accentColor + "60";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.fillStyle = plan.labelColor;
+  ctx.font = "900 28px 'Arial Black', Arial";
+  ctx.fillText(plan.credits, 100, 742);
+
+  // Features
+  const featStartY = 810;
+  const featSpacing = 72;
+  plan.features.forEach((feat, i) => {
+    const y = featStartY + i * featSpacing;
+
+    // Checkmark circle
+    ctx.beginPath();
+    ctx.arc(100, y - 8, 18, 0, Math.PI * 2);
+    ctx.fillStyle = plan.accentColor + "25";
+    ctx.fill();
+    ctx.strokeStyle = plan.accentColor + "80";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Check
+    ctx.strokeStyle = plan.accentColor;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(91, y - 8); ctx.lineTo(97, y - 2); ctx.lineTo(110, y - 16);
+    ctx.stroke();
+
+    // Text
+    ctx.fillStyle = "#d4d4d8";
+    ctx.font = "600 36px Arial";
+    ctx.fillText(feat, 134, y + 4);
+  });
+
+  // Bottom logo
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "italic 900 44px 'Arial Black', Arial";
+  ctx.fillText("NEURAL", W - 580, H - 60);
+  ctx.fillStyle = plan.accentColor;
+  ctx.fillText("ROUTING", W - 580 + ctx.measureText("NEURAL").width + 8, H - 60);
+  ctx.fillStyle = "#3f3f46";
+  ctx.font = "500 28px Arial";
+  ctx.fillText("neuralrouting.io", W - 580, H - 30);
+
+  // Border glow bottom-right
+  ctx.strokeStyle = plan.accentColor + "30";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(1, 1, W - 2, H - 2);
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function download(planId) {
+  const canvas = document.getElementById("canvas-" + planId);
+  const a = document.createElement("a");
+  a.download = `neuralrouting-${planId}-1600x1200.png`;
+  a.href = canvas.toDataURL("image/png");
+  a.click();
+}
+
+// Render
+plans.forEach(plan => {
+  const wrap = document.createElement("div");
+  wrap.className = "plan-wrap";
+
+  const label = document.createElement("p");
+  label.textContent = plan.name + " PLAN";
+  wrap.appendChild(label);
+
+  const canvas = document.createElement("canvas");
+  canvas.id = "canvas-" + plan.id;
+  wrap.appendChild(canvas);
+
+  const btn = document.createElement("button");
+  btn.textContent = "⬇ Download PNG — " + plan.name;
+  btn.onclick = () => download(plan.id);
+  wrap.appendChild(btn);
+
+  document.body.appendChild(wrap);
+  drawPlan(plan);
+});
+</script>
+</body>
+</html>

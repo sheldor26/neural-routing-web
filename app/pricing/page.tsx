@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import { useUser } from '@clerk/nextjs';
 import { Check, X, Zap, Rocket, Crown, ArrowRight, Sparkles } from 'lucide-react';
 
 const tiers = [
@@ -18,6 +19,7 @@ const tiers = [
     support: "Community",
     savingLabel: "FREE",
     highlight: false,
+    slug: "free",
     cta: "Start Free",
     icon: <Zap className="text-zinc-500" size={18} />,
     features: [
@@ -43,6 +45,7 @@ const tiers = [
     support: "Email",
     savingLabel: "SAVE $125 / MO",
     highlight: false,
+    slug: "starter",
     cta: "Start Saving",
     icon: <Rocket className="text-zinc-500" size={18} />,
     features: [
@@ -69,6 +72,7 @@ const tiers = [
     savingLabel: "SAVE $500 / MO",
     highlight: true,
     tag: "MOST POPULAR",
+    slug: "growth",
     cta: "Get Started",
     icon: <Zap className="text-blue-500" size={18} />,
     features: [
@@ -94,6 +98,7 @@ const tiers = [
     support: "Dedicated Slack",
     savingLabel: "MAX ROI",
     highlight: false,
+    slug: "business",
     cta: "Get Started",
     icon: <Crown className="text-zinc-500" size={18} />,
     features: [
@@ -122,6 +127,18 @@ const comparisonRows = [
 ];
 
 export default function Pricing() {
+  const { user } = useUser();
+
+  function checkoutUrl(slug: string): string {
+    if (slug === "free") return "/sign-up";
+    if (!user) return `/sign-in?redirect_url=/pricing`;
+    const params = new URLSearchParams({ plan: slug, user_id: user.id });
+    if (user.primaryEmailAddress?.emailAddress) {
+      params.set("email", user.primaryEmailAddress.emailAddress);
+    }
+    return `/api/checkout?${params.toString()}`;
+  }
+
   return (
     <section id="pricing" className="py-32 bg-[#050505] text-white relative overflow-hidden font-sans">
 
@@ -207,7 +224,8 @@ export default function Pricing() {
 
               {/* CTA */}
               <div className="mt-auto">
-                <button
+                <a
+                  href={checkoutUrl((tier as any).slug)}
                   className={`w-full py-5 rounded-2xl font-black uppercase italic text-[10px] tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${
                     tier.highlight
                       ? "bg-blue-600 text-white hover:bg-blue-500 shadow-xl shadow-blue-600/20 active:scale-95"
@@ -215,7 +233,7 @@ export default function Pricing() {
                   }`}
                 >
                   {tier.cta} <ArrowRight size={14} />
-                </button>
+                </a>
               </div>
             </div>
           ))}
