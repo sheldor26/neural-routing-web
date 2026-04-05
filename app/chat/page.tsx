@@ -174,11 +174,13 @@ export default function FullChatPage() {
 
   const loadSession = async (id: string) => {
     const client = supabaseRef.current || anonSupabaseClient;
+    console.log('[loadSession] id=', id, 'client=', supabaseRef.current ? 'AUTH' : 'ANON');
     const { data, error } = await client.from('chat_messages')
       .select('role, content')
       .eq('session_id', id)
       .order('created_at');
-    if (error) { console.error('Failed to load session:', error.message); return; }
+    console.log('[loadSession] data=', data, 'error=', error);
+    if (error) { console.error('Failed to load session:', error.message, error); return; }
     if (data) {
       setMessages(data.map((m: any) => ({ role: m.role as 'user' | 'assistant', content: m.content })));
       setSessionId(id);
