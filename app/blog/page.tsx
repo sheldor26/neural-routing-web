@@ -58,7 +58,7 @@ export default async function BlogPage() {
       <main className="relative z-10 max-w-4xl mx-auto px-6 py-20">
 
         {/* Header */}
-        <header className="mb-16">
+        <header className="mb-12">
           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 italic mb-3">
             Engineering Logs
           </p>
@@ -69,6 +69,29 @@ export default async function BlogPage() {
             Infrastructure updates, architecture decisions, and research from the NeuralRouting team.
           </p>
         </header>
+
+        {/* Category filter */}
+        <div className="flex gap-3 mb-12 flex-wrap">
+          <span className="px-4 py-2 text-[9px] font-black uppercase tracking-widest border border-blue-500/40 bg-blue-500/10 text-blue-400 rounded-full">
+            All ({list.length})
+          </span>
+          {[
+            { slug: "engineering",     label: "Engineering",     color: "text-blue-400 border-blue-500/20 hover:bg-blue-500/10" },
+            { slug: "architecture",    label: "Architecture",    color: "text-purple-400 border-purple-500/20 hover:bg-purple-500/10" },
+            { slug: "neural-research", label: "Neural Research", color: "text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/10" },
+          ].map(({ slug, label, color }) => {
+            const count = list.filter(p => p.tag === label).length;
+            return count > 0 ? (
+              <Link
+                key={slug}
+                href={`/blog/category/${slug}`}
+                className={`px-4 py-2 text-[9px] font-black uppercase tracking-widest border rounded-full transition-all ${color}`}
+              >
+                {label} ({count})
+              </Link>
+            ) : null;
+          })}
+        </div>
 
         {/* Posts */}
         {list.length === 0 ? (

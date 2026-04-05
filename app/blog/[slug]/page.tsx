@@ -1,9 +1,10 @@
+import type { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ArrowLeft, Clock, Share2, Zap } from "lucide-react";
+import { ArrowLeft, Clock, Zap } from "lucide-react";
 
 export const revalidate = 60;
 
@@ -13,10 +14,49 @@ const TAG_COLORS: Record<string, string> = {
   "Neural Research": "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
 };
 
+const TAG_SLUG: Record<string, string> = {
+  Engineering:       "engineering",
+  Architecture:      "architecture",
+  "Neural Research": "neural-research",
+};
+
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
   });
+}
+
+// --- Dynamic metadata per post ---
+export async function generateMetadata(
+  { params }: { params: { slug: string } }
+): Promise<Metadata> {
+  const { data: post } = await supabase
+    .from("posts")
+    .select("title, excerpt, slug, cover_image, tag, created_at")
+    .eq("slug", params.slug)
+    .single();
+
+  if (!post) return { title: "Post Not Found" };
+
+  return {
+    title: post.title,
+    description: post.excerpt ?? undefined,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt ?? undefined,
+      url: `https://neuralrouting.io/blog/${post.slug}`,
+      type: "article",
+      publishedTime: post.created_at,
+      tags: [post.tag, "AI cost optimization", "LLM routing"],
+      images: post.cover_image ? [{ url: post.cover_image }] : [{ url: "/og-image.png" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.excerpt ?? undefined,
+      images: [post.cover_image ?? "/og-image.png"],
+    },
+  };
 }
 
 export default async function BlogPost({ params }: { params: { slug: string } }) {
@@ -28,8 +68,44 @@ export default async function BlogPost({ params }: { params: { slug: string } })
 
   if (error || !post) notFound();
 
+  // Related posts — same tag, exclude current
+  const { data: related } = await supabase
+    .from("posts")
+    .select("slug, title, tag, read_time")
+    .eq("published", true)
+    .eq("tag", post.tag)
+    .neq("slug", post.slug)
+    .limit(3);
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.excerpt,
+    datePublished: post.created_at,
+    dateModified: post.updated_at,
+    author: { "@type": "Organization", name: "NeuralRouting.io", url: "https://neuralrouting.io" },
+    publisher: {
+      "@type": "Organization",
+      name: "NeuralRouting.io",
+      logo: { "@type": "ImageObject", url: "https://neuralrouting.io/icon.png" },
+    },
+    mainEntityOfPage: { "@type": "WebPage", "@id": `https://neuralrouting.io/blog/${post.slug}` },
+    keywords: `${post.tag}, AI cost optimization, LLM routing, reduce OpenAI costs`,
+    ...(post.cover_image ? { image: post.cover_image } : {}),
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Blog", item: "https://neuralrouting.io/blog" },
+        { "@type": "ListItem", position: 2, name: post.tag, item: `https://neuralrouting.io/blog/category/${TAG_SLUG[post.tag] ?? post.tag.toLowerCase()}` },
+        { "@type": "ListItem", position: 3, name: post.title, item: `https://neuralrouting.io/blog/${post.slug}` },
+      ],
+    },
+  };
+
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-300 font-sans selection:bg-blue-500/30">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* Glow */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -49,6 +125,20 @@ export default async function BlogPost({ params }: { params: { slug: string } })
 
       <main className="relative z-10 max-w-3xl mx-auto px-6 py-16">
 
+        {/* Breadcrumbs */}
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-600 mb-8">
+          <Link href="/blog" className="hover:text-zinc-400 transition-colors">Blog</Link>
+          <span>/</span>
+          <Link
+            href={`/blog/category/${TAG_SLUG[post.tag] ?? post.tag.toLowerCase()}`}
+            className="hover:text-zinc-400 transition-colors"
+          >
+            {post.tag}
+          </Link>
+          <span>/</span>
+          <span className="text-zinc-700 truncate max-w-[200px]">{post.title}</span>
+        </nav>
+
         {/* Cover image */}
         {post.cover_image && (
           <div className="mb-12 rounded-[2rem] overflow-hidden border border-zinc-800">
@@ -58,12 +148,16 @@ export default async function BlogPost({ params }: { params: { slug: string } })
 
         {/* Meta */}
         <div className="flex items-center gap-3 mb-6">
-          <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border ${TAG_COLORS[post.tag] ?? "text-zinc-400 bg-zinc-800 border-zinc-700"}`}>
+          <Link
+            href={`/blog/category/${TAG_SLUG[post.tag] ?? post.tag.toLowerCase()}`}
+            className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border transition-all hover:opacity-80 ${TAG_COLORS[post.tag] ?? "text-zinc-400 bg-zinc-800 border-zinc-700"}`}
+          >
             {post.tag}
-          </span>
+          </Link>
           <span className="text-[9px] font-black uppercase text-zinc-600 tracking-widest flex items-center gap-1">
             <Clock size={11} /> {post.read_time}
           </span>
+          <span className="text-[9px] text-zinc-700 font-bold">{fmtDate(post.created_at)}</span>
         </div>
 
         {/* Title */}
@@ -85,20 +179,13 @@ export default async function BlogPost({ params }: { params: { slug: string } })
               NR
             </div>
             <div>
-              <p className="text-[10px] font-black text-white uppercase tracking-tight">Neural Systems</p>
+              <p className="text-[10px] font-black text-white uppercase tracking-tight">NeuralRouting Team</p>
               <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">{fmtDate(post.created_at)}</p>
             </div>
           </div>
-          <button
-            onClick={undefined}
-            className="p-2 hover:bg-zinc-900 rounded-lg transition-colors text-zinc-600 hover:text-white"
-            title="Copy link"
-          >
-            <Share2 size={16} />
-          </button>
         </div>
 
-        {/* Content — full markdown */}
+        {/* Content */}
         <article className="
           prose prose-invert prose-lg max-w-none
 
@@ -119,7 +206,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
 
           prose-table:text-sm prose-thead:border-zinc-700 prose-tbody:divide-zinc-800 prose-th:text-white prose-th:font-black prose-th:py-3 prose-td:text-zinc-400 prose-td:py-3
 
-          prose-blockquote:border-l-2 prose-blockquote:border-blue-500 prose-blockquote:text-zinc-400 prose-blockquote:italic prose-blockquote:pl-6 prose-blockquote:my-8 prose-blockquote:not-italic
+          prose-blockquote:border-l-2 prose-blockquote:border-blue-500 prose-blockquote:text-zinc-400 prose-blockquote:pl-6 prose-blockquote:my-8
 
           prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
 
@@ -130,6 +217,29 @@ export default async function BlogPost({ params }: { params: { slug: string } })
           </ReactMarkdown>
         </article>
 
+        {/* Related Posts */}
+        {related && related.length > 0 && (
+          <section className="mt-16 pt-12 border-t border-zinc-800">
+            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-6">
+              More in {post.tag}
+            </p>
+            <div className="space-y-3">
+              {related.map((r) => (
+                <Link
+                  key={r.slug}
+                  href={`/blog/${r.slug}`}
+                  className="group flex items-center justify-between p-4 rounded-2xl border border-zinc-800/60 hover:border-blue-500/30 hover:bg-zinc-900/20 transition-all"
+                >
+                  <p className="text-sm font-black italic uppercase tracking-tight text-zinc-300 group-hover:text-white transition-colors">
+                    {r.title}
+                  </p>
+                  <span className="text-[9px] text-zinc-700 font-bold shrink-0 ml-4">{r.read_time}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Footer CTA */}
         <footer className="mt-20 pt-12 border-t border-zinc-800">
           <div className="p-8 rounded-[2.5rem] bg-zinc-900/20 border border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-6">
@@ -138,14 +248,14 @@ export default async function BlogPost({ params }: { params: { slug: string } })
                 Ready to cut your AI costs?
               </h4>
               <p className="text-zinc-500 text-xs font-medium italic">
-                Start saving up to 85% on token costs today.
+                Start saving up to 97% on token costs today. Free tier available.
               </p>
             </div>
             <Link
-              href="/"
+              href="/sign-up"
               className="px-8 py-4 bg-blue-600 text-white text-[10px] font-black uppercase italic tracking-tighter rounded-xl hover:bg-blue-500 transition-all active:scale-95 shadow-xl shrink-0"
             >
-              Get Started →
+              Get Started Free →
             </Link>
           </div>
         </footer>
