@@ -445,14 +445,14 @@ useEffect(() => {
                   </div>
                 ) : (
                 <>
-                <div className="bg-black/60 border border-zinc-800 rounded-2xl p-6 flex items-center justify-between group hover:border-zinc-700 transition-colors">
-                    <div className="flex flex-col">
+                <div className="bg-black/60 border border-zinc-800 rounded-2xl p-6 flex items-center justify-between gap-3 group hover:border-zinc-700 transition-colors">
+                    <div className="flex flex-col min-w-0 flex-1">
                       <span className="text-[8px] font-black text-zinc-600 uppercase mb-1 tracking-widest italic">Secret Production Key</span>
-                      <span className="text-zinc-200 font-mono text-xs tracking-widest uppercase">
-                        {showKey ? apiData.key : "•".repeat(32)}
+                      <span className="text-zinc-200 font-mono text-xs tracking-widest uppercase truncate">
+                        {showKey ? apiData.key : "•".repeat(20)}
                       </span>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 shrink-0">
                         <button onClick={() => setShowKey(!showKey)} className="p-2 text-zinc-600 hover:text-white transition-colors">
                           {showKey ? <EyeOff size={20} /> : <Eye size={20} />}
                         </button>

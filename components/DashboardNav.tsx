@@ -7,7 +7,7 @@ import { UserButton } from "@clerk/nextjs";
 import {
   Zap, Menu, X,
   LayoutDashboard, BarChart2, ScrollText, Users, ShieldCheck,
-  Workflow, MessageSquare, Home, DollarSign,
+  Workflow, MessageSquare, Home, DollarSign, TrendingUp,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -29,6 +29,7 @@ const NAV_GROUPS = [
       { href: "/logs",        label: "Logs",        icon: ScrollText      },
       { href: "/attribution", label: "Attribution", icon: Users           },
       { href: "/quality",     label: "Quality",     icon: ShieldCheck     },
+      { href: "/finops",      label: "FinOps ROI",  icon: TrendingUp      },
     ],
   },
   {
@@ -72,7 +73,7 @@ export default function DashboardNav() {
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden xl:flex items-center gap-1">
           {/* Tools group */}
           <div className="flex items-center gap-1 mr-2">
             {NAV_GROUPS[0].items.map(({ href, label, icon: Icon }) => (
@@ -126,7 +127,7 @@ export default function DashboardNav() {
         </div>
 
         {/* Mobile: avatar + hamburger */}
-        <div className="flex md:hidden items-center gap-3">
+        <div className="flex xl:hidden items-center gap-3">
           <UserButton afterSignOutUrl="/" />
           <button
             onClick={() => setOpen((v) => !v)}
@@ -140,7 +141,7 @@ export default function DashboardNav() {
 
       {/* Mobile drawer */}
       {open && (
-        <div className="md:hidden fixed inset-0 top-16 z-40 bg-black/95 backdrop-blur-xl overflow-y-auto pb-10">
+        <div className="xl:hidden fixed inset-0 top-16 z-40 bg-black/95 backdrop-blur-xl overflow-y-auto pb-10">
           <div className="px-5 pt-6 space-y-6">
             {NAV_GROUPS.map((group) => (
               <div key={group.label}>
