@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import {
  Cpu, TrendingUp, Loader2, Shield, Key, Copy, Eye, EyeOff,
  CheckCircle2, History, Terminal, Sparkles, Play, MessageSquare,
@@ -15,7 +14,6 @@ import DashboardNav from '@/components/DashboardNav';
 export default function Dashboard() {
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
-  const searchParams = useSearchParams();
   const [upgraded, setUpgraded] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [apiData, setApiData] = useState<any>(null);
@@ -102,7 +100,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     setMounted(true);
-    if (searchParams.get("upgraded") === "1") {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("upgraded") === "1") {
       setUpgraded(true);
       setTimeout(() => setUpgraded(false), 8000);
     }
