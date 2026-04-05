@@ -164,10 +164,12 @@ export default function FullChatPage() {
   };
 
   const saveMessage = async (sessionId: string, role: 'user' | 'assistant', content: string) => {
-    const { error } = await anonSupabaseClient.from('chat_messages').insert({
+    const client = supabaseRef.current || anonSupabaseClient;
+    const { error } = await client.from('chat_messages').insert({
       session_id: sessionId,
       role,
       content,
+      user_id: user?.id ?? null,
     });
     if (error) console.error('Failed to save message:', error.message, error.details);
   };
