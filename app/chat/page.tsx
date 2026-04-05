@@ -188,6 +188,17 @@ export default function FullChatPage() {
     }
   };
 
+  const ensureSession = async (sessionId: string, preview: string) => {
+    const client = supabaseRef.current || anonSupabaseClient;
+    const { error } = await client.from('chat_sessions').upsert({
+      id: sessionId,
+      user_id: user?.id ?? null,
+      preview: preview.slice(0, 100),
+      created_at: new Date().toISOString(),
+    }, { onConflict: 'id', ignoreDuplicates: true });
+    if (error) console.error('Failed to ensure session:', error.message, error.details);
+  };
+
   const saveMessage = async (sessionId: string, role: 'user' | 'assistant', content: string) => {
     const client = supabaseRef.current || anonSupabaseClient;
     const { error } = await client.from('chat_messages').insert({
@@ -213,6 +224,7 @@ export default function FullChatPage() {
     setInput("");
     setIsTyping(true);
     if (!sessionId) persistSession(currentSessionId, prompt);
+    await ensureSession(currentSessionId, prompt);
     await saveMessage(currentSessionId, 'user', prompt);
 
     try {
