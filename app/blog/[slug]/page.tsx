@@ -99,19 +99,32 @@ export default async function BlogPost({ params }: { params: { slug: string } })
         </div>
 
         {/* Content — full markdown */}
-        <article className="prose prose-invert prose-blue max-w-none
-          prose-headings:font-black prose-headings:italic prose-headings:uppercase prose-headings:tracking-tighter
-          prose-h1:text-4xl prose-h2:text-2xl prose-h3:text-xl
-          prose-p:text-zinc-400 prose-p:leading-relaxed
-          prose-strong:text-white
+        <article className="
+          prose prose-invert prose-lg max-w-none
+
+          prose-h2:text-2xl prose-h2:font-black prose-h2:italic prose-h2:uppercase prose-h2:tracking-tighter prose-h2:text-white prose-h2:mt-12 prose-h2:mb-4
+          prose-h3:text-xl prose-h3:font-black prose-h3:text-white prose-h3:mt-8 prose-h3:mb-3
+
+          prose-p:text-zinc-400 prose-p:leading-[1.85] prose-p:text-base prose-p:mb-6
+
+          prose-li:text-zinc-400 prose-li:leading-relaxed prose-li:my-1
+          prose-ul:my-6 prose-ul:space-y-1
+          prose-ol:my-6
+
+          prose-strong:text-white prose-strong:font-bold
+
           prose-code:text-blue-400 prose-code:bg-blue-500/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
-          prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-zinc-800 prose-pre:rounded-2xl
-          prose-blockquote:border-l-blue-500 prose-blockquote:text-zinc-400 prose-blockquote:italic
+
+          prose-pre:bg-zinc-900/80 prose-pre:border prose-pre:border-zinc-800 prose-pre:rounded-2xl prose-pre:p-6 prose-pre:my-8 prose-pre:overflow-x-auto
+
+          prose-table:text-sm prose-thead:border-zinc-700 prose-tbody:divide-zinc-800 prose-th:text-white prose-th:font-black prose-th:py-3 prose-td:text-zinc-400 prose-td:py-3
+
+          prose-blockquote:border-l-2 prose-blockquote:border-blue-500 prose-blockquote:text-zinc-400 prose-blockquote:italic prose-blockquote:pl-6 prose-blockquote:my-8 prose-blockquote:not-italic
+
           prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
-          prose-img:rounded-2xl prose-img:border prose-img:border-zinc-800
-          prose-li:text-zinc-400
-          prose-hr:border-zinc-800"
-        >
+
+          prose-hr:border-zinc-800 prose-hr:my-12
+        ">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {post.content}
           </ReactMarkdown>

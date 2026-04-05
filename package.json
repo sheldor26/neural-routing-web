@@ -13,6 +13,7 @@
     "@clerk/themes": "^2.4.57",
     "@lemonsqueezy/lemonsqueezy.js": "^4.0.0",
     "@supabase/supabase-js": "^2.101.1",
+    "@tailwindcss/typography": "^0.5.19",
     "gray-matter": "^4.0.3",
     "lucide-react": "^0.454.0",
     "next": "^15.5.14",
