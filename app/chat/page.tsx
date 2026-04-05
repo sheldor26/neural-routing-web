@@ -150,7 +150,8 @@ export default function FullChatPage() {
   };
 
   const loadSession = async (id: string) => {
-    const { data, error } = await anonSupabaseClient.from('chat_messages')
+    const client = supabaseRef.current || anonSupabaseClient;
+    const { data, error } = await client.from('chat_messages')
       .select('role, content')
       .eq('session_id', id)
       .order('created_at');
