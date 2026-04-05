@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
  Cpu, TrendingUp, Loader2, Shield, Key, Copy, Eye, EyeOff,
  CheckCircle2, History, Terminal, Sparkles, Play, MessageSquare,
- DollarSign, ExternalLink, Clock, AlertCircle, ArrowRight, Code, FileText, Zap
+ DollarSign, ExternalLink, Clock, AlertCircle, ArrowRight, Code, FileText, Zap, ShieldCheck, Activity
 } from 'lucide-react';
 import { useUser, useAuth } from '@clerk/nextjs';
 import { createAuthClient } from '@/lib/supabase';
@@ -97,6 +97,7 @@ export default function Dashboard() {
     savings: 0, requests: 0, opt_opportunity_usd: 0, last_requests: [] as any[]
   });
   const [cacheStats, setCacheStats] = useState({ cached_entries: 0, total_hits: 0, estimated_saved_usd: 0 });
+  const [qualityData, setQualityData] = useState<any>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -169,6 +170,16 @@ useEffect(() => {
           .then(r => r.json())
           .then(d => setCacheStats(d))
           .catch(() => {});
+
+        // Quality intelligence (fire-and-forget)
+        if (dbData?.key) {
+          fetch(`${API_BASE}/v1/account/quality/${user.id}?days=30`, {
+            headers: { 'X-API-KEY': dbData.key }
+          })
+            .then(r => r.json())
+            .then(d => setQualityData(d))
+            .catch(() => {});
+        }
 
       } catch (e) {
         console.error("❌ Error en la carga del Dashboard:", e);
@@ -606,6 +617,82 @@ useEffect(() => {
                 )}
             </div>
         </div>
+
+        {/* QUALITY INTELLIGENCE */}
+        {qualityData && qualityData.summary?.total_audits > 0 && (
+          <div className="bg-zinc-900/10 border border-zinc-800 rounded-[2.5rem] p-10 space-y-8 backdrop-blur-md">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <ShieldCheck size={20} className="text-emerald-500" />
+                <h3 className="text-white font-black italic uppercase text-lg tracking-tighter">Quality <span className="text-emerald-500">Intelligence</span></h3>
+              </div>
+              <span className="text-[9px] font-black uppercase tracking-widest text-zinc-600 border border-white/5 px-3 py-1 rounded-full">Last 30 days · {qualityData.summary.total_audits} audits</span>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Cheap sufficient rate */}
+              <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-6 flex flex-col gap-2">
+                <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Budget Model OK</span>
+                <span className="text-4xl font-black text-white italic tracking-tighter">
+                  {qualityData.summary.cheap_sufficient_pct ?? 0}<span className="text-xl">%</span>
+                </span>
+                <span className="text-[8px] text-zinc-600 font-bold uppercase">Requests served by Llama with guaranteed quality</span>
+              </div>
+
+              {/* Avg quality score */}
+              <div className="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-6 flex flex-col gap-2">
+                <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest">Avg Quality Score</span>
+                <span className="text-4xl font-black text-white italic tracking-tighter">
+                  {qualityData.summary.avg_quality != null
+                    ? (qualityData.summary.avg_quality * 100).toFixed(0)
+                    : "—"}<span className="text-xl">%</span>
+                </span>
+                <span className="text-[8px] text-zinc-600 font-bold uppercase">Semantic similarity vs premium model</span>
+              </div>
+
+              {/* Fallback rate */}
+              <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-6 flex flex-col gap-2">
+                <span className="text-[8px] font-black text-amber-400 uppercase tracking-widest">Auto-Escalations</span>
+                <span className="text-4xl font-black text-white italic tracking-tighter">
+                  {qualityData.summary.fallback_rate_pct ?? 0}<span className="text-xl">%</span>
+                </span>
+                <span className="text-[8px] text-zinc-600 font-bold uppercase">Routed to GPT-4o when quality at risk</span>
+              </div>
+
+              {/* Savings protected */}
+              <div className="bg-purple-500/5 border border-purple-500/20 rounded-2xl p-6 flex flex-col gap-2">
+                <span className="text-[8px] font-black text-purple-400 uppercase tracking-widest">Cost Protected</span>
+                <span className="text-4xl font-black text-white italic tracking-tighter">
+                  ${(qualityData.summary.total_savings_protected_usd ?? 0).toFixed(4)}
+                </span>
+                <span className="text-[8px] text-zinc-600 font-bold uppercase">Measured delta vs premium on validated audits</span>
+              </div>
+            </div>
+
+            {/* Quality bar */}
+            {qualityData.summary.avg_quality != null && (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Quality Threshold</span>
+                  <span className="text-[8px] font-black text-zinc-500 uppercase">
+                    {qualityData.summary.avg_quality >= 0.90 ? "Excellent" :
+                     qualityData.summary.avg_quality >= 0.75 ? "Good" : "Needs attention"}
+                  </span>
+                </div>
+                <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                  <div
+                    className={`h-full rounded-full transition-all duration-1000 ${
+                      qualityData.summary.avg_quality >= 0.90 ? "bg-gradient-to-r from-emerald-600 to-emerald-400" :
+                      qualityData.summary.avg_quality >= 0.75 ? "bg-gradient-to-r from-blue-600 to-blue-400" :
+                      "bg-gradient-to-r from-amber-600 to-amber-400"
+                    }`}
+                    style={{ width: `${Math.min(100, (qualityData.summary.avg_quality ?? 0) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* NOTIFICATION SYSTEM */}
         {notification && (
