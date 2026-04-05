@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
 
   // Build Lemon Squeezy checkout URL
   // Docs: https://docs.lemonsqueezy.com/help/checkout/passing-custom-data
-  const url = new URL(`https://neuralrouting.lemonsqueezy.com/checkout/buy/${variantId}`);
+  const url = new URL(`https://neuralrouting.lemonsqueezy.com/buy/${variantId}`);
 
   // Pre-fill user email if available
   if (email) url.searchParams.set("checkout[email]", email);
