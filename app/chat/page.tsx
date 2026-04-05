@@ -1,7 +1,8 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
 import {
-  Plus, Send, Zap, CheckCircle2, AlertCircle, TrendingDown, Lightbulb, MousePointerClick, Loader2
+  Plus, Send, Zap, CheckCircle2, AlertCircle, TrendingDown, Lightbulb, MousePointerClick, Loader2,
+  Trash2, Pencil, Check, X
 } from 'lucide-react';
 import Link from 'next/link';
 import { useUser, UserButton, useAuth } from "@clerk/nextjs";
@@ -74,6 +75,8 @@ export default function FullChatPage() {
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
   
   const [sessions, setSessions] = useState<{id: string, preview: string}[]>([]);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -147,6 +150,26 @@ export default function FullChatPage() {
     const updated = [{ id, preview: preview.slice(0, 55) }, ...existing.filter(s => s.id !== id)].slice(0, 15);
     localStorage.setItem('nr_chat_sessions', JSON.stringify(updated));
     setSessions(updated);
+  };
+
+  const deleteSession = async (id: string) => {
+    const stored = localStorage.getItem('nr_chat_sessions');
+    const existing: {id: string, preview: string}[] = stored ? JSON.parse(stored) : [];
+    const updated = existing.filter(s => s.id !== id);
+    localStorage.setItem('nr_chat_sessions', JSON.stringify(updated));
+    setSessions(updated);
+    if (sessionId === id) { setMessages([]); setSessionId(""); setSessionSaved(0); }
+    const client = supabaseRef.current || anonSupabaseClient;
+    await client.from('chat_messages').delete().eq('session_id', id);
+  };
+
+  const renameSession = (id: string, newPreview: string) => {
+    const stored = localStorage.getItem('nr_chat_sessions');
+    const existing: {id: string, preview: string}[] = stored ? JSON.parse(stored) : [];
+    const updated = existing.map(s => s.id === id ? { ...s, preview: newPreview.slice(0, 55) } : s);
+    localStorage.setItem('nr_chat_sessions', JSON.stringify(updated));
+    setSessions(updated);
+    setRenamingId(null);
   };
 
   const loadSession = async (id: string) => {
@@ -277,13 +300,42 @@ export default function FullChatPage() {
                <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Recent Chats</span>
                <div className="space-y-1">
                  {sessions.map(s => (
-                   <button
+                   <div
                      key={s.id}
-                     onClick={() => loadSession(s.id)}
-                     className={`w-full text-left px-3 py-2.5 rounded-xl border transition-all group ${sessionId === s.id ? 'bg-blue-600/10 border-blue-500/20 text-white' : 'border-transparent text-zinc-600 hover:bg-zinc-900/60 hover:text-zinc-300'}`}
+                     className={`group relative flex items-center rounded-xl border transition-all ${sessionId === s.id ? 'bg-blue-600/10 border-blue-500/20' : 'border-transparent hover:bg-zinc-900/60'}`}
                    >
-                     <p className="text-[10px] font-bold truncate leading-snug">{s.preview}</p>
-                   </button>
+                     {renamingId === s.id ? (
+                       <div className="flex items-center w-full px-2 py-1.5 gap-1">
+                         <input
+                           autoFocus
+                           value={renameValue}
+                           onChange={e => setRenameValue(e.target.value)}
+                           onKeyDown={e => { if (e.key === 'Enter') renameSession(s.id, renameValue); if (e.key === 'Escape') setRenamingId(null); }}
+                           className="flex-1 bg-zinc-800 text-white text-[10px] font-bold rounded-lg px-2 py-1 outline-none border border-blue-500/40 min-w-0"
+                         />
+                         <button onClick={() => renameSession(s.id, renameValue)} className="p-1 text-emerald-400 hover:text-emerald-300"><Check size={12} /></button>
+                         <button onClick={() => setRenamingId(null)} className="p-1 text-zinc-500 hover:text-white"><X size={12} /></button>
+                       </div>
+                     ) : (
+                       <>
+                         <button onClick={() => loadSession(s.id)} className="flex-1 text-left px-3 py-2.5 min-w-0">
+                           <p className={`text-[10px] font-bold truncate leading-snug ${sessionId === s.id ? 'text-white' : 'text-zinc-600 group-hover:text-zinc-300'}`}>{s.preview}</p>
+                         </button>
+                         <div className="hidden group-hover:flex items-center gap-0.5 pr-2 shrink-0">
+                           <button
+                             onClick={() => { setRenamingId(s.id); setRenameValue(s.preview); }}
+                             className="p-1.5 rounded-lg text-zinc-600 hover:text-zinc-300 hover:bg-white/5 transition-all"
+                             title="Rename"
+                           ><Pencil size={11} /></button>
+                           <button
+                             onClick={() => deleteSession(s.id)}
+                             className="p-1.5 rounded-lg text-zinc-600 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                             title="Delete"
+                           ><Trash2 size={11} /></button>
+                         </div>
+                       </>
+                     )}
+                   </div>
                  ))}
                </div>
              </div>
