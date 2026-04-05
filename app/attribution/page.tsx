@@ -102,7 +102,7 @@ export default function AttributionPage() {
         </div>
 
         {/* Summary cards */}
-        <div className="grid grid-cols-3 gap-4 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
           <div className="bg-zinc-900/30 border border-white/5 rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-3">
               <Users size={14} className="text-blue-400" />
@@ -150,8 +150,8 @@ export default function AttributionPage() {
             </div>
           ) : (
             <>
-              {/* Table header */}
-              <div className="grid grid-cols-5 gap-4 px-6 py-4 border-b border-white/5 text-[9px] font-black uppercase tracking-widest text-zinc-600">
+              {/* Table header — hidden on mobile */}
+              <div className="hidden sm:grid grid-cols-5 gap-4 px-6 py-4 border-b border-white/5 text-[9px] font-black uppercase tracking-widest text-zinc-600">
                 <span className="col-span-2">End User ID</span>
                 <span>Requests</span>
                 <span>Cost</span>
@@ -162,27 +162,53 @@ export default function AttributionPage() {
               {tagged.map((row, i) => (
                 <div
                   key={row.end_user_id || i}
-                  className="grid grid-cols-5 gap-4 px-6 py-4 border-b border-white/5 hover:bg-white/[0.02] transition-colors items-center"
+                  className="border-b border-white/5 hover:bg-white/[0.02] transition-colors px-6 py-4"
                 >
-                  <span className="col-span-2 text-[11px] text-zinc-300 font-mono truncate" title={row.end_user_id}>
-                    {row.end_user_id}
-                  </span>
-                  <span className="text-[11px] text-zinc-400 font-bold">{row.requests.toLocaleString()}</span>
-                  <div>
-                    <p className="text-[11px] text-white font-bold">${fmt(row.cost_usd, 6)}</p>
-                    <p className="text-[9px] text-zinc-600 font-bold">{row.credits_used.toLocaleString()} cr</p>
+                  {/* Mobile layout */}
+                  <div className="sm:hidden space-y-2">
+                    <p className="text-[11px] text-zinc-300 font-mono truncate" title={row.end_user_id}>{row.end_user_id}</p>
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-zinc-500 font-bold">{row.requests.toLocaleString()} req · {row.credits_used.toLocaleString()} cr</span>
+                      <div className="text-right">
+                        <p className="text-white font-bold">${fmt(row.cost_usd, 6)}</p>
+                        <p className="text-emerald-500 font-bold">${fmt(row.savings_usd, 6)} saved</p>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-[11px] text-emerald-500 font-bold">${fmt(row.savings_usd, 6)}</p>
+                  {/* Desktop layout */}
+                  <div className="hidden sm:grid grid-cols-5 gap-4 items-center">
+                    <span className="col-span-2 text-[11px] text-zinc-300 font-mono truncate" title={row.end_user_id}>{row.end_user_id}</span>
+                    <span className="text-[11px] text-zinc-400 font-bold">{row.requests.toLocaleString()}</span>
+                    <div>
+                      <p className="text-[11px] text-white font-bold">${fmt(row.cost_usd, 6)}</p>
+                      <p className="text-[9px] text-zinc-600 font-bold">{row.credits_used.toLocaleString()} cr</p>
+                    </div>
+                    <p className="text-[11px] text-emerald-500 font-bold">${fmt(row.savings_usd, 6)}</p>
+                  </div>
                 </div>
               ))}
 
               {/* Untagged row */}
               {untagged && (
-                <div className="grid grid-cols-5 gap-4 px-6 py-4 border-b border-white/5 hover:bg-white/[0.02] transition-colors items-center opacity-50">
-                  <span className="col-span-2 text-[11px] text-zinc-500 font-mono italic">untagged requests</span>
-                  <span className="text-[11px] text-zinc-500 font-bold">{untagged.requests.toLocaleString()}</span>
-                  <p className="text-[11px] text-zinc-400 font-bold">${fmt(untagged.cost_usd, 6)}</p>
-                  <p className="text-[11px] text-zinc-500 font-bold">${fmt(untagged.savings_usd, 6)}</p>
+                <div className="border-b border-white/5 hover:bg-white/[0.02] transition-colors px-6 py-4 opacity-50">
+                  {/* Mobile layout */}
+                  <div className="sm:hidden space-y-2">
+                    <p className="text-[11px] text-zinc-500 font-mono italic">untagged requests</p>
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-zinc-500 font-bold">{untagged.requests.toLocaleString()} req</span>
+                      <div className="text-right">
+                        <p className="text-zinc-400 font-bold">${fmt(untagged.cost_usd, 6)}</p>
+                        <p className="text-zinc-500 font-bold">${fmt(untagged.savings_usd, 6)} saved</p>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Desktop layout */}
+                  <div className="hidden sm:grid grid-cols-5 gap-4 items-center">
+                    <span className="col-span-2 text-[11px] text-zinc-500 font-mono italic">untagged requests</span>
+                    <span className="text-[11px] text-zinc-500 font-bold">{untagged.requests.toLocaleString()}</span>
+                    <p className="text-[11px] text-zinc-400 font-bold">${fmt(untagged.cost_usd, 6)}</p>
+                    <p className="text-[11px] text-zinc-500 font-bold">${fmt(untagged.savings_usd, 6)}</p>
+                  </div>
                 </div>
               )}
             </>
