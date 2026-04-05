@@ -1,6 +1,17 @@
+import type { Metadata } from "next";
 import React from 'react';
 import Link from 'next/link';
 import { Terminal, Zap, ArrowRight, CheckCircle2, Shield, Database } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: "Docs — API Reference & Integration Guide",
+  description: "Integrate NeuralRouting in under 2 minutes. OpenAI SDK compatible. Full reference for routing modes, semantic cache, security shield, and user attribution.",
+  openGraph: {
+    title: "NeuralRouting Docs — API Reference",
+    description: "OpenAI SDK compatible. Integrate in 2 minutes. Full API reference.",
+    url: "https://neuralrouting.io/docs",
+  },
+};
 
 export default function DocsPage() {
   return (

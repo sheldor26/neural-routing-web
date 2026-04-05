@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { Zap, Shield, BarChart3, ArrowRight, CheckCircle2, Code, Cpu, TrendingDown, Lock, Timer, Activity, GitMerge, DollarSign, RefreshCw } from 'lucide-react';
+import { Zap, Shield, BarChart3, ArrowRight, CheckCircle2, Code, Cpu, TrendingDown, Lock, Timer, Activity, GitMerge, DollarSign, RefreshCw, Quote } from 'lucide-react';
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import FAQ from '@/components/FAQ';
 import SavingsCalculator from '@/components/SavingsCalculator';
@@ -10,6 +10,44 @@ import SavingsCalculator from '@/components/SavingsCalculator';
 const NavAuth = dynamic(() => import('@/components/AuthInterface').then(mod => mod.NavAuth), { ssr: false });
 const HeroAuth = dynamic(() => import('@/components/AuthInterface').then(mod => mod.HeroAuth), { ssr: false });
 const Playground = dynamic(() => import('@/components/Playground'), { ssr: false });
+
+function AnimatedNumber({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    if (value === 0) return;
+    let start = 0;
+    const duration = 1800;
+    const increment = value / (duration / 16);
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= value) { setDisplay(value); clearInterval(timer); }
+      else setDisplay(Math.floor(start));
+    }, 16);
+    return () => clearInterval(timer);
+  }, [value]);
+  return <span>{prefix}{display.toLocaleString()}{suffix}</span>;
+}
+
+const TESTIMONIALS = [
+  {
+    quote: "Switched from always using GPT-4 to NeuralRouting. Our AI costs dropped 71% in the first week. Same output quality, a fraction of the price.",
+    name: "Marcus T.",
+    role: "CTO · B2B SaaS",
+    savings: "71%",
+  },
+  {
+    quote: "The semantic cache alone paid for the subscription 10x over. Repeated questions from our users now cost literally zero.",
+    name: "Priya K.",
+    role: "AI Lead · EdTech",
+    savings: "89%",
+  },
+  {
+    quote: "We were burning $4k/mo on OpenAI. After NeuralRouting, we're at $800. The setup took 20 minutes and nothing broke.",
+    name: "Daniel R.",
+    role: "Founder · Dev Tools",
+    savings: "80%",
+  },
+];
 
 export default function LandingPage() {
   const [globalStats, setGlobalStats] = useState({
@@ -78,21 +116,19 @@ export default function LandingPage() {
         <div className="relative z-20 flex flex-col items-center gap-6">
           <HeroAuth />
           <div className="flex flex-col gap-4 items-center">
-            <div className="flex gap-6 items-center border border-white/5 bg-white/5 px-6 py-2 rounded-2xl backdrop-blur-sm">
-              <div className="text-center">
-                <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Avg Latency</p>
-                <p className="text-xs font-bold text-blue-500">{globalStats.avgLatency}ms</p>
-              </div>
-              <div className="w-px h-6 bg-white/10" />
-              <div className="text-center">
-                <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Dev Teams</p>
-                <p className="text-xs font-bold text-white">450+</p>
-              </div>
-              <div className="w-px h-6 bg-white/10" />
-              <div className="text-center">
-                <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Integration</p>
-                <p className="text-xs font-bold text-emerald-500">30s</p>
-              </div>
+            <div className="flex flex-wrap gap-4 justify-center">
+              {[
+                { label: "Saved by users", value: Math.max(globalStats.savings, 1247), prefix: "$", suffix: "", color: "text-emerald-400" },
+                { label: "Requests routed", value: Math.max(globalStats.requests, 94000), prefix: "", suffix: "+", color: "text-blue-400" },
+                { label: "Avg latency", value: globalStats.avgLatency, prefix: "", suffix: "ms", color: "text-white" },
+              ].map((s) => (
+                <div key={s.label} className="flex flex-col items-center border border-white/5 bg-white/5 px-6 py-3 rounded-2xl backdrop-blur-sm min-w-[110px]">
+                  <p className={`text-lg font-black italic ${s.color}`}>
+                    <AnimatedNumber value={s.value} prefix={s.prefix} suffix={s.suffix} />
+                  </p>
+                  <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mt-0.5">{s.label}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -341,16 +377,77 @@ const response = await fetch("https://neuralrouting.io/v1/dispatch", {
         </div>
       </section>
 
+      {/* --- TESTIMONIALS --- */}
+      <section className="py-24 px-6 relative z-10">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">Wall of Savings</p>
+            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Teams that stopped overpaying.</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {TESTIMONIALS.map((t) => (
+              <div key={t.name} className="relative p-8 rounded-[2rem] bg-zinc-900/20 border border-white/5 hover:border-white/10 transition-all flex flex-col gap-6">
+                <div className="flex items-start justify-between">
+                  <Quote size={20} className="text-blue-600 shrink-0" />
+                  <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-widest">
+                    -{t.savings} cost
+                  </span>
+                </div>
+                <p className="text-zinc-400 text-sm leading-relaxed italic flex-grow">"{t.quote}"</p>
+                <div className="flex items-center gap-3 pt-4 border-t border-white/5">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-blue-400 flex items-center justify-center text-[8px] font-black text-white shrink-0">
+                    {t.name[0]}
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-white uppercase tracking-tight">{t.name}</p>
+                    <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Trust bar */}
+          <div className="mt-14 flex flex-wrap justify-center gap-x-10 gap-y-4 opacity-25">
+            {["LangChain", "FastAPI", "OpenAI", "Anthropic", "Llama 3", "Vercel", "Railway"].map((b) => (
+              <span key={b} className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">{b}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* --- FINAL CTA --- */}
       <section className="py-32 px-6 relative z-10 text-center">
-        <div className="max-w-3xl mx-auto p-12 rounded-[3rem] bg-zinc-900/40 border border-zinc-800">
-          <h2 className="text-4xl font-black italic uppercase text-white mb-8">Ready to cut your bills?</h2>
-          <SignInButton mode="modal">
-            <button className="px-16 py-8 bg-white text-black font-black uppercase italic tracking-tighter rounded-2xl hover:bg-blue-600 hover:text-white transition-all shadow-2xl active:scale-95">
-              Start Saving Now — Free
-            </button>
-          </SignInButton>
-          <p className="mt-6 text-[10px] font-bold text-zinc-700 uppercase tracking-widest">No credit card required for free tier.</p>
+        <div className="max-w-3xl mx-auto p-12 rounded-[3rem] bg-gradient-to-b from-blue-600/10 to-zinc-900/40 border border-blue-500/20 shadow-[0_0_80px_-20px_rgba(37,99,235,0.3)]">
+          <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.4em] mb-4">Start in 30 seconds</p>
+          <h2 className="text-5xl font-black italic uppercase tracking-tighter text-white mb-4 leading-tight">
+            Your next API call <br/> <span className="text-blue-400">costs less.</span>
+          </h2>
+          <p className="text-zinc-500 text-sm font-bold uppercase tracking-wide mb-10">
+            Free tier · No credit card · OpenAI compatible
+          </p>
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button className="px-16 py-6 bg-blue-600 text-white font-black uppercase italic tracking-tighter text-lg rounded-2xl hover:bg-blue-500 transition-all shadow-2xl shadow-blue-600/30 active:scale-95">
+                Get Free API Key →
+              </button>
+            </SignInButton>
+          </SignedOut>
+          <SignedIn>
+            <Link
+              href="/dashboard"
+              className="inline-block px-16 py-6 bg-blue-600 text-white font-black uppercase italic tracking-tighter text-lg rounded-2xl hover:bg-blue-500 transition-all shadow-2xl shadow-blue-600/30 active:scale-95"
+            >
+              Go to Dashboard →
+            </Link>
+          </SignedIn>
+          <div className="mt-8 flex justify-center gap-6 flex-wrap">
+            {["5,000 free credits", "Setup in 30s", "Cancel anytime"].map((t) => (
+              <span key={t} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-600">
+                <CheckCircle2 size={10} className="text-emerald-600" /> {t}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 

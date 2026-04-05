@@ -8,7 +8,7 @@ export default function Page() {
         path="/sign-up" 
         
         // 2. Reemplaza al viejo afterSignUpUrl para evitar conflictos
-        forceRedirectUrl="/"
+        forceRedirectUrl="/onboarding"
 
         // 4. Estética coherente con tu App
         appearance={{

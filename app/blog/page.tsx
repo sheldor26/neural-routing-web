@@ -1,8 +1,19 @@
+import type { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { ChevronRight, Clock, Zap } from "lucide-react";
 
 export const revalidate = 60;
+
+export const metadata: Metadata = {
+  title: "Blog — Engineering Insights & AI Cost Research",
+  description: "Architecture decisions, infrastructure updates, and research from the NeuralRouting team on AI cost optimization and intelligent prompt routing.",
+  openGraph: {
+    title: "NeuralRouting Blog — AI Cost Engineering",
+    description: "Architecture decisions and research on AI cost optimization from the NeuralRouting team.",
+    url: "https://neuralrouting.io/blog",
+  },
+};
 
 const TAG_COLORS: Record<string, string> = {
   Engineering:      "text-blue-400 bg-blue-500/10 border-blue-500/20",

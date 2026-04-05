@@ -15,8 +15,36 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NeuralRouting.io | Enterprise AI Infrastructure",
-  description: "Intelligent prompt routing in milliseconds. Save up to 85% on token costs by automatically switching between Economy and Premium models.",
+  title: {
+    default: "NeuralRouting.io — Save up to 97% on AI API Costs",
+    template: "%s | NeuralRouting.io",
+  },
+  description: "Intelligent AI routing that automatically selects the cheapest model for every prompt. Save up to 97% on OpenAI, Anthropic and Llama API costs with zero code changes.",
+  keywords: ["AI cost optimization", "LLM routing", "OpenAI cheaper alternative", "reduce AI API costs", "prompt routing", "GPT-4 cost savings"],
+  authors: [{ name: "NeuralRouting.io" }],
+  creator: "NeuralRouting.io",
+  metadataBase: new URL("https://neuralrouting.io"),
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://neuralrouting.io",
+    siteName: "NeuralRouting.io",
+    title: "NeuralRouting.io — Save up to 97% on AI API Costs",
+    description: "Intelligent AI routing that automatically selects the cheapest model for every prompt. Save up to 97% on OpenAI, Anthropic and Llama API costs with zero code changes.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "NeuralRouting.io" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "NeuralRouting.io — Save up to 97% on AI API Costs",
+    description: "Intelligent AI routing that automatically selects the cheapest model for every prompt.",
+    images: ["/og-image.png"],
+    creator: "@neuralrouting",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+  },
   icons: {
     icon: "/favicon.ico",
     apple: "/icon.png",

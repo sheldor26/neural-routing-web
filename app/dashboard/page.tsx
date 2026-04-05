@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
  Cpu, TrendingUp, Loader2, Shield, Key, Copy, Eye, EyeOff,
  CheckCircle2, History, Terminal, Sparkles, Play, MessageSquare,
@@ -14,6 +15,8 @@ import DashboardNav from '@/components/DashboardNav';
 export default function Dashboard() {
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
+  const searchParams = useSearchParams();
+  const [upgraded, setUpgraded] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [apiData, setApiData] = useState<any>(null);
   const [showKey, setShowKey] = useState(false);
@@ -97,7 +100,13 @@ export default function Dashboard() {
   });
   const [cacheStats, setCacheStats] = useState({ cached_entries: 0, total_hits: 0, estimated_saved_usd: 0 });
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+    if (searchParams.get("upgraded") === "1") {
+      setUpgraded(true);
+      setTimeout(() => setUpgraded(false), 8000);
+    }
+  }, []);
 useEffect(() => {
     const loadData = async () => {
       if (!isLoaded || !user || !mounted) return;
@@ -278,6 +287,16 @@ useEffect(() => {
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans pb-24 selection:bg-blue-500/30">
       <DashboardNav />
+
+      {upgraded && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-4 bg-emerald-950 border border-emerald-500/40 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500">
+          <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
+          <div>
+            <p className="text-sm font-black text-emerald-300 uppercase tracking-tight">Plan activated!</p>
+            <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">Your credits are ready. Start routing.</p>
+          </div>
+        </div>
+      )}
 
       <main className="max-w-6xl mx-auto px-6 py-12 space-y-12">
         {/* ACTION FUNNEL */}

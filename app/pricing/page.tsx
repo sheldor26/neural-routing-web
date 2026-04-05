@@ -132,9 +132,11 @@ export default function Pricing() {
   function checkoutUrl(slug: string): string {
     if (slug === "free") return "/sign-up";
     if (!user) return `/sign-in?redirect_url=/pricing`;
-    // Redirect to LS storefront — variants are pending, direct /buy/ links return 404
-    // Webhook uses email fallback to apply plan
-    return "https://neuralroutingio.lemonsqueezy.com";
+    const params = new URLSearchParams({ plan: slug, user_id: user.id });
+    if (user.primaryEmailAddress?.emailAddress) {
+      params.set("email", user.primaryEmailAddress.emailAddress);
+    }
+    return `/api/checkout?${params.toString()}`;
   }
 
   return (
