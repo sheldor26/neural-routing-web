@@ -196,6 +196,9 @@ export default function OnboardingPage() {
                     <div className="px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-full">
                         ↓ Save up to {Math.round(savingsPercent)}% with Intelligent Routing
                     </div>
+                    <div className="px-4 py-1.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-[10px] font-black uppercase tracking-widest rounded-full">
+                        ⚡ This prompt is now cached — next similar request is instant &amp; free
+                    </div>
                 </div>
             </div>
 

@@ -108,13 +108,17 @@ const tiers = [
 ];
 
 const comparisonRows = [
-  { label: "Monthly Price",      values: ["$0", "$29", "$89", "$349"] },
-  { label: "Included Credits",   values: ["5,000 (once)", "50,000 /mo", "200,000 /mo", "1,000,000 /mo"] },
-  { label: "Routing Modes",      values: ["Auto Only", "Auto & Cost", "All Modes", "Custom Rules"] },
-  { label: "Rate Limit",         values: ["3 RPM", "60 RPM", "250 RPM", "1,000+ RPM"] },
-  { label: "Uptime Guard",       values: ["Basic", "Standard", "Smart Fallback", "Priority Edge"] },
-  { label: "Insights",           values: ["—", "—", "Soon", "Soon"] },
-  { label: "Support",            values: ["Community", "Email", "Priority", "Dedicated Slack"] },
+  { label: "Monthly Price",        values: ["$0", "$29", "$89", "$349"] },
+  { label: "Included Credits",     values: ["5,000 (once)", "50,000 /mo", "200,000 /mo", "1,000,000 /mo"] },
+  { label: "Routing Modes",        values: ["Auto Only", "Auto & Cost", "All Modes", "Custom Rules"] },
+  { label: "Rate Limit",           values: ["3 RPM", "60 RPM", "250 RPM", "1,000+ RPM"] },
+  { label: "Uptime Guard",         values: ["Basic", "Standard", "Smart Fallback", "Priority Edge"] },
+  { label: "Semantic Cache",       values: ["✓", "✓", "✓", "✓"] },
+  { label: "Security Shield",      values: ["✓", "✓", "✓", "✓"] },
+  { label: "Analytics & Logs",     values: ["—", "7 days", "30 days", "90 days"] },
+  { label: "FinOps ROI Dashboard", values: ["—", "—", "✓", "✓"] },
+  { label: "User Attribution",     values: ["—", "✓", "✓", "✓"] },
+  { label: "Support",              values: ["Community", "Email", "Priority", "Dedicated Slack"] },
 ];
 
 export default function Pricing() {

@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Terminal, Zap, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Terminal, Zap, ArrowRight, CheckCircle2, Shield, Database } from 'lucide-react';
 
 export default function DocsPage() {
   return (
@@ -315,6 +315,104 @@ response = client.chat.completions.create(
             </li>
           ))}
         </ul>
+      </section>
+
+      {/* 7b. Semantic Cache */}
+      <section className="mb-24">
+        <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+          <Database className="text-yellow-400" size={24} /> Semantic Cache
+        </h2>
+        <p className="mb-4 text-slate-400">
+          Every prompt that passes through NeuralRouting is embedded and stored. Future requests that are semantically similar (not just identical) hit the cache and are returned instantly — no model call, no credit deduction.
+        </p>
+        <div className="grid md:grid-cols-3 gap-4 mb-6 text-sm">
+          {[
+            { label: "Level 1 — Exact match", desc: "SHA-256 hash lookup. Zero cost, < 1ms.", color: "text-emerald-400" },
+            { label: "Level 2 — Semantic match", desc: "Cosine similarity via pgvector. Threshold: 0.92.", color: "text-blue-400" },
+            { label: "Cache miss", desc: "Routes normally, stores result async. No latency added.", color: "text-slate-400" },
+          ].map((item) => (
+            <div key={item.label} className="p-4 bg-slate-900/40 border border-slate-800 rounded-2xl">
+              <p className={`font-bold text-xs mb-1 ${item.color}`}>{item.label}</p>
+              <p className="text-slate-500 text-xs">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+        <p className="text-slate-500 text-sm mb-4">When a cache hit occurs, the response includes two extra fields:</p>
+        <div className="bg-[#0f1117] p-5 rounded-2xl border border-slate-800 font-mono text-sm">
+          <pre className="text-blue-400 whitespace-pre-wrap">
+{`{
+  "status": "success",
+  "model_used": "claude-3.5-sonnet",
+  "output": { "ai_answer": "..." },
+  "cache_hit": true,           // ← served from semantic cache
+  "cache_exact": false,        // ← exact hash (true) or semantic match (false)
+  "cache_similarity": 0.9541,  // ← cosine similarity score
+  "business_metrics": { ... }
+}`}
+          </pre>
+        </div>
+        <p className="text-slate-600 text-xs mt-3">
+          Configure via env: <code className="text-slate-400">SEMANTIC_CACHE_ENABLED</code>, <code className="text-slate-400">CACHE_SIMILARITY_THRESHOLD</code> (default: 0.92), <code className="text-slate-400">CACHE_TTL_DAYS</code> (default: 7).
+        </p>
+      </section>
+
+      {/* 7c. Security Shield */}
+      <section className="mb-24">
+        <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+          <Shield className="text-violet-400" size={24} /> Prompt Injection Shield
+        </h2>
+        <p className="mb-4 text-slate-400">
+          Every request is scanned by a real-time heuristic engine before any model call or credit deduction. It detects and blocks prompt injection attempts, jailbreaks, DAN patterns, and system-prompt extraction — in under 1ms with no LLM calls.
+        </p>
+        <div className="space-y-3 mb-6">
+          {[
+            { tier: "CRITICAL (blocked)", examples: "DAN jailbreaks, ignore-all-instructions, token smuggling, bypass-safety patterns", color: "text-red-400 border-red-500/20 bg-red-500/5" },
+            { tier: "HIGH (blocked)", examples: "System-tag injection ([INST], <system>, [[SYSTEM]]), role override, prompt extraction requests", color: "text-orange-400 border-orange-500/20 bg-orange-500/5" },
+            { tier: "MEDIUM (flagged)", examples: "Compound ignore-above constructs, base64 encoded payloads", color: "text-yellow-400 border-yellow-500/20 bg-yellow-500/5" },
+          ].map((item) => (
+            <div key={item.tier} className={`p-4 border rounded-xl text-sm ${item.color}`}>
+              <p className="font-bold text-xs mb-1">{item.tier}</p>
+              <p className="text-slate-400">{item.examples}</p>
+            </div>
+          ))}
+        </div>
+        <p className="text-slate-500 text-sm mb-4">Blocked requests return HTTP <code className="text-slate-300">403</code>:</p>
+        <div className="bg-[#0f1117] p-5 rounded-2xl border border-slate-800 font-mono text-sm">
+          <pre className="text-red-400 whitespace-pre-wrap">
+{`HTTP 403 Forbidden
+
+{
+  "error": "Request blocked by NeuralRouting Security Shield",
+  "category": "CRITICAL",
+  "risk_score": 0.95
+}`}
+          </pre>
+        </div>
+        <p className="text-slate-600 text-xs mt-3">
+          All blocked requests are logged in your security audit trail, accessible from the dashboard. Configure threshold via <code className="text-slate-400">SHIELD_BLOCK_THRESHOLD</code> (default: 0.85).
+        </p>
+      </section>
+
+      {/* 7d. User Attribution */}
+      <section className="mb-24">
+        <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+          <Zap className="text-blue-400" size={24} /> User Attribution
+        </h2>
+        <p className="mb-4 text-slate-400">
+          Pass a <code className="text-blue-400 bg-slate-900 px-1.5 py-0.5 rounded text-sm">user</code> field in your request body to tag requests by end-user. This unlocks per-user cost breakdowns, savings attribution, and budget enforcement in the dashboard.
+        </p>
+        <div className="bg-[#0f1117] p-5 rounded-2xl border border-slate-800 font-mono text-sm">
+          <pre className="text-emerald-500 whitespace-pre-wrap">
+{`{
+  "messages": [{ "role": "user", "content": "..." }],
+  "user": "end-user-id-or-email",   // ← attribution tag
+  "session_id": "optional-session"
+}`}
+          </pre>
+        </div>
+        <p className="text-slate-500 text-sm mt-4">
+          View per-user spend, request counts, and savings at <Link href="/attribution" className="text-blue-400 hover:text-blue-300 transition-colors">neuralrouting.io/attribution</Link>.
+        </p>
       </section>
 
       {/* 8. Final CTA */}

@@ -177,9 +177,9 @@ export default function LandingPage() {
                 desc: "Set per-user or global spend limits. Get real ROI dashboards showing savings vs benchmark cost.",
               },
               {
-                icon: <Timer size={18} className="text-red-400" />,
-                title: "Loop Detection",
-                desc: "Detects runaway agent loops and kills cycles before they drain your budget silently.",
+                icon: <Zap size={18} className="text-yellow-300" />,
+                title: "Semantic Cache",
+                desc: "Every routed prompt is embedded and stored. Similar future requests are served instantly — no model call, zero cost. The more traffic, the smarter the cache.",
               },
             ].map((f) => (
               <div key={f.title} className="bg-zinc-900/20 border border-white/5 rounded-2xl p-6 hover:border-white/10 hover:bg-zinc-900/40 transition-all">
