@@ -139,8 +139,23 @@ export default function Pricing() {
     return `/api/checkout?${params.toString()}`;
   }
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: "NeuralRouting.io",
+    description: "AI cost optimization platform. Save up to 97% on OpenAI, Anthropic and Llama API costs.",
+    offers: tiers.filter(t => t.slug !== "free").map(t => ({
+      "@type": "Offer",
+      name: t.name,
+      price: t.price,
+      priceCurrency: "USD",
+      priceSpecification: { "@type": "RecurringCharge", billingPeriod: "P1M" },
+    })),
+  };
+
   return (
     <section id="pricing" className="py-32 bg-[#050505] text-white relative overflow-hidden font-sans">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.05)_0%,transparent_70%)] pointer-events-none" />
 

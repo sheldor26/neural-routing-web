@@ -69,8 +69,52 @@ export default function LandingPage() {
       .catch(() => setGlobalStats(prev => ({ ...prev, loading: false })));
   }, []);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://neuralrouting.io/#org",
+        name: "NeuralRouting.io",
+        url: "https://neuralrouting.io",
+        logo: "https://neuralrouting.io/icon.png",
+        description: "Intelligent AI routing that automatically selects the cheapest model for every prompt.",
+        sameAs: [],
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://neuralrouting.io/#website",
+        url: "https://neuralrouting.io",
+        name: "NeuralRouting.io",
+        publisher: { "@id": "https://neuralrouting.io/#org" },
+      },
+      {
+        "@type": "SoftwareApplication",
+        name: "NeuralRouting.io",
+        applicationCategory: "DeveloperApplication",
+        operatingSystem: "Any",
+        offers: [
+          { "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD" },
+          { "@type": "Offer", name: "Starter", price: "29", priceCurrency: "USD" },
+          { "@type": "Offer", name: "Growth", price: "89", priceCurrency: "USD" },
+          { "@type": "Offer", name: "Business", price: "349", priceCurrency: "USD" },
+        ],
+        description: "Save up to 97% on AI API costs with intelligent prompt routing. OpenAI SDK compatible.",
+      },
+      {
+        "@type": "FAQPage",
+        mainEntity: [
+          { "@type": "Question", name: "How much can I save with NeuralRouting?", acceptedAnswer: { "@type": "Answer", text: "Teams typically save 70-97% on AI API costs by routing prompts to cheaper models when GPT-4 isn't needed." } },
+          { "@type": "Question", name: "Is NeuralRouting compatible with the OpenAI SDK?", acceptedAnswer: { "@type": "Answer", text: "Yes. Change one line of code — point your base URL to neuralrouting.io/v1 and you're done." } },
+          { "@type": "Question", name: "Is there a free tier?", acceptedAnswer: { "@type": "Answer", text: "Yes. The free tier includes 5,000 credits with no credit card required." } },
+        ],
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-blue-500/30 overflow-x-hidden">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* --- NAV --- */}
       <nav className="flex justify-between items-center p-8 max-w-7xl mx-auto relative z-50">
