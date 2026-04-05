@@ -70,6 +70,44 @@ export default function AdminBlog() {
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
 
+  // ── Local password gate ────────────────────────────────────────────────────
+  const [gateAuthed,  setGateAuthed]  = useState(false);
+  const [gateUser,    setGateUser]    = useState("");
+  const [gatePass,    setGatePass]    = useState("");
+  const [gateError,   setGateError]   = useState("");
+  const [gateLoading, setGateLoading] = useState(false);
+
+  // Persist within the browser session (cleared on tab close)
+  useEffect(() => {
+    if (typeof window !== "undefined" && sessionStorage.getItem("blog_admin_authed") === "1") {
+      setGateAuthed(true);
+    }
+  }, []);
+
+  const handleGateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGateError("");
+    setGateLoading(true);
+    try {
+      const res = await fetch("/api/blog-admin-auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user: gateUser, pass: gatePass }),
+      });
+      if (res.ok) {
+        sessionStorage.setItem("blog_admin_authed", "1");
+        setGateAuthed(true);
+      } else {
+        setGateError("Invalid username or password.");
+      }
+    } catch {
+      setGateError("Connection error. Try again.");
+    } finally {
+      setGateLoading(false);
+    }
+  };
+  // ──────────────────────────────────────────────────────────────────────────
+
   const [posts,        setPosts]        = useState<Post[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [editing,      setEditing]      = useState<Partial<Post> | null>(null); // null = list view
@@ -262,6 +300,62 @@ export default function AdminBlog() {
       <Loader2 className="animate-spin text-blue-600" size={32} />
     </div>
   );
+
+  // ── Password gate ──────────────────────────────────────────────────────────
+  if (!gateAuthed) return (
+    <div className="min-h-screen bg-[#09090b] flex items-center justify-center px-4">
+      <form
+        onSubmit={handleGateSubmit}
+        className="w-full max-w-sm space-y-5 bg-zinc-900/60 border border-white/10 rounded-[2rem] p-8 backdrop-blur-xl"
+      >
+        <div className="space-y-1 text-center">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 italic">Blog CMS</p>
+          <h1 className="text-2xl font-black italic uppercase tracking-tighter text-white">Admin Access</h1>
+        </div>
+
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Username</label>
+            <input
+              type="text"
+              autoComplete="username"
+              value={gateUser}
+              onChange={e => setGateUser(e.target.value)}
+              required
+              className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500/50 transition-colors"
+              placeholder="username"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Password</label>
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={gatePass}
+              onChange={e => setGatePass(e.target.value)}
+              required
+              className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500/50 transition-colors"
+              placeholder="••••••••"
+            />
+          </div>
+        </div>
+
+        {gateError && (
+          <p className="text-[11px] text-red-400 font-bold text-center">{gateError}</p>
+        )}
+
+        <button
+          type="submit"
+          disabled={gateLoading}
+          className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+        >
+          {gateLoading ? <Loader2 size={14} className="animate-spin" /> : null}
+          {gateLoading ? "Verifying…" : "Enter"}
+        </button>
+      </form>
+    </div>
+  );
+  // ──────────────────────────────────────────────────────────────────────────
 
   // ---------------------------------------------------------------------------
   // Render
