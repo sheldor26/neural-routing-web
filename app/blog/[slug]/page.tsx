@@ -38,11 +38,19 @@ export async function generateMetadata(
 
   if (!post) return { title: "Post Not Found" };
 
+  // Keep rendered title (post.title + " | NeuralRouting.io") under 60 chars.
+  // Template adds " | NeuralRouting.io" (19 chars), so cap the raw title at 41.
+  const SUFFIX = " | NeuralRouting.io";
+  const MAX_TITLE = 60 - SUFFIX.length; // 41
+  const seoTitle = post.title.length > MAX_TITLE
+    ? { absolute: post.title.slice(0, MAX_TITLE - 1).trimEnd() + "…" + SUFFIX }
+    : post.title;
+
   return {
-    title: post.title,
+    title: seoTitle,
     description: post.excerpt ?? undefined,
     openGraph: {
-      title: post.title,
+      title: typeof seoTitle === "string" ? seoTitle : post.title.slice(0, MAX_TITLE - 1) + "…",
       description: post.excerpt ?? undefined,
       url: `https://neuralrouting.io/blog/${post.slug}`,
       type: "article",
@@ -141,8 +149,8 @@ export default async function BlogPost({ params }: { params: { slug: string } })
 
         {/* Cover image */}
         {post.cover_image && (
-          <div className="mb-12 rounded-[2rem] overflow-hidden border border-zinc-800">
-            <img src={post.cover_image} alt={post.title} className="w-full h-72 md:h-80 object-cover" />
+          <div className="mb-12 rounded-[2rem] overflow-hidden border border-zinc-800 aspect-[16/7]">
+            <img src={post.cover_image} alt={post.title} width={780} height={341} className="w-full h-full object-cover" fetchPriority="high" />
           </div>
         )}
 

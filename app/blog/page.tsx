@@ -6,12 +6,18 @@ import { ChevronRight, Clock, Zap } from "lucide-react";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Blog — Engineering Insights & AI Cost Research",
-  description: "Architecture decisions, infrastructure updates, and research from the NeuralRouting team on AI cost optimization and intelligent prompt routing.",
+  title: { absolute: "AI Cost Engineering Blog | NeuralRouting" },
+  description: "Engineering insights, LLM cost benchmarks, and AI infrastructure research from NeuralRouting. Learn how to reduce OpenAI and Anthropic API costs with intelligent model routing.",
+  keywords: ["llm cost optimization", "ai cost engineering", "reduce openai costs", "llm routing blog", "ai infrastructure"],
   openGraph: {
-    title: "NeuralRouting Blog — AI Cost Engineering",
-    description: "Architecture decisions and research on AI cost optimization from the NeuralRouting team.",
+    title: "AI Cost Engineering Blog | NeuralRouting",
+    description: "LLM cost benchmarks, model routing architecture, and AI infrastructure research from the NeuralRouting team.",
     url: "https://neuralrouting.io/blog",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AI Cost Engineering Blog | NeuralRouting",
+    description: "LLM cost benchmarks and AI infrastructure research from the NeuralRouting team.",
   },
 };
 
@@ -65,9 +71,19 @@ export default async function BlogPage() {
           <h1 className="text-6xl font-black italic uppercase tracking-tighter text-white leading-[0.9]">
             Neural <span className="text-blue-600">Insights</span>
           </h1>
-          <p className="text-zinc-500 text-sm mt-4 max-w-md">
-            Infrastructure updates, architecture decisions, and research from the NeuralRouting team.
+          <p className="text-zinc-500 text-sm mt-4 max-w-lg leading-relaxed">
+            Infrastructure updates, architecture decisions, and research from the NeuralRouting team
+            on AI cost optimization, intelligent LLM routing, and reducing API spending for production systems.
           </p>
+          <div className="flex flex-wrap gap-6 mt-6 text-[10px] font-black uppercase tracking-widest text-zinc-700">
+            <span>Engineering deep-dives</span>
+            <span>·</span>
+            <span>LLM cost benchmarks</span>
+            <span>·</span>
+            <span>Model routing architecture</span>
+            <span>·</span>
+            <span>AI infrastructure research</span>
+          </div>
         </header>
 
         {/* Category filter */}
@@ -115,7 +131,10 @@ export default async function BlogPage() {
                       <img
                         src={post.cover_image}
                         alt={post.title}
+                        width={224}
+                        height={160}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
                       />
                     </div>
                   )}
@@ -156,6 +175,31 @@ export default async function BlogPage() {
             ))}
           </div>
         )}
+
+        {/* SEO content block — visible to crawlers, styled subtly */}
+        <section className="mt-20 pt-12 border-t border-zinc-900">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                heading: "LLM Cost Optimization",
+                body: "We publish detailed benchmarks on how intelligent model routing reduces LLM inference costs by 70–97%. Our research covers model tier selection, prompt complexity scoring, and semantic caching strategies for production AI systems.",
+              },
+              {
+                heading: "AI Gateway Architecture",
+                body: "Deep-dives on building production-grade AI gateways — routing logic, fallback strategies, rate limiting, and observability. We cover OpenAI, Anthropic, and open-source model infrastructure.",
+              },
+              {
+                heading: "Neural Research",
+                body: "Findings from running NeuralRouting at scale: cache hit rates, model quality audits, routing confidence matrices, and cost-per-request analytics across different product categories.",
+              },
+            ].map((s) => (
+              <div key={s.heading}>
+                <h2 className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-2">{s.heading}</h2>
+                <p className="text-zinc-700 text-xs leading-relaxed">{s.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
       </main>
     </div>
   );

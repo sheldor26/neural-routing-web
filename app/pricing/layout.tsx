@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "AI Gateway Pricing & LLM Router Plans — NeuralRouting",
+  title: { absolute: "AI Gateway Pricing — LLM Router Plans | NeuralRouting" },
   description: "NeuralRouting AI gateway pricing starts free. LLM router plans from $29/mo. Save up to 97% on OpenAI, Anthropic & Llama API costs. No credit card required to start.",
   keywords: [
     "ai gateway pricing", "llm router pricing", "ai api gateway cost",

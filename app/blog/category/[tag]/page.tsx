@@ -148,7 +148,7 @@ export default async function CategoryPage({ params }: { params: { tag: string }
                 <div className="flex flex-col md:flex-row">
                   {post.cover_image && (
                     <div className="md:w-56 md:shrink-0 h-40 md:h-auto overflow-hidden">
-                      <img src={post.cover_image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <img src={post.cover_image} alt={post.title} width={224} height={160} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                     </div>
                   )}
                   <div className="flex-1 p-8">
