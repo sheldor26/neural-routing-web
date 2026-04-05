@@ -186,6 +186,14 @@ export default function FinOpsPage() {
             <p className="text-sm text-zinc-500 mt-2">
               Cost attribution, savings vs benchmark, and optimization opportunities.
             </p>
+            <a
+              href="/report"
+              target="_blank"
+              className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-zinc-800 border border-white/10 text-zinc-300 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-zinc-700 transition-all"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              Download Monthly PDF
+            </a>
           </div>
 
           <div className="flex items-center gap-1 bg-zinc-900/60 border border-white/5 rounded-2xl p-1">

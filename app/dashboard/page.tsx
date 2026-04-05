@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
  Cpu, TrendingUp, Loader2, Shield, Key, Copy, Eye, EyeOff,
  CheckCircle2, History, Terminal, Sparkles, Play, MessageSquare,
- DollarSign, ExternalLink, Clock, AlertCircle, ArrowRight, Code
+ DollarSign, ExternalLink, Clock, AlertCircle, ArrowRight, Code, FileText
 } from 'lucide-react';
 import { useUser, useAuth } from '@clerk/nextjs';
 import { createAuthClient } from '@/lib/supabase';
@@ -282,6 +282,9 @@ useEffect(() => {
             <div className="flex flex-wrap justify-center gap-4">
                 <Link href="/setup" className="px-8 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2 font-bold">
                     Go to Production Setup <ArrowRight size={14}/>
+                </Link>
+                <Link href="/report" target="_blank" className="px-8 py-3 bg-zinc-800 text-zinc-300 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-700 transition-all flex items-center gap-2">
+                    <FileText size={14} /> Monthly Report
                 </Link>
             </div>
         </div>
