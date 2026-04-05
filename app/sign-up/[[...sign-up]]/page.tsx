@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import { SignUp } from "@clerk/nextjs";
+
+export const metadata: Metadata = {
+  title: "Create Account",
+  description: "Create your free NeuralRouting account. Start saving up to 97% on AI API costs with intelligent LLM routing.",
+  robots: { index: false, follow: false },
+};
 
 export default function Page() {
   return (

@@ -1,12 +1,22 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Pricing — Plans That Pay for Themselves",
-  description: "Start free, scale as you grow. NeuralRouting plans save teams up to 97% on AI API costs. Starter $29/mo, Growth $89/mo, Business $349/mo.",
+  title: "AI Gateway Pricing & LLM Router Plans — NeuralRouting",
+  description: "NeuralRouting AI gateway pricing starts free. LLM router plans from $29/mo. Save up to 97% on OpenAI, Anthropic & Llama API costs. No credit card required to start.",
+  keywords: [
+    "ai gateway pricing", "llm router pricing", "ai api gateway cost",
+    "llm routing pricing", "openai proxy pricing", "ai cost optimization pricing",
+    "llm gateway plans", "ai infrastructure pricing",
+  ],
   openGraph: {
-    title: "NeuralRouting Pricing — Save up to 97% on AI Costs",
-    description: "Start free, scale as you grow. Plans from $29/mo that pay for themselves in days.",
+    title: "AI Gateway Pricing — LLM Router Plans from $0 | NeuralRouting",
+    description: "AI gateway and LLM router pricing. Free tier + paid plans from $29/mo. Save up to 97% on AI API costs.",
     url: "https://neuralrouting.io/pricing",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AI Gateway Pricing — LLM Router Plans | NeuralRouting",
+    description: "Free tier + plans from $29/mo. Save up to 97% on OpenAI costs.",
   },
 };
 

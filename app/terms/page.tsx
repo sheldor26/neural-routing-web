@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import React from 'react';
 import Link from 'next/link';
 import { Gavel, ShieldAlert, Lock, CreditCard, Ban, Globe } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description: "NeuralRouting terms of service. Review our usage policies, subscription terms, and acceptable use guidelines for our AI routing platform.",
+  robots: { index: true, follow: false },
+  openGraph: { title: "Terms of Service | NeuralRouting.io", url: "https://neuralrouting.io/terms" },
+};
 
 export default function TermsPage() {
   return (

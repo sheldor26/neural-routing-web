@@ -123,7 +123,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
         </Link>
       </nav>
 
-      <main className="relative z-10 max-w-3xl mx-auto px-6 py-16">
+      <main className="relative z-10 max-w-[780px] mx-auto px-6 py-16">
 
         {/* Breadcrumbs */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-zinc-600 mb-8">
@@ -142,7 +142,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
         {/* Cover image */}
         {post.cover_image && (
           <div className="mb-12 rounded-[2rem] overflow-hidden border border-zinc-800">
-            <img src={post.cover_image} alt={post.title} className="w-full h-64 object-cover" />
+            <img src={post.cover_image} alt={post.title} className="w-full h-72 md:h-80 object-cover" />
           </div>
         )}
 
@@ -167,7 +167,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
 
         {/* Excerpt */}
         {post.excerpt && (
-          <p className="text-zinc-400 text-lg leading-relaxed mb-8 italic border-l-2 border-blue-600/40 pl-4">
+          <p className="text-zinc-300 text-xl leading-[1.75] mb-10 font-light border-l-[3px] border-blue-600/50 pl-5 bg-blue-500/[0.04] pr-4 py-2 rounded-r-xl">
             {post.excerpt}
           </p>
         )}
@@ -187,30 +187,39 @@ export default async function BlogPost({ params }: { params: { slug: string } })
 
         {/* Content */}
         <article className="
-          prose prose-invert prose-lg max-w-none
+          prose prose-invert max-w-none
 
-          prose-h2:text-2xl prose-h2:font-black prose-h2:italic prose-h2:uppercase prose-h2:tracking-tighter prose-h2:text-white prose-h2:mt-12 prose-h2:mb-4
-          prose-h3:text-xl prose-h3:font-black prose-h3:text-white prose-h3:mt-8 prose-h3:mb-3
+          [&>*]:max-w-[68ch]
 
-          prose-p:text-zinc-400 prose-p:leading-[1.85] prose-p:text-base prose-p:mb-6
+          prose-h2:text-[1.6rem] prose-h2:font-black prose-h2:italic prose-h2:uppercase prose-h2:tracking-tight prose-h2:text-white prose-h2:mt-14 prose-h2:mb-5 prose-h2:leading-tight
+          prose-h3:text-xl prose-h3:font-bold prose-h3:text-white/90 prose-h3:mt-10 prose-h3:mb-4 prose-h3:leading-snug
+          prose-h4:text-base prose-h4:font-bold prose-h4:text-zinc-300 prose-h4:mt-8 prose-h4:mb-3
 
-          prose-li:text-zinc-400 prose-li:leading-relaxed prose-li:my-1
-          prose-ul:my-6 prose-ul:space-y-1
-          prose-ol:my-6
+          prose-p:text-zinc-400 prose-p:leading-[1.95] prose-p:text-[1.05rem] prose-p:mb-7 prose-p:tracking-[0.01em]
 
-          prose-strong:text-white prose-strong:font-bold
+          prose-li:text-zinc-400 prose-li:leading-[1.85] prose-li:mb-2 prose-li:tracking-[0.01em]
+          prose-ul:my-7 prose-ul:space-y-0 prose-ul:pl-6
+          prose-ol:my-7 prose-ol:pl-6
+          prose-ul:marker:text-blue-500/60
+          prose-ol:marker:text-zinc-600
 
-          prose-code:text-blue-400 prose-code:bg-blue-500/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
+          prose-strong:text-zinc-200 prose-strong:font-semibold
 
-          prose-pre:bg-zinc-900/80 prose-pre:border prose-pre:border-zinc-800 prose-pre:rounded-2xl prose-pre:p-6 prose-pre:my-8 prose-pre:overflow-x-auto
+          prose-em:text-zinc-300 prose-em:not-italic
 
-          prose-table:text-sm prose-thead:border-zinc-700 prose-tbody:divide-zinc-800 prose-th:text-white prose-th:font-black prose-th:py-3 prose-td:text-zinc-400 prose-td:py-3
+          prose-code:text-blue-400 prose-code:bg-blue-500/10 prose-code:px-1.5 prose-code:py-[0.15em] prose-code:rounded-md prose-code:text-[0.875em] prose-code:font-mono prose-code:before:content-none prose-code:after:content-none prose-code:border prose-code:border-blue-500/20
 
-          prose-blockquote:border-l-2 prose-blockquote:border-blue-500 prose-blockquote:text-zinc-400 prose-blockquote:pl-6 prose-blockquote:my-8
+          prose-pre:bg-[#0d0d10] prose-pre:border prose-pre:border-zinc-800/80 prose-pre:rounded-2xl prose-pre:p-6 prose-pre:my-10 prose-pre:overflow-x-auto prose-pre:text-sm prose-pre:leading-relaxed
 
-          prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
+          prose-table:text-sm prose-table:my-8 prose-thead:border-zinc-700 prose-tbody:divide-zinc-800 prose-th:text-zinc-300 prose-th:font-semibold prose-th:py-3 prose-th:px-4 prose-td:text-zinc-400 prose-td:py-3 prose-td:px-4
 
-          prose-hr:border-zinc-800 prose-hr:my-12
+          prose-blockquote:border-l-[3px] prose-blockquote:border-blue-500/60 prose-blockquote:bg-blue-500/5 prose-blockquote:text-zinc-400 prose-blockquote:pl-6 prose-blockquote:pr-4 prose-blockquote:py-1 prose-blockquote:my-10 prose-blockquote:rounded-r-xl prose-blockquote:not-italic
+
+          prose-a:text-blue-400 prose-a:font-medium prose-a:no-underline prose-a:border-b prose-a:border-blue-500/30 hover:prose-a:border-blue-400 hover:prose-a:text-blue-300
+
+          prose-hr:border-zinc-800/60 prose-hr:my-14
+
+          prose-img:rounded-2xl prose-img:border prose-img:border-zinc-800
         ">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {post.content}

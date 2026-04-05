@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import React from 'react';
 import Link from 'next/link';
 import { ShieldCheck, EyeOff, Database, Lock, Server, Mail, UserCheck } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "NeuralRouting privacy policy. We collect only what's needed to provide our AI routing service. Your prompts are never stored or used for training.",
+  robots: { index: true, follow: false },
+  openGraph: { title: "Privacy Policy | NeuralRouting.io", url: "https://neuralrouting.io/privacy" },
+};
 
 export default function PrivacyPage() {
   return (

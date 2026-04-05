@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CheckCircle2, ArrowRight, Zap } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Reduce OpenAI API Costs by up to 97% — NeuralRouting",
+  title: { absolute: "Reduce OpenAI Costs by 97% | NeuralRouting.io" },
   description: "Stop overpaying for GPT-4 on every request. NeuralRouting automatically routes prompts to the cheapest model that can handle them. Save up to 97% on OpenAI API costs with zero code changes.",
   keywords: ["reduce openai costs", "openai api cost reduction", "cheaper openai alternative", "gpt-4 cost savings", "openai api optimization"],
   openGraph: {
