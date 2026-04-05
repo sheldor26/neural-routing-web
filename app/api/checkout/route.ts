@@ -48,5 +48,7 @@ export async function GET(req: NextRequest) {
   // Redirect after purchase
   url.searchParams.set("checkout[redirect_url]", `${req.nextUrl.origin}/dashboard?upgraded=1`);
 
-  return NextResponse.redirect(url.toString());
+  // Try direct variant URL first; if variants are still pending in LS,
+  // fall back to the storefront so users can still purchase.
+  return NextResponse.redirect(url.toString(), { status: 302 });
 }
