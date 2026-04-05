@@ -129,14 +129,25 @@ const comparisonRows = [
 export default function Pricing() {
   const { user } = useUser();
 
+  const LS_STOREFRONT: Record<string, string> = {
+    starter:  "https://neuralroutingio.lemonsqueezy.com/buy/1490928",
+    growth:   "https://neuralroutingio.lemonsqueezy.com/buy/1490952",
+    business: "https://neuralroutingio.lemonsqueezy.com/buy/1490968",
+  };
+
   function checkoutUrl(slug: string): string {
     if (slug === "free") return "/sign-up";
     if (!user) return `/sign-in?redirect_url=/pricing`;
-    const params = new URLSearchParams({ plan: slug, user_id: user.id });
+    // Build direct LS checkout URL with pre-filled email and user_id
+    const base = LS_STOREFRONT[slug];
+    if (!base) return "/pricing";
+    const params = new URLSearchParams();
     if (user.primaryEmailAddress?.emailAddress) {
-      params.set("email", user.primaryEmailAddress.emailAddress);
+      params.set("checkout[email]", user.primaryEmailAddress.emailAddress);
     }
-    return `/api/checkout?${params.toString()}`;
+    params.set("checkout[custom][user_id]", user.id);
+    params.set("checkout[redirect_url]", "https://neuralrouting.io/dashboard?upgraded=1");
+    return `${base}?${params.toString()}`;
   }
 
   return (
