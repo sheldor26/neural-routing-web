@@ -20,11 +20,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "NeuralRouting — Reduce OpenAI & LLM Costs by 97%",
+    default: "NeuralRouting — Intelligent LLM Router & AI Gateway",
     template: "%s | NeuralRouting.io",
   },
-  description: "Cut your OpenAI, Anthropic and Llama API costs by up to 97%. NeuralRouting automatically routes every prompt to the cheapest model that can handle it. OpenAI SDK compatible. Free tier available.",
-  keywords: ["reduce openai costs", "llm cost optimization", "llm routing", "openai api cost", "gpt-4 cheaper", "ai cost savings", "prompt routing", "reduce ai api costs", "openai alternative cheaper"],
+  description: "Route every AI request to the right model at the right price. NeuralRouting cuts LLM costs up to 85% with intelligent model routing, semantic caching, and zero-downtime failover. OpenAI SDK compatible.",
+  keywords: ["llm router", "ai gateway", "llm cost optimization", "reduce openai costs", "model routing", "llm failover", "semantic caching llm", "ai model routing", "llm gateway", "reduce ai costs", "model tax", "cheapest llm router"],
   authors: [{ name: "NeuralRouting.io" }],
   creator: "NeuralRouting.io",
   metadataBase: new URL("https://neuralrouting.io"),
