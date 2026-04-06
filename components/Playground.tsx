@@ -44,22 +44,25 @@ export default function Playground() {
 
   useEffect(() => {
     const fetchKey = async () => {
-      if (!isLoaded || !user) return;
+      if (!isLoaded || !user) { setKeyLoading(false); return; }
       try {
         const token = await getToken({ template: 'supabase' });
+        if (!token) { console.error('[Playground] No Clerk token'); setKeyLoading(false); return; }
         const supabase = createClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
           process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
           { global: { headers: { Authorization: `Bearer ${token}` } } }
         );
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('api_keys')
           .select('key')
           .eq('user_id', String(user.id))
           .maybeSingle();
+        if (error) console.error('[Playground] Supabase error:', error.message);
         if (data?.key) setApiKey(data.key);
+        else console.warn('[Playground] No API key found for user:', user.id);
       } catch (e) {
-        console.error('Failed to fetch API key:', e);
+        console.error('[Playground] Failed to fetch API key:', e);
       } finally {
         setKeyLoading(false);
       }
