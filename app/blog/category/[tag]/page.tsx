@@ -64,12 +64,12 @@ export default async function CategoryPage({ params }: { params: Promise<{ tag: 
     "@type": "CollectionPage",
     name: `${tag} — NeuralRouting Blog`,
     description: TAG_DESCRIPTIONS[tag],
-    url: `https://neuralrouting.io/blog/category/${params.tag}`,
+    url: `https://neuralrouting.io/blog/category/${tagSlug}`,
     breadcrumb: {
       "@type": "BreadcrumbList",
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "Blog", item: "https://neuralrouting.io/blog" },
-        { "@type": "ListItem", position: 2, name: tag, item: `https://neuralrouting.io/blog/category/${params.tag}` },
+        { "@type": "ListItem", position: 2, name: tag, item: `https://neuralrouting.io/blog/category/${tagSlug}` },
       ],
     },
   };
