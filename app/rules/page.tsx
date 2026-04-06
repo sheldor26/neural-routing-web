@@ -5,7 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import { Loader2, Plus, Trash2, ToggleLeft, ToggleRight, GitMerge, ChevronDown } from "lucide-react";
 import DashboardNav from "@/components/DashboardNav";
 
-const API_BASE = "https://web-production-4f439.up.railway.app";
+import { API_BASE } from '@/lib/config';
 
 const MODELS = [
   "gpt-4o", "gpt-4o-mini", "gpt-4-turbo",

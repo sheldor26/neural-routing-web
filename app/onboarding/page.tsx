@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '@/lib/config';
 import { useUser } from '@clerk/nextjs';
 import { Loader2, Zap, CheckCircle2, ArrowRight, Copy, Activity, AlertTriangle, ShieldCheck, Sparkles, Search, Cpu, Quote } from 'lucide-react';
 
@@ -37,7 +38,6 @@ export default function OnboardingPage() {
   const [copied, setCopied] = useState(false);
   const [generatingKey, setGeneratingKey] = useState(false);
 
-  const API_BASE = "https://web-production-4f439.up.railway.app";
 
   const goToDashboard = async () => {
     if (!user) return;

@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { Loader2, CheckCircle2, Users, ArrowRight } from "lucide-react";
 
-const API_BASE = "https://web-production-4f439.up.railway.app";
+import { API_BASE } from '@/lib/config';
 
 export default function JoinTeamPage() {
   const { token }     = useParams<{ token: string }>();

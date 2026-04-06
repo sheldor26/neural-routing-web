@@ -42,7 +42,7 @@ interface AnalyticsData {
   total_requests: number;
 }
 
-const API_BASE = "https://web-production-4f439.up.railway.app";
+import { API_BASE } from '@/lib/config';
 
 const TIER_COLORS: Record<string, string> = {
   budget:  "#10b981",

@@ -6,7 +6,7 @@ import { useUser } from '@clerk/nextjs';
 import { Loader2, Users, DollarSign, TrendingDown } from 'lucide-react';
 import DashboardNav from '@/components/DashboardNav';
 
-const API_BASE = "https://web-production-4f439.up.railway.app";
+import { API_BASE } from '@/lib/config';
 
 const DAYS_OPTIONS = [7, 14, 30, 60, 90];
 

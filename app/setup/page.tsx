@@ -6,7 +6,8 @@ import { Zap, Copy, CheckCircle2, Eye, EyeOff, ArrowLeft, Terminal, Code, Extern
 import { useUser, UserButton, useAuth } from '@clerk/nextjs';
 import { createAuthClient } from '@/lib/supabase';
 
-const ENDPOINT = "https://web-production-4f439.up.railway.app";
+import { API_BASE } from '@/lib/config';
+const ENDPOINT = API_BASE;
 
 export default function SetupPage() {
   const { user, isLoaded } = useUser();

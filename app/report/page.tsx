@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { Loader2, Printer, TrendingDown, Zap, DollarSign, Activity } from 'lucide-react';
 
-const API_BASE = "https://web-production-4f439.up.railway.app";
+import { API_BASE } from '@/lib/config';
 
 function fmt(n: number, d = 4) { return n.toFixed(d); }
 

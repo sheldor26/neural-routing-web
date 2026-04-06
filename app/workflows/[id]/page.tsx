@@ -62,7 +62,7 @@ interface RunHistoryEntry {
   completed_at: string | null;
 }
 
-const API_BASE = "https://web-production-4f439.up.railway.app";
+import { API_BASE } from '@/lib/config';
 
 // ---------------------------------------------------------------------------
 // Helpers

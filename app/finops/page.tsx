@@ -11,6 +11,7 @@ import {
 import { useUser, useAuth } from "@clerk/nextjs";
 import { createAuthClient } from "@/lib/supabase";
 import DashboardNav from "@/components/DashboardNav";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -61,7 +62,7 @@ interface FinOpsData {
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
-const API_BASE = "https://web-production-4f439.up.railway.app";
+import { API_BASE } from '@/lib/config';
 
 const RANGE_OPTIONS = [
   { label: "7d",  days: 7  },
@@ -175,6 +176,7 @@ export default function FinOpsPage() {
       <DashboardNav />
 
       <main className="max-w-6xl mx-auto px-6 py-12 space-y-10">
+        <ErrorBoundary section="FinOps">
 
         {/* ── HEADER ──────────────────────────────────────────────────── */}
         <div className="flex items-start justify-between">
@@ -552,6 +554,7 @@ export default function FinOpsPage() {
             </div>
           </>
         )}
+        </ErrorBoundary>
       </main>
     </div>
   );

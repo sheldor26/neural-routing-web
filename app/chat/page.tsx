@@ -7,6 +7,7 @@ import {
 import Link from 'next/link';
 import { useUser, UserButton, useAuth } from "@clerk/nextjs";
 import { supabase as anonSupabaseClient, createAuthClient } from '@/lib/supabase';
+import { API_BASE } from '@/lib/config';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -81,7 +82,6 @@ export default function FullChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const supabaseRef = useRef<any>(null);
-  const API_BASE = "https://web-production-4f439.up.railway.app";
 
   const fetchUserStats = async (apiKey?: string) => {
     if (!user) return;

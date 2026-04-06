@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 
-const RAILWAY_ENDPOINT = 'https://web-production-4f439.up.railway.app/v1/dispatch';
+import { API_BASE } from '@/lib/config';
+const RAILWAY_ENDPOINT = `${API_BASE}/v1/dispatch`;
 
 export async function POST(req: Request) {
   try {

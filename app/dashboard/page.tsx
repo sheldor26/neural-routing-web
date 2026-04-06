@@ -10,6 +10,7 @@ import {
 import { useUser, useAuth } from '@clerk/nextjs';
 import { createAuthClient } from '@/lib/supabase';
 import DashboardNav from '@/components/DashboardNav';
+import { API_BASE } from '@/lib/config';
 
 export default function Dashboard() {
   const { user, isLoaded } = useUser();
@@ -27,7 +28,6 @@ export default function Dashboard() {
 
   const [notification, setNotification] = useState<{msg: string, type: 'error' | 'success'} | null>(null);
 
-  const API_BASE = "https://web-production-4f439.up.railway.app";
 
   const generateApiKey = async () => {
     if (!user) return;

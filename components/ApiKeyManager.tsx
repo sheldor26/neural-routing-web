@@ -16,7 +16,7 @@ export default function ApiKeyBox() {
       if (!user) return;
       try {
         // Llamamos a tu endpoint de Railway
-        const response = await fetch(`https://web-production-4f439.up.railway.app/v1/account/keys/${user.id}`);
+        const response = await fetch(`${API_BASE}/v1/account/keys/${user.id}`);
         const data = await response.json();
         
         if (data && data.length > 0) {

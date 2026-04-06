@@ -36,7 +36,7 @@ const ROUTING_MODES: { value: WorkflowStep["routing_mode"]; label: string; hint:
   { value: "speed",   label: "Speed",   hint: "Optimize for lowest latency" },
 ];
 
-const API_BASE = "https://web-production-4f439.up.railway.app";
+import { API_BASE } from '@/lib/config';
 
 const emptyStep = (): WorkflowStep => ({
   name: "", prompt_template: "", routing_mode: "auto", output_key: "",

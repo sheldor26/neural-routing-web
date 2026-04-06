@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
+import Image from "next/image";
 import { ChevronRight, Clock, Zap } from "lucide-react";
 
 export const revalidate = 60;
@@ -128,14 +129,15 @@ export default async function BlogPage() {
                 <div className="flex flex-col md:flex-row">
                   {/* Cover image */}
                   {post.cover_image && (
-                    <div className="md:w-56 md:shrink-0 h-40 md:h-auto overflow-hidden">
-                      <img
+                    <div className="md:w-56 md:shrink-0 h-40 md:h-auto overflow-hidden relative">
+                      <Image
                         src={post.cover_image}
                         alt={post.title}
                         width={224}
                         height={160}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
+                        loading={i === 0 ? "eager" : "lazy"}
+                        sizes="(max-width: 768px) 100vw, 224px"
                       />
                     </div>
                   )}

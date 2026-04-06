@@ -3,6 +3,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Loader2, CheckCircle2, AlertCircle, Zap, DollarSign, TrendingUp, Brain, ArrowRight, MousePointer2, Sparkles, ShieldCheck, ZapOff } from 'lucide-react';
 import { useUser, useAuth } from '@clerk/nextjs';
 import { createClient } from '@supabase/supabase-js';
+import { API_BASE } from '@/lib/config';
 
 interface RoutingResult {
   status: string;
@@ -28,7 +29,6 @@ export default function Playground() {
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [keyLoading, setKeyLoading] = useState(true);
 
-  const API_BASE = "https://web-production-4f439.up.railway.app";
 
   const QUICK_PROMPTS = [
     { label: "Summarize Text", prompt: "Summarize this text in 3 key bullet points for a quick update." },

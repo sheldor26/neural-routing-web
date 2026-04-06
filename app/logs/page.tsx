@@ -6,7 +6,7 @@ import { useUser } from '@clerk/nextjs';
 import { Loader2, ChevronLeft, ChevronRight, Filter, X } from 'lucide-react';
 import DashboardNav from '@/components/DashboardNav';
 
-const API_BASE = "https://web-production-4f439.up.railway.app";
+import { API_BASE } from '@/lib/config';
 
 const TIER_COLORS: Record<string, string> = {
   budget:  "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",

@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import DashboardNav from "@/components/DashboardNav";
 
-const API_BASE = "https://web-production-4f439.up.railway.app";
+import { API_BASE } from '@/lib/config';
 
 const ROLE_ICON: Record<string, React.ReactNode> = {
   owner: <Crown size={11} className="text-yellow-400" />,

@@ -53,7 +53,7 @@ interface QualityData {
   days:          number;
 }
 
-const API_BASE = "https://web-production-4f439.up.railway.app";
+import { API_BASE } from '@/lib/config';
 
 const RANGE_OPTIONS = [
   { label: "7d",  days: 7  },
