@@ -117,11 +117,13 @@ useEffect(() => {
         const token = await getToken({ template: 'supabase' });
         const supabase = createAuthClient(token!);
 
-        const { data: dbData } = await supabase
+        const { data: dbRows } = await supabase
           .from('api_keys')
           .select('id, key, plan, monthly_budget_usd')
           .eq('user_id', String(user.id))
-          .maybeSingle();
+          .order('created_at', { ascending: false })
+          .limit(1);
+        const dbData = dbRows?.[0] ?? null;
 
         if (dbData) {
           setApiData(dbData);

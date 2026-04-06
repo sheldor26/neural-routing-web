@@ -111,10 +111,11 @@ export default function FullChatPage() {
         const token = await getToken({ template: 'supabase' });
         const supabase = createAuthClient(token!);
         supabaseRef.current = supabase;
-        const { data, error } = await supabase.from('api_keys').select('key').eq('user_id', user!.id).maybeSingle();
+        const { data: rows, error } = await supabase.from('api_keys').select('key').eq('user_id', user!.id).order('created_at', { ascending: false }).limit(1);
         if (error) console.error('Failed to fetch API key:', error.message);
-        if (data?.key) {
-          setUserApiKey(data.key);
+        const key = rows?.[0]?.key;
+        if (key) {
+          setUserApiKey(key);
           await fetchUserStats(data.key);
         }
       } catch (e) {
