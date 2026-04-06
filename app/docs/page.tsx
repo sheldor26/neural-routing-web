@@ -4,8 +4,9 @@ import Link from 'next/link';
 import { Terminal, Zap, ArrowRight, CheckCircle2, Shield, Database } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: "Docs — API Reference & Integration Guide",
-  description: "Integrate NeuralRouting in under 2 minutes. OpenAI SDK compatible. Full reference for routing modes, semantic cache, security shield, and user attribution.",
+  title: "Docs — LLM Router API Reference & Integration Guide",
+  description: "Integrate the NeuralRouting intelligent LLM router in under 2 minutes. OpenAI SDK compatible AI gateway with semantic caching, multi-provider failover, and automatic model routing.",
+  keywords: ["llm router api", "ai gateway documentation", "openai alternative api", "llm routing api", "semantic caching api", "multi-provider llm api"],
   openGraph: {
     title: "NeuralRouting Docs — API Reference",
     description: "OpenAI SDK compatible. Integrate in 2 minutes. Full API reference.",
@@ -424,6 +425,115 @@ response = client.chat.completions.create(
         <p className="text-slate-500 text-sm mt-4">
           View per-user spend, request counts, and savings at <Link href="/attribution" className="text-blue-400 hover:text-blue-300 transition-colors">neuralrouting.io/attribution</Link>.
         </p>
+      </section>
+
+      {/* 7e. Routing Modes */}
+      <section className="mb-24">
+        <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+          <Zap className="text-emerald-400" size={24} /> Routing Modes
+        </h2>
+        <p className="mb-6 text-slate-400">
+          Control how the LLM router selects models. Pass <code className="text-blue-400 bg-slate-900 px-1.5 py-0.5 rounded text-sm">X-Routing-Mode</code> header or use the dashboard default.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-slate-900 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                <th className="text-left p-3 rounded-tl-xl">Mode</th>
+                <th className="text-left p-3">Strategy</th>
+                <th className="text-center p-3">Cost</th>
+                <th className="text-center p-3">Speed</th>
+                <th className="text-center p-3">Quality</th>
+                <th className="text-left p-3 rounded-tr-xl">Plans</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/50">
+              {[
+                { mode: "auto", strategy: "Classifier analyzes complexity → optimal model", cost: "★★★★★", speed: "★★★★", quality: "★★★★★", plans: "All" },
+                { mode: "cost", strategy: "Always economy tier (Llama 3.1 8B)", cost: "★★★★★", speed: "★★★★★", quality: "★★★", plans: "Starter+" },
+                { mode: "quality", strategy: "Always premium tier (GPT-4o)", cost: "★", speed: "★★★", quality: "★★★★★", plans: "Growth+" },
+                { mode: "speed", strategy: "Fastest model via Groq", cost: "★★★★★", speed: "★★★★★", quality: "★★★", plans: "Growth+" },
+              ].map(r => (
+                <tr key={r.mode} className="hover:bg-slate-900/30">
+                  <td className="p-3"><code className="text-blue-400 font-bold">{r.mode}</code></td>
+                  <td className="p-3 text-slate-400">{r.strategy}</td>
+                  <td className="p-3 text-center text-emerald-400">{r.cost}</td>
+                  <td className="p-3 text-center text-yellow-400">{r.speed}</td>
+                  <td className="p-3 text-center text-violet-400">{r.quality}</td>
+                  <td className="p-3 text-slate-500">{r.plans}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-slate-600 text-xs mt-3">
+          In <code className="text-slate-400">auto</code> mode, the zero-cost local classifier detects task type and complexity. Requests with complexity &gt; 6 or high-risk content auto-escalate to premium. The Confidence Matrix further adjusts based on historical quality data.
+        </p>
+      </section>
+
+      {/* 7f. Rate Limits & Models */}
+      <section className="mb-24">
+        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+          <Shield className="text-orange-400" size={24} /> Rate Limits & Models
+        </h2>
+
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <div>
+            <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4">Rate Limits by Plan</h3>
+            <div className="space-y-2">
+              {[
+                { plan: "Free", limit: "3 req/min", credits: "5K credits" },
+                { plan: "Starter ($29/mo)", limit: "60 req/min", credits: "50K credits" },
+                { plan: "Growth ($89/mo)", limit: "250 req/min", credits: "200K credits" },
+                { plan: "Business ($349/mo)", limit: "1,000 req/min", credits: "1M credits" },
+              ].map(p => (
+                <div key={p.plan} className="flex justify-between items-center p-3 bg-slate-900/30 border border-slate-800 rounded-xl text-sm">
+                  <span className="text-slate-300 font-medium">{p.plan}</span>
+                  <div className="flex gap-4">
+                    <span className="text-blue-400 font-mono">{p.limit}</span>
+                    <span className="text-emerald-400 font-mono">{p.credits}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4">Available Models</h3>
+            <div className="space-y-2">
+              {[
+                { model: "GPT-4o", tier: "Premium", cost: "100 cr/1K tokens", color: "text-violet-400" },
+                { model: "GPT-4o Mini", tier: "Medium", cost: "10 cr/1K tokens", color: "text-blue-400" },
+                { model: "Llama 3.1 8B", tier: "Budget", cost: "1 cr/1K tokens", color: "text-emerald-400" },
+                { model: "Llama 3.1 70B", tier: "Budget+", cost: "3 cr/1K tokens", color: "text-emerald-400" },
+              ].map(m => (
+                <div key={m.model} className="flex justify-between items-center p-3 bg-slate-900/30 border border-slate-800 rounded-xl text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className={`font-bold ${m.color}`}>{m.model}</span>
+                    <span className="text-[10px] text-slate-600 uppercase">{m.tier}</span>
+                  </div>
+                  <span className="text-slate-400 font-mono text-xs">{m.cost}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-slate-600 text-xs mt-3">In <code className="text-slate-400">auto</code> mode, the LLM router picks the model. Use <code className="text-slate-400">X-Force-Model</code> header to override (Starter+ plans).</p>
+          </div>
+        </div>
+
+        <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4">Error Codes</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { code: "200", desc: "Success", color: "text-emerald-400 bg-emerald-500/5 border-emerald-500/20" },
+            { code: "402", desc: "Insufficient credits", color: "text-amber-400 bg-amber-500/5 border-amber-500/20" },
+            { code: "403", desc: "Security shield blocked", color: "text-red-400 bg-red-500/5 border-red-500/20" },
+            { code: "429", desc: "Rate limit exceeded", color: "text-orange-400 bg-orange-500/5 border-orange-500/20" },
+          ].map(e => (
+            <div key={e.code} className={`p-3 rounded-xl border text-center ${e.color}`}>
+              <span className="text-lg font-black">{e.code}</span>
+              <p className="text-[10px] text-slate-500 mt-1">{e.desc}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* 8. Final CTA */}
