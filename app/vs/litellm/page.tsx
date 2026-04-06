@@ -32,7 +32,7 @@ export default function VsLitellm() {
           NeuralRouting vs <span className="text-blue-400">LiteLLM</span>
         </h1>
         <p className="text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-          LiteLLM is an open-source proxy with massive provider support. NeuralRouting is a managed gateway with intelligent routing. Different approaches to the same problem.
+          LiteLLM is an open-source LLM proxy server with massive provider support. NeuralRouting is a managed AI gateway with intelligent model selection and LLM semantic caching. Different approaches to the same multi-provider LLM API problem.
         </p>
       </section>
 

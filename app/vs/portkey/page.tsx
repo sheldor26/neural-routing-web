@@ -33,7 +33,7 @@ export default function VsPortkey() {
           NeuralRouting vs <span className="text-blue-400">Portkey</span>
         </h1>
         <p className="text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-          Portkey is a full observability platform. NeuralRouting is a cost optimization engine. Both are AI gateways — but they solve different problems. Here's how they compare.
+          Portkey is a full observability platform. NeuralRouting is an intelligent LLM router focused on cost optimization with quality guarantees. Both are AI gateways — but they solve different problems. Here&apos;s how they compare for LLM cost optimization in 2026.
         </p>
       </section>
 

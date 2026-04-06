@@ -32,7 +32,7 @@ export default function VsOpenRouter() {
           NeuralRouting vs <span className="text-blue-400">OpenRouter</span>
         </h1>
         <p className="text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-          OpenRouter is a model marketplace with 400+ models. NeuralRouting is an intelligent router that picks the cheapest model for each request. One gives you access — the other saves you money.
+          OpenRouter is a model marketplace with 400+ models and a 5.5% markup. NeuralRouting is an intelligent LLM router that picks the cheapest model for each request with quality guarantees. One gives you access — the other delivers LLM cost optimization automatically.
         </p>
       </section>
 

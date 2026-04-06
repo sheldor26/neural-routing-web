@@ -4,9 +4,10 @@ export const metadata: Metadata = {
   title: { absolute: "AI Gateway Pricing — LLM Router Plans | NeuralRouting" },
   description: "NeuralRouting AI gateway pricing starts free. LLM router plans from $29/mo. Save up to 97% on OpenAI, Anthropic & Llama API costs. No credit card required to start.",
   keywords: [
-    "ai gateway pricing", "llm router pricing", "ai api gateway cost",
-    "llm routing pricing", "openai proxy pricing", "ai cost optimization pricing",
-    "llm gateway plans", "ai infrastructure pricing",
+    "AI gateway pricing", "LLM router pricing", "cheapest LLM router",
+    "LLM gateway", "reduce AI costs", "OpenAI alternative API",
+    "enterprise AI gateway", "LLM cost optimization", "AI API cost calculator",
+    "best LLM gateway 2026", "multi-provider LLM API",
   ],
   openGraph: {
     title: "AI Gateway Pricing — LLM Router Plans from $0 | NeuralRouting",

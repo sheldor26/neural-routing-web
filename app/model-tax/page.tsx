@@ -6,9 +6,10 @@ export const metadata: Metadata = {
   title: { absolute: "The Model Tax — Stop Overpaying for AI | NeuralRouting" },
   description: "The Model Tax is the invisible cost of sending every LLM request to a premium model. 80% of AI tasks don't need GPT-4o. Calculate your waste and eliminate it with intelligent model routing.",
   keywords: [
-    "model tax", "llm cost optimization", "reduce openai costs", "ai cost reduction",
-    "model routing", "llm router", "gpt-4o cost", "ai infrastructure costs",
-    "model cascading", "prompt routing", "cheap llm api",
+    "model tax", "LLM cost optimization", "reduce openai costs", "reduce AI costs",
+    "LLM router", "AI gateway", "GPT-4o cost per token", "model cascading",
+    "intelligent model selection", "AI token cost optimization", "cheapest LLM router",
+    "how to reduce LLM costs", "LLM semantic caching", "multi-provider LLM API",
   ],
 };
 

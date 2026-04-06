@@ -5,7 +5,7 @@ import { CheckCircle2, ArrowRight, Zap, TrendingDown, Shield, Database } from "l
 export const metadata: Metadata = {
   title: { absolute: "LLM Cost Optimization — Cut AI Costs by 97% | NeuralRouting" },
   description: "LLM cost optimization through intelligent model routing. Automatically select the cheapest LLM for every task. Works with GPT-4, Claude, Llama, and Mistral. Save 70-97% on inference costs.",
-  keywords: ["llm cost optimization", "llm routing", "reduce llm costs", "ai inference cost", "model routing", "gpt-4 cost optimization", "llm api cost"],
+  keywords: ["llm cost optimization", "reduce AI costs", "how to reduce LLM costs", "AI token cost optimization", "LLM router", "AI gateway", "model tax", "intelligent model selection", "LLM semantic caching", "GPT-4o cost per token"],
   openGraph: {
     title: "LLM Cost Optimization — Cut AI Costs by 97% | NeuralRouting",
     description: "Intelligent LLM routing that selects the cheapest model for every task automatically.",
