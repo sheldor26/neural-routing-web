@@ -28,12 +28,13 @@ function fmtDate(iso: string) {
 
 // --- Dynamic metadata per post ---
 export async function generateMetadata(
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
+  const { slug } = await params;
   const { data: post } = await supabase
     .from("posts")
     .select("title, excerpt, slug, cover_image, tag, created_at")
-    .eq("slug", params.slug)
+    .eq("slug", slug)
     .single();
 
   if (!post) return { title: "Post Not Found" };
@@ -67,11 +68,12 @@ export async function generateMetadata(
   };
 }
 
-export default async function BlogPost({ params }: { params: { slug: string } }) {
+export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const { data: post, error } = await supabase
     .from("posts")
     .select("*")
-    .eq("slug", params.slug)
+    .eq("slug", slug)
     .single();
 
   if (error || !post) notFound();

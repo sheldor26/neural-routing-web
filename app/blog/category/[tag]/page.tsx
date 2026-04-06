@@ -28,8 +28,9 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 }
 
-export async function generateMetadata({ params }: { params: { tag: string } }): Promise<Metadata> {
-  const tag = TAG_FROM_SLUG[params.tag];
+export async function generateMetadata({ params }: { params: Promise<{ tag: string }> }): Promise<Metadata> {
+  const { tag: tagSlug } = await params;
+  const tag = TAG_FROM_SLUG[tagSlug];
   if (!tag) return { title: "Category Not Found" };
 
   return {
@@ -43,8 +44,9 @@ export async function generateMetadata({ params }: { params: { tag: string } }):
   };
 }
 
-export default async function CategoryPage({ params }: { params: { tag: string } }) {
-  const tag = TAG_FROM_SLUG[params.tag];
+export default async function CategoryPage({ params }: { params: Promise<{ tag: string }> }) {
+  const { tag: tagSlug } = await params;
+  const tag = TAG_FROM_SLUG[tagSlug];
   if (!tag) notFound();
 
   const { data: posts } = await supabase
