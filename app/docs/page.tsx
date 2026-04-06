@@ -99,7 +99,7 @@ export default function DocsPage() {
 {`import OpenAI from 'openai';
 
 const client = new OpenAI({
-  baseURL: "${API_BASE}/v1",
+  baseURL: "https://api.neuralrouting.io/v1",
   apiKey: "nr_live_your_api_key"
 });
 
@@ -150,7 +150,7 @@ const response = await client.chat.completions.create({
         <div className="bg-[#0f1117] p-6 rounded-t-2xl border-x border-t border-slate-800 font-mono text-sm shadow-2xl">
           <p className="text-slate-500 text-xs mb-3 uppercase tracking-widest font-bold">JavaScript / TypeScript</p>
           <pre className="text-emerald-500 whitespace-pre-wrap overflow-x-auto">
-{`const res = await fetch("${API_BASE}/v1/dispatch/stream", {
+{`const res = await fetch("https://api.neuralrouting.io/v1/dispatch/stream", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -232,7 +232,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 # Just change the base_url — everything else stays the same
 llm = ChatOpenAI(
-    base_url="${API_BASE}/v1",
+    base_url="https://api.neuralrouting.io/v1",
     api_key="nr_live_your_api_key",
     model="neural-optimizer",
 )
@@ -250,7 +250,7 @@ result = executor.invoke({"input": "Research and summarize AI pricing trends"})`
 {`from openai import OpenAI
 
 client = OpenAI(
-    base_url="${API_BASE}/v1",
+    base_url="https://api.neuralrouting.io/v1",
     api_key="nr_live_your_api_key",
 )
 
