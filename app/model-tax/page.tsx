@@ -1,8 +1,6 @@
 import { Metadata } from 'next';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
-
-const SavingsCalculator = dynamic(() => import('@/components/SavingsCalculator'), { ssr: false });
+import SavingsCalculator from '@/components/SavingsCalculator';
 
 export const metadata: Metadata = {
   title: { absolute: "The Model Tax — Stop Overpaying for AI | NeuralRouting" },
