@@ -58,7 +58,7 @@ const jsonLd = {
         { "@type": "Offer", name: "Growth",   price: "89",  priceCurrency: "USD" },
         { "@type": "Offer", name: "Business", price: "349", priceCurrency: "USD" },
       ],
-      description: "Save up to 97% on AI API costs with intelligent prompt routing. OpenAI SDK compatible. Free tier available.",
+      description: "Save up to 80% on AI API costs with intelligent prompt routing. OpenAI SDK compatible. Free tier available.",
     },
     {
       "@type": "FAQPage",

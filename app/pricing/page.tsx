@@ -6,7 +6,7 @@ import { AuthCheckoutButton } from '@/components/AuthCheckoutButton';
 
 export const metadata: Metadata = {
   title: "AI Gateway & LLM Router Pricing — Plans from $0/mo",
-  description: "NeuralRouting AI gateway plans from $0/mo. Save up to 97% on OpenAI, Anthropic & Llama API costs. Free tier, no credit card required.",
+  description: "NeuralRouting AI gateway plans from $0/mo. Save up to 80% on OpenAI, Anthropic & Llama API costs. Free tier, no credit card required.",
   openGraph: {
     title: "AI Gateway Pricing That Pays Itself | NeuralRouting.io",
     description: "LLM router plans from $0/mo. Route every AI prompt to the cheapest model automatically.",
@@ -98,7 +98,7 @@ const jsonLd = {
     {
       "@type": "Product",
       name: "NeuralRouting AI Gateway",
-      description: "AI gateway and LLM router that automatically routes every prompt to the cheapest capable model. Save up to 97% on OpenAI, Anthropic and Llama API costs.",
+      description: "AI gateway and LLM router that automatically routes every prompt to the cheapest capable model. Save up to 80% on OpenAI, Anthropic and Llama API costs.",
       brand: { "@type": "Brand", name: "NeuralRouting.io" },
       offers: tiers.map(t => ({
         "@type": "Offer",
@@ -120,7 +120,7 @@ const jsonLd = {
       "@type": "FAQPage",
       mainEntity: [
         { "@type": "Question", name: "Is there a free AI gateway plan?", acceptedAnswer: { "@type": "Answer", text: "Yes. The Free Tier includes 5,000 credits with no credit card required." } },
-        { "@type": "Question", name: "How does LLM router pricing compare to direct OpenAI API?", acceptedAnswer: { "@type": "Answer", text: "At 100K requests/month, direct GPT-4o costs $500–1,500. With NeuralRouting, the same workload typically costs $80–200 — a 70–90% reduction." } },
+        { "@type": "Question", name: "How does LLM router pricing compare to direct OpenAI API?", acceptedAnswer: { "@type": "Answer", text: "At 100K requests/month, direct GPT-4o costs $150–300. With NeuralRouting's intelligent routing, the same workload typically costs $30–80 — a 60–80% reduction." } },
         { "@type": "Question", name: "Can I upgrade or downgrade my AI gateway plan anytime?", acceptedAnswer: { "@type": "Answer", text: "Yes. Plans are billed monthly with no lock-in. Upgrade, downgrade or cancel anytime." } },
       ],
     },
@@ -145,7 +145,7 @@ export default function Pricing() {
             <span className="text-blue-600 font-black italic text-6xl md:text-8xl">That Pays Itself</span>
           </h1>
           <p className="text-zinc-500 font-bold italic text-lg max-w-xl mx-auto tracking-tight opacity-80 uppercase leading-tight">
-            LLM router plans from $0/mo. Save up to 97% on OpenAI, Anthropic &amp; Llama costs.
+            LLM router plans from $0/mo. Save up to 80% on OpenAI, Anthropic &amp; Llama costs.
           </p>
         </div>
 
@@ -262,7 +262,7 @@ export default function Pricing() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
               { q: "Is there a free AI gateway plan?", a: "Yes. The Free Tier includes 5,000 credits with no credit card required. It supports Auto routing mode and gives you access to all routing tiers." },
-              { q: "How does LLM router pricing compare to direct API?", a: "At 100K requests/month, direct GPT-4o costs ~$500–1,500. With NeuralRouting's LLM router, the same workload typically costs $80–200 — a 70–90% reduction." },
+              { q: "How does LLM router pricing compare to direct API?", a: "At 100K requests/month, direct GPT-4o costs ~$150–300. With NeuralRouting's LLM router, the same workload typically costs $30–80 — a 60–80% reduction." },
               { q: "Can I upgrade or downgrade anytime?", a: "Yes. Plans are billed monthly with no lock-in. Upgrade when you need more credits or advanced routing modes, downgrade or cancel anytime." },
             ].map((item) => (
               <div key={item.q} className="p-6 rounded-2xl bg-zinc-900/20 border border-white/5">

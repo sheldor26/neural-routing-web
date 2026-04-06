@@ -267,7 +267,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                 Ready to cut your AI costs?
               </h4>
               <p className="text-zinc-500 text-xs font-medium italic">
-                Start saving up to 97% on token costs today. Free tier available.
+                Start saving up to 80% on token costs today. Free tier available.
               </p>
             </div>
             <Link
