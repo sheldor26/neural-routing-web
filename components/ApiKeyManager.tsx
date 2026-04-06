@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Eye, EyeOff, Copy, Check, Loader2 } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
+import { API_BASE } from '@/lib/config';
 
 export default function ApiKeyBox() {
   const { user } = useUser();
