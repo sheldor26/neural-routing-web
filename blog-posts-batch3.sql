@@ -10,7 +10,7 @@ VALUES
 (
   'best-ai-gateway-llm-router-2026',
   'Best AI Gateway & LLM Router in 2026: Independent Comparison',
-  $E'We compare Portkey, LiteLLM, OpenRouter, Helicone, Vercel AI Gateway, and NeuralRouting across 15 dimensions. No sponsored rankings — just data.',
+  'We compare Portkey, LiteLLM, OpenRouter, Helicone, Vercel AI Gateway, and NeuralRouting across 15 dimensions. No sponsored rankings — just data.',
   'Architecture',
   '12 min read',
   '/images/blog/ai-gateway-comparison.webp',
