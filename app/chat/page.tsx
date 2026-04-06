@@ -116,7 +116,7 @@ export default function FullChatPage() {
         const key = rows?.[0]?.key;
         if (key) {
           setUserApiKey(key);
-          await fetchUserStats(data.key);
+          await fetchUserStats(key);
         }
       } catch (e) {
         console.error('Init failed:', e);
