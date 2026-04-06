@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { DollarSign, TrendingDown, ArrowRight, Zap, Shield, BarChart3 } from 'lucide-react';
+import { ArrowRight, Zap, Shield, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 
 const PROVIDERS = [
@@ -52,11 +52,11 @@ export default function SavingsCalculator() {
           <div>
             <p className="text-[9px] font-black text-red-400 uppercase tracking-[0.3em] mb-2">The Model Tax</p>
             <h3 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter text-white leading-tight">
-              You're overpaying <span className="text-red-400">${modelTax.toFixed(0)}/mo</span> on simple tasks
+              You&apos;re overpaying <span className="text-red-400">${modelTax.toFixed(0)}/mo</span> on simple tasks
             </h3>
           </div>
           <p className="text-[10px] text-zinc-500 font-bold uppercase max-w-xs">
-            The Model Tax is what you pay sending every request to a premium model when most don't need it.
+            The Model Tax is what you pay sending every request to a premium model when most don&apos;t need it.
           </p>
         </div>
 

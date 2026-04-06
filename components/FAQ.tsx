@@ -37,7 +37,7 @@ export default function FAQ() {
             Everything you need to <span className="text-zinc-600 underline decoration-blue-500/30 underline-offset-8">save money</span>
           </h3>
           <p className="text-zinc-500 text-lg italic max-w-xl mx-auto">
-            Don't let inefficient routing drain your budget. Switch to NeuralRouting in seconds.
+            Don&apos;t let inefficient routing drain your budget. Switch to NeuralRouting in seconds.
           </p>
         </div>
 

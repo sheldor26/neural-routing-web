@@ -1,6 +1,7 @@
 "use client";
 import { useState, useMemo, useEffect } from 'react';
-import { Loader2, CheckCircle2, AlertCircle, Zap, DollarSign, TrendingUp, Brain, ArrowRight, MousePointer2, Sparkles, ShieldCheck, ZapOff } from 'lucide-react';
+import { Loader2, AlertCircle, Zap, Brain, ArrowRight, ShieldCheck } from 'lucide-react';
+import Link from 'next/link';
 import { useUser, useAuth } from '@clerk/nextjs';
 import { createAuthClient } from '@/lib/supabase';
 import { API_BASE } from '@/lib/config';
@@ -144,7 +145,7 @@ export default function Playground() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || data.details || `Error ${response.status}`);
       setResult(data);
-    } catch (err: any) { setError(err.message); } finally { setLoading(false); }
+    } catch (err: unknown) { setError(err instanceof Error ? err.message : "Request failed"); } finally { setLoading(false); }
   };
 
   return (
@@ -237,9 +238,9 @@ export default function Playground() {
               <Zap size={16} className="text-blue-400" />
               <p className="text-sm font-bold text-zinc-300">Sign up free to try the live playground with your own prompts.</p>
             </div>
-            <a href="/sign-up" className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 transition-all shrink-0">
+            <Link href="/sign-up" className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 transition-all shrink-0">
               Start Free
-            </a>
+            </Link>
           </div>
         )}
 
@@ -254,7 +255,7 @@ export default function Playground() {
                   ${metrics.gpt4Yearly.toLocaleString()}
                 </h4>
                 <div className="mt-4 px-4 py-1 bg-red-500/10 rounded-full text-[9px] font-black text-red-500 uppercase italic">
-                   That's ${metrics.monthlyLoss.toLocaleString()}/mo wasted
+                   That&apos;s ${metrics.monthlyLoss.toLocaleString()}/mo wasted
                 </div>
               </div>
 
@@ -275,8 +276,8 @@ export default function Playground() {
                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Identical quality • {result.business_metrics.latency_ms}ms latency</p>
                 </div>
                 <p className="text-zinc-500 text-xs italic leading-relaxed max-w-2xl mx-auto uppercase">
-                   "Intent analysis detected low-complexity task. GPT-4 is overkill. 
-                   Routing to {result.model_used} to prevent budget leakage."
+                   &quot;Intent analysis detected low-complexity task. GPT-4 is overkill.
+                   Routing to {result.model_used} to prevent budget leakage.&quot;
                 </p>
             </div>
 
