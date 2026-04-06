@@ -2,7 +2,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Loader2, CheckCircle2, AlertCircle, Zap, DollarSign, TrendingUp, Brain, ArrowRight, MousePointer2, Sparkles, ShieldCheck, ZapOff } from 'lucide-react';
 import { useUser, useAuth } from '@clerk/nextjs';
-import { createClient } from '@supabase/supabase-js';
+import { createAuthClient } from '@/lib/supabase';
 import { API_BASE } from '@/lib/config';
 
 interface RoutingResult {
@@ -48,11 +48,7 @@ export default function Playground() {
       try {
         const token = await getToken({ template: 'supabase' });
         if (!token) { console.error('[Playground] No Clerk token'); setKeyLoading(false); return; }
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          { global: { headers: { Authorization: `Bearer ${token}` } } }
-        );
+        const supabase = createAuthClient(token);
         const { data, error } = await supabase
           .from('api_keys')
           .select('key')
