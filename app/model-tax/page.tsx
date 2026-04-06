@@ -110,6 +110,50 @@ export default function ModelTaxPage() {
         </div>
       </section>
 
+      {/* Real savings examples */}
+      <section className="py-20 px-6 max-w-5xl mx-auto border-t border-white/5">
+        <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white text-center mb-4">Real LLM cost optimization examples</h2>
+        <p className="text-sm text-zinc-500 text-center mb-12 max-w-2xl mx-auto">These scenarios show how intelligent model routing reduces AI costs across different application types — without sacrificing output quality.</p>
+        <div className="grid md:grid-cols-3 gap-6">
+          {[
+            {
+              title: "SaaS Support Bot",
+              before: "$9,000/mo",
+              after: "$2,700/mo",
+              saved: "$75,600/yr",
+              detail: "50K daily requests. 70% are FAQ lookups and status checks routed to economy models. Complex escalations stay on GPT-4o.",
+            },
+            {
+              title: "Code Generation Platform",
+              before: "$12,000/mo",
+              after: "$3,900/mo",
+              saved: "$97,200/yr",
+              detail: "100K daily requests. Shadow Engine validates that 70% of simple code tasks (bugfixes, templates) work on economy tier.",
+            },
+            {
+              title: "Internal AI Assistant",
+              before: "$4,000/mo",
+              after: "$1,500/mo",
+              saved: "$30,000/yr",
+              detail: "10K daily requests + 40% semantic cache hit rate. Repeat analysis and FAQs served from cache at zero cost.",
+            },
+          ].map(ex => (
+            <div key={ex.title} className="p-6 rounded-2xl bg-zinc-900/30 border border-white/5 space-y-4">
+              <h3 className="text-sm font-black uppercase text-white">{ex.title}</h3>
+              <div className="flex items-center gap-3">
+                <span className="text-red-400 line-through text-sm font-bold">{ex.before}</span>
+                <span className="text-zinc-600">→</span>
+                <span className="text-emerald-400 text-sm font-bold">{ex.after}</span>
+              </div>
+              <div className="px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg inline-block">
+                <span className="text-[10px] font-black text-emerald-400 uppercase">Saves {ex.saved}</span>
+              </div>
+              <p className="text-[12px] text-zinc-500 leading-relaxed">{ex.detail}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Quality guarantee */}
       <section className="py-20 px-6 max-w-4xl mx-auto border-t border-white/5 text-center space-y-8">
         <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">"But what about quality?"</h2>
