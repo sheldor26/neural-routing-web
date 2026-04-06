@@ -121,6 +121,7 @@ export default function AnalyticsPage() {
       setApiKey(key);
       if (key) await load(key, range);
     })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, user?.id]);
 
   const handleRangeChange = async (days: number) => {
