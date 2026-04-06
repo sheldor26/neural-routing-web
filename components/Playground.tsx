@@ -225,10 +225,22 @@ export default function Playground() {
           </div>
         </div>
 
-        {error && (
+        {error && apiKey && (
           <div className="mt-6 flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">
             <AlertCircle size={16} className="text-red-500 shrink-0" />
             <p className="text-sm font-bold text-red-400">{error}</p>
+          </div>
+        )}
+
+        {!apiKey && !keyLoading && !result && (
+          <div className="mt-6 flex items-center justify-between p-5 bg-blue-500/5 border border-blue-500/20 rounded-2xl">
+            <div className="flex items-center gap-3">
+              <Zap size={16} className="text-blue-400" />
+              <p className="text-sm font-bold text-zinc-300">Sign up free to try the live playground with your own prompts.</p>
+            </div>
+            <a href="/sign-up" className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 transition-all shrink-0">
+              Start Free
+            </a>
           </div>
         )}
 
