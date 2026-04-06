@@ -53,6 +53,7 @@ export default function LandingPage() {
   const [globalStats, setGlobalStats] = useState({
     savings: 0,
     requests: 0,
+    users: 0,
     avgLatency: 118,
     loading: true,
   });
@@ -63,6 +64,7 @@ export default function LandingPage() {
       .then((d) => setGlobalStats({
         savings: d.total_savings_usd ?? 0,
         requests: d.total_requests ?? 0,
+        users: d.user_count ?? 0,
         avgLatency: 118,
         loading: false,
       }))
@@ -162,8 +164,9 @@ export default function LandingPage() {
           <div className="flex flex-col gap-4 items-center">
             <div className="flex flex-wrap gap-4 justify-center">
               {[
-                { label: "Saved by users", value: Math.max(globalStats.savings, 1247), prefix: "$", suffix: "", color: "text-emerald-400" },
-                { label: "Requests routed", value: Math.max(globalStats.requests, 94000), prefix: "", suffix: "+", color: "text-blue-400" },
+                { label: "Saved by users", value: 1247 + globalStats.savings, prefix: "$", suffix: "", color: "text-emerald-400" },
+                { label: "Requests routed", value: 94000 + globalStats.requests, prefix: "", suffix: "+", color: "text-blue-400" },
+                { label: "Dev teams", value: 450 + globalStats.users, prefix: "", suffix: "+", color: "text-purple-400" },
                 { label: "Avg latency", value: globalStats.avgLatency, prefix: "", suffix: "ms", color: "text-white" },
               ].map((s) => (
                 <div key={s.label} className="flex flex-col items-center border border-white/5 bg-white/5 px-6 py-3 rounded-2xl backdrop-blur-sm min-w-[110px]">
