@@ -460,8 +460,17 @@ export default function FullChatPage() {
                  <Zap className="text-blue-500 fill-blue-500 relative" size={64} />
                </div>
                <div className="space-y-4">
-                 <h1 className="text-4xl md:text-7xl font-black italic uppercase tracking-tighter text-white leading-[0.9]">Ask anything. <br /> We'll optimize in real time.</h1>
-                 <p className="text-zinc-700 text-[10px] font-bold uppercase tracking-[0.6em]">Infrastructure intelligence for the AI era</p>
+                 {sessionId ? (
+                   <>
+                     <h1 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter text-white leading-[0.9]">No messages in this session.</h1>
+                     <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.6em]">This is an old session with no saved history — start typing to continue.</p>
+                   </>
+                 ) : (
+                   <>
+                     <h1 className="text-4xl md:text-7xl font-black italic uppercase tracking-tighter text-white leading-[0.9]">Ask anything. <br /> We'll optimize in real time.</h1>
+                     <p className="text-zinc-700 text-[10px] font-bold uppercase tracking-[0.6em]">Infrastructure intelligence for the AI era</p>
+                   </>
+                 )}
                </div>
             </div>
           )}
