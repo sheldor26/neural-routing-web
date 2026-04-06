@@ -38,6 +38,7 @@ export default async function BlogPage() {
     .from("posts")
     .select("id, slug, title, excerpt, tag, read_time, cover_image, created_at")
     .eq("published", true)
+    .lte("created_at", new Date().toISOString())
     .order("created_at", { ascending: false });
 
   const list = posts ?? [];
