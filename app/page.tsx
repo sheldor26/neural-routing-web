@@ -111,12 +111,12 @@ export default async function LandingPage() {
         <LiveBanner savings={globalStats.savings} />
 
         <h1 className="relative z-10 text-5xl md:text-[5.5rem] font-black tracking-tighter mb-6 leading-[0.9] bg-gradient-to-b from-white via-white to-zinc-600 bg-clip-text text-transparent italic uppercase">
-          Stop sending every <br/> AI request to GPT-4.
+          Stop paying premium prices <br/> for routine AI tasks.
         </h1>
 
         <p className="relative z-10 text-zinc-400 text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
-          Route every prompt to the cheapest model automatically.
-          <span className="text-white font-bold ml-2 underline decoration-blue-500 underline-offset-4">Free Tier available — stop wasting money today.</span>
+          NeuralRouting is an intelligent LLM router that eliminates the Model Tax — routing every request to the right AI model at the right price. Cut LLM costs up to 85% with smart model routing, semantic caching, and zero-downtime failover.
+          <span className="text-white font-bold ml-2 underline decoration-blue-500 underline-offset-4">Free tier available.</span>
         </p>
 
         <div className="relative z-20 flex flex-col items-center gap-6">
@@ -129,15 +129,15 @@ export default async function LandingPage() {
       <section className="py-24 px-6 relative z-10">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">How it works</p>
-            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Three steps. Zero friction.</h2>
+            <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">Intelligent model routing pipeline</p>
+            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Four stages. Zero friction.</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-            <div className="hidden md:block absolute top-10 left-[calc(16.67%+1rem)] right-[calc(16.67%+1rem)] h-px bg-gradient-to-r from-transparent via-blue-600/40 to-transparent" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
             {[
-              { step: "01", icon: <Code size={22} className="text-blue-400" />, title: "Send your request", desc: "Point your existing OpenAI calls at neuralrouting.io/v1. Drop in your API key — nothing else changes." },
-              { step: "02", icon: <Cpu size={22} className="text-blue-400" />, title: "Analyze the prompt", desc: "Our engine classifies task type, complexity, and urgency in under 5ms using a lightweight intent model." },
-              { step: "03", icon: <TrendingDown size={22} className="text-emerald-400" />, title: "Route to cheapest fit", desc: "The prompt is dispatched to the optimal model. You get the same quality at a fraction of the cost." },
+              { step: "01", icon: <Code size={22} className="text-blue-400" />, title: "Classify & score", desc: "Our zero-cost local classifier detects task type (coding, math, analysis, creative, summary, translation) and scores complexity 1–10 in under 1ms. No API call — intelligent model selection happens locally." },
+              { step: "02", icon: <Shield size={22} className="text-violet-400" />, title: "Security & cache", desc: "Prompt injection detection blocks threats across 6 categories. PII auto-redaction protects user data. Then our 2-level semantic cache checks for exact and similar matches — 30-40% of requests answered instantly at zero cost." },
+              { step: "03", icon: <Cpu size={22} className="text-emerald-400" />, title: "Smart route & failover", desc: "Simple tasks route to economy models (60x cheaper). Complex reasoning goes to GPT-4o. If a provider fails, automatic multi-provider failover reroutes transparently — your users never notice LLM downtime." },
+              { step: "04", icon: <RefreshCw size={22} className="text-orange-400" />, title: "Validate & learn", desc: "Shadow Engine runs the premium model in parallel to audit every economy response. Confidence Matrix learns which (task, model) pairs underperform and auto-escalates — your AI gateway gets smarter over time." },
             ].map((item) => (
               <div key={item.step} className="relative bg-zinc-900/30 border border-white/5 rounded-3xl p-8 flex flex-col gap-4">
                 <div className="flex items-center gap-4">
@@ -156,8 +156,8 @@ export default async function LandingPage() {
       <section className="py-20 px-6 relative z-10 bg-zinc-950/60 border-y border-white/5">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">What&apos;s inside</p>
-            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Enterprise-grade infrastructure.</h2>
+            <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">AI gateway features</p>
+            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Enterprise-grade LLM infrastructure.</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
