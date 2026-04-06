@@ -12,15 +12,15 @@ VALUES
 (
   'reduce-openai-costs-model-routing-tutorial',
   'How to Reduce OpenAI API Costs by 60-80% with Model Routing (Step-by-Step)',
-  $E'A practical tutorial showing how to implement model routing that sends simple prompts to cheap models and complex ones to GPT-4o. Before/after cost data included.'$E,
+  $$A practical tutorial showing how to implement model routing that sends simple prompts to cheap models and complex ones to GPT-4o. Before/after cost data included.$$,
   'Engineering',
   '9 min read',
   '/images/blog/reduce-openai-costs.webp',
-  $E'# How to Reduce OpenAI API Costs by 60-80% with Model Routing
+  $$# How to Reduce OpenAI API Costs by 60-80% with Model Routing
 
-Your OpenAI bill is higher than it needs to be. Not because you\\'re using too many tokens, but because you\\'re using the wrong model for most of them.
+Your OpenAI bill is higher than it needs to be. Not because you're using too many tokens, but because you're using the wrong model for most of them.
 
-Research from UC Berkeley (RouteLLM, ICLR 2025) proved that **a well-calibrated router can cut LLM costs by 50-85%** without measurable quality loss. The key insight: most production prompts don\\'t need frontier models.
+Research from UC Berkeley (RouteLLM, ICLR 2025) proved that **a well-calibrated router can cut LLM costs by 50-85%** without measurable quality loss. The key insight: most production prompts don't need frontier models.
 
 This guide shows you exactly how to implement model routing — with code, cost data, and a before/after comparison.
 
@@ -28,7 +28,7 @@ This guide shows you exactly how to implement model routing — with code, cost 
 
 ## The Problem: Every Prompt Gets GPT-4o
 
-Here\\'s what a typical AI app\\'s cost distribution looks like:
+Here's what a typical AI app's cost distribution looks like:
 
 | Request Type | % of Traffic | Model Used | Cost/1M tokens |
 |-------------|-------------|------------|----------------|
@@ -170,7 +170,7 @@ NeuralRouting handles this automatically — the classifier detects high-complex
 3. **Change two lines** in your existing code (base_url + api_key)
 4. **Watch your costs drop** in real-time on the dashboard
 
-The Model Tax is optional. Stop paying it.'$E,
+The Model Tax is optional. Stop paying it.$$,
   true,
   '2026-04-06 10:00:00+00',
   '2026-04-06 10:00:00+00'
@@ -182,13 +182,13 @@ The Model Tax is optional. Stop paying it.'$E,
 (
   'semantic-caching-llm-api-guide',
   'Semantic Caching for LLM APIs: Complete Implementation Guide (Save 40-70%)',
-  $E'Exact-match caching misses 95% of duplicate queries. Semantic caching catches them. Here\\'s how to implement it and what hit rates to expect in production.'$E,
+  $$Exact-match caching misses 95% of duplicate queries. Semantic caching catches them. Here's how to implement it and what hit rates to expect in production.$$,
   'Engineering',
   '10 min read',
   '/images/blog/semantic-caching.webp',
-  $E'# Semantic Caching for LLM APIs: Complete Implementation Guide
+  $$# Semantic Caching for LLM APIs: Complete Implementation Guide
 
-Every LLM API call costs money. But research shows that **over 30% of queries to LLMs are semantically similar** (MeanCache, 2024). That means nearly a third of your AI spend is going to questions you\\'ve already answered — just worded slightly differently.
+Every LLM API call costs money. But research shows that **over 30% of queries to LLMs are semantically similar** (MeanCache, 2024). That means nearly a third of your AI spend is going to questions you've already answered — just worded slightly differently.
 
 Semantic caching solves this by matching queries by meaning, not exact text. This guide covers the architecture, implementation, and real-world performance data.
 
@@ -201,7 +201,7 @@ Traditional caching uses exact string matching. The problem:
 - "What is the capital of France?" → cache hit
 - "what is the capital of france?" → **cache miss** (different case)
 - "Capital of France?" → **cache miss** (different phrasing)
-- "Tell me France\\'s capital city" → **cache miss** (completely different wording)
+- "Tell me France's capital city" → **cache miss** (completely different wording)
 
 All four queries have the same answer. Exact-match catches 1 out of 4. Semantic caching catches all 4.
 
@@ -295,15 +295,15 @@ Single-turn caching is straightforward. Multi-turn is where it gets tricky.
 
 **Context-aware approach** (cache a sliding window): Encode the last 3-5 messages as the cache key. This preserves conversational context and reduces false positives dramatically.
 
-NeuralRouting\\'s semantic cache uses context-aware encoding for multi-turn conversations, preventing cross-conversation contamination.
+NeuralRouting's semantic cache uses context-aware encoding for multi-turn conversations, preventing cross-conversation contamination.
 
 ---
 
 ## Cache Invalidation
 
-LLM responses don\\'t have the same staleness problems as database caches, but there are edge cases:
+LLM responses don't have the same staleness problems as database caches, but there are edge cases:
 
-- **Time-sensitive queries**: "What\\'s the weather today?" should have short TTL (minutes)
+- **Time-sensitive queries**: "What's the weather today?" should have short TTL (minutes)
 - **Factual queries**: "What is photosynthesis?" can be cached indefinitely
 - **Personalized queries**: Queries referencing user-specific data should include user context in the cache key
 
@@ -311,7 +311,7 @@ Default TTL recommendation: **24 hours** for most applications, with category-ba
 
 ---
 
-## Getting Started with NeuralRouting\\'s Semantic Cache
+## Getting Started with NeuralRouting's Semantic Cache
 
 NeuralRouting includes semantic caching at every pricing tier. No setup required — it activates automatically:
 
@@ -319,7 +319,7 @@ NeuralRouting includes semantic caching at every pricing tier. No setup required
 2. Similar request: Cache serves the response in < 5ms, $0 cost
 3. Dashboard shows cache hit rate, estimated savings, and entry count
 
-The cache gets smarter over time as it accumulates your specific query patterns.'$E,
+The cache gets smarter over time as it accumulates your specific query patterns.$$,
   true,
   '2026-04-09 10:00:00+00',
   '2026-04-09 10:00:00+00'
@@ -331,11 +331,11 @@ The cache gets smarter over time as it accumulates your specific query patterns.
 (
   'llm-failover-high-availability-architecture',
   'LLM Failover & High Availability: Building Resilient AI Applications',
-  $E'When OpenAI goes down, does your app go down too? This architecture guide covers circuit breakers, fallback chains, and multi-provider resilience for production AI.'$E,
+  $$When OpenAI goes down, does your app go down too? This architecture guide covers circuit breakers, fallback chains, and multi-provider resilience for production AI.$$,
   'Architecture',
   '8 min read',
   '/images/blog/llm-failover.webp',
-  $E'# LLM Failover & High Availability: Building Resilient AI Applications
+  $$# LLM Failover & High Availability: Building Resilient AI Applications
 
 On March 7, 2026, OpenAI experienced a 4-hour outage that affected thousands of production applications. Companies running single-provider setups lost revenue, SLA credits, and user trust. The ones running multi-provider gateways? Their users never noticed.
 
@@ -357,7 +357,7 @@ When OpenAI goes down:
 Your App → OpenAI API → 503 → Your App Crashes
 ```
 
-OpenAI\\'s historical uptime is approximately 99.7%, which sounds good until you calculate: **0.3% downtime = 26 hours/year**. For a production app handling thousands of requests per hour, that\\'s significant.
+OpenAI's historical uptime is approximately 99.7%, which sounds good until you calculate: **0.3% downtime = 26 hours/year**. For a production app handling thousands of requests per hour, that's significant.
 
 ---
 
@@ -446,7 +446,7 @@ Not all failures are binary. A provider might be "up" but responding 5x slower t
 - If P95 exceeds 2x the historical average, deprioritize that provider
 - Route to the provider with the lowest current P50
 
-This catches partial outages and rate limiting that don\\'t trigger error-based circuit breakers.
+This catches partial outages and rate limiting that don't trigger error-based circuit breakers.
 
 ---
 
@@ -457,9 +457,9 @@ NeuralRouting combines all four patterns:
 1. **Multi-provider support**: OpenAI + Groq (Anthropic and Mistral coming soon)
 2. **Automatic fallback**: If the primary provider fails, requests route to the next available
 3. **Circuit breaker**: Failing providers are temporarily bypassed
-4. **Zero configuration**: Failover is built into the routing layer — you don\\'t configure anything
+4. **Zero configuration**: Failover is built into the routing layer — you don't configure anything
 
-The result: **99.99%+ effective uptime** even when individual providers experience outages.'$E,
+The result: **99.99%+ effective uptime** even when individual providers experience outages.$$,
   true,
   '2026-04-12 10:00:00+00',
   '2026-04-12 10:00:00+00'
@@ -471,15 +471,15 @@ The result: **99.99%+ effective uptime** even when individual providers experien
 (
   'vercel-ai-gateway-vs-neuralrouting',
   'Vercel AI Gateway vs NeuralRouting: Which Should You Choose in 2026?',
-  $E'Vercel launched its AI Gateway. But is it a full routing solution or just a convenience layer? We compare features, cost optimization, and production readiness.'$E,
+  $$Vercel launched its AI Gateway. But is it a full routing solution or just a convenience layer? We compare features, cost optimization, and production readiness.$$,
   'Architecture',
   '7 min read',
   '/images/blog/vercel-vs-neuralrouting.webp',
-  $E'# Vercel AI Gateway vs NeuralRouting: Which Should You Choose?
+  $$# Vercel AI Gateway vs NeuralRouting: Which Should You Choose?
 
-Vercel\\'s AI Gateway entered the market as a natural extension of the Vercel ecosystem. If you\\'re already deploying Next.js on Vercel, the appeal is obvious: integrated gateway, no extra vendor, minimal setup.
+Vercel's AI Gateway entered the market as a natural extension of the Vercel ecosystem. If you're already deploying Next.js on Vercel, the appeal is obvious: integrated gateway, no extra vendor, minimal setup.
 
-But there\\'s a fundamental difference between a **gateway** (proxy + logging) and a **router** (intelligent model selection). This comparison examines where each excels.
+But there's a fundamental difference between a **gateway** (proxy + logging) and a **router** (intelligent model selection). This comparison examines where each excels.
 
 ---
 
@@ -500,14 +500,14 @@ But there\\'s a fundamental difference between a **gateway** (proxy + logging) a
 
 ## When to Choose Vercel AI Gateway
 
-Vercel\\'s gateway is the right choice when:
+Vercel's gateway is the right choice when:
 
-- **You\\'re 100% on Vercel** and don\\'t want another vendor
+- **You're 100% on Vercel** and don't want another vendor
 - **You manually select models** per feature (e.g., GPT-4o for chat, GPT-4o-mini for suggestions)
-- **You don\\'t need cost optimization** beyond basic caching
+- **You don't need cost optimization** beyond basic caching
 - **Your AI spend is < $100/month** (optimization ROI is too small)
 
-The gateway integrates smoothly with Vercel\\'s edge network and AI SDK. For teams that want basic rate limiting and logging without leaving the Vercel ecosystem, it\\'s a solid choice.
+The gateway integrates smoothly with Vercel's edge network and AI SDK. For teams that want basic rate limiting and logging without leaving the Vercel ecosystem, it's a solid choice.
 
 ---
 
@@ -545,16 +545,16 @@ The crossover point is around **5M tokens/month** — below that, the gateway fe
 
 Yes. A pragmatic architecture for Vercel teams:
 
-1. Use **Vercel AI Gateway** for features where you\\'ve chosen a specific model (e.g., GPT-4o for your premium chat)
+1. Use **Vercel AI Gateway** for features where you've chosen a specific model (e.g., GPT-4o for your premium chat)
 2. Use **NeuralRouting** for features where cost optimization matters (e.g., support bot, content generation, classification)
 
-The two aren\\'t mutually exclusive. NeuralRouting is OpenAI SDK-compatible, so you can integrate it alongside Vercel\\'s gateway without architectural conflicts.
+The two aren't mutually exclusive. NeuralRouting is OpenAI SDK-compatible, so you can integrate it alongside Vercel's gateway without architectural conflicts.
 
 ---
 
 ## Conclusion
 
-Vercel AI Gateway is a solid convenience layer for the Vercel ecosystem. NeuralRouting is a cost optimization engine that works anywhere. If cost matters at your scale, the intelligent routing and semantic caching in NeuralRouting will pay for itself within the first month.'$E,
+Vercel AI Gateway is a solid convenience layer for the Vercel ecosystem. NeuralRouting is a cost optimization engine that works anywhere. If cost matters at your scale, the intelligent routing and semantic caching in NeuralRouting will pay for itself within the first month.$$,
   true,
   '2026-04-16 10:00:00+00',
   '2026-04-16 10:00:00+00'
@@ -566,13 +566,13 @@ Vercel AI Gateway is a solid convenience layer for the Vercel ecosystem. NeuralR
 (
   'ai-gateway-for-agents-mcp-routing',
   'AI Gateway for Agents: How to Route, Cache, and Govern MCP Workflows',
-  $E'Agents are the fastest-growing segment in AI infrastructure. But no gateway was designed for multi-step workflows. Here\\'s what agent-aware routing looks like.'$E,
+  $$Agents are the fastest-growing segment in AI infrastructure. But no gateway was designed for multi-step workflows. Here's what agent-aware routing looks like.$$,
   'Neural Research',
   '8 min read',
   '/images/blog/ai-gateway-agents.webp',
-  $E'# AI Gateway for Agents: How to Route, Cache, and Govern MCP Workflows
+  $$# AI Gateway for Agents: How to Route, Cache, and Govern MCP Workflows
 
-The agent era is here. **78% of enterprises are running AI agent pilots** (Gartner, 2026), but only 14% have reached production. The gap isn\\'t in agent frameworks — it\\'s in infrastructure.
+The agent era is here. **78% of enterprises are running AI agent pilots** (Gartner, 2026), but only 14% have reached production. The gap isn't in agent frameworks — it's in infrastructure.
 
 Most AI gateways were built for single request-response pairs. Agents operate differently: multi-step workflows, tool calls, accumulated context, compounding costs. This guide explores what an agent-aware gateway looks like and why it matters.
 
@@ -603,7 +603,7 @@ Multiply by thousands of agent executions per day and the savings are massive.
 
 ### 1. Cost Accumulation
 
-Single LLM calls are cheap. Agent workflows that chain 5-15 calls are expensive. A modest agent workflow consuming 10K tokens per step across 8 steps = 80K tokens per execution. At GPT-4o rates, that\\'s $1 per execution. At 1,000 executions/day = **$30,000/month**.
+Single LLM calls are cheap. Agent workflows that chain 5-15 calls are expensive. A modest agent workflow consuming 10K tokens per step across 8 steps = 80K tokens per execution. At GPT-4o rates, that's $1 per execution. At 1,000 executions/day = **$30,000/month**.
 
 ### 2. Compounding Errors
 
@@ -680,7 +680,7 @@ The next evolution is a gateway that learns from agent execution history:
 - Which steps can be safely cached vs. which need fresh computation
 - Which workflows are cost-inefficient and need restructuring
 
-This is where NeuralRouting\\'s **Confidence Matrix** provides a foundation. By tracking quality scores per (task_type, model) pair, the system accumulates intelligence about optimal routing that transfers across similar agent workflows.
+This is where NeuralRouting's **Confidence Matrix** provides a foundation. By tracking quality scores per (task_type, model) pair, the system accumulates intelligence about optimal routing that transfers across similar agent workflows.
 
 ---
 
@@ -688,11 +688,11 @@ This is where NeuralRouting\\'s **Confidence Matrix** provides a foundation. By 
 
 Agent-aware routing is an emerging capability. Today, you can:
 
-1. **Use NeuralRouting as your agent\\'s LLM provider** — each step\\'s complexity is classified independently
+1. **Use NeuralRouting as your agent's LLM provider** — each step's complexity is classified independently
 2. **Set per-session budget limits** via the API
 3. **Monitor agent costs** in the dashboard (per-session breakdown)
 
-The infrastructure for agent-era AI is being built now. The teams that adopt it early will have a significant cost and quality advantage.'$E,
+The infrastructure for agent-era AI is being built now. The teams that adopt it early will have a significant cost and quality advantage.$$,
   true,
   '2026-04-19 10:00:00+00',
   '2026-04-19 10:00:00+00'
