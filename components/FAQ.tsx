@@ -3,25 +3,29 @@
 export default function FAQ() {
   const faqs = [
     {
-      q: "How much can I actually save?",
-      a: "Most companies are overpaying by 70–90% on their AI costs without realizing it. If you're spending $200/month, NeuralRouting brings that down to ~$40–60. That difference adds up fast—especially at scale. Join hundreds of developers already optimizing their margins.",
-      featured: true 
+      q: "How much can an LLM router save on AI costs?",
+      a: "Most teams overpay 60-85% on LLM costs by sending every request to GPT-4o. NeuralRouting eliminates this Model Tax by routing simple tasks to economy models automatically. If you spend $1,000/month on OpenAI, intelligent model routing typically brings that to $150-400. The savings compound at scale.",
+      featured: true
     },
     {
-      q: "Will I lose response quality?",
-      a: "No. You get the same high-quality results—just at a lower cost. We automatically choose the best model for each request, reserving premium reasoning only for when it's actually needed."
+      q: "Will routing to cheaper models affect quality?",
+      a: "No. The Shadow Engine validates every economy response against premium models in the background. If quality drops below threshold, the system auto-escalates to GPT-4o transparently. The Confidence Matrix learns from every audit, so your LLM router improves over time."
     },
     {
-      q: "Will this break my current setup?",
-      a: "No. NeuralRouting is fully compatible with OpenAI-style requests. You can switch endpoints in seconds without changing your existing logic or refactoring a single line of code."
+      q: "Is this compatible with my existing OpenAI setup?",
+      a: "Yes. NeuralRouting is a drop-in OpenAI alternative API. Change your base_url to neuralrouting.io/v1 and your API key — nothing else changes. Works with any OpenAI SDK, LangChain, or custom integration. Full multi-provider LLM API with automatic failover."
     },
     {
-      q: "Is my data secure?",
-      a: "Yes. Our Privacy Shield redacts sensitive info before it reaches any provider. Your data is never stored or used for training, keeping your business enterprise-ready and protected."
+      q: "What about data security and privacy?",
+      a: "The Prompt Injection Shield scans every request for 6 attack categories before routing. PII auto-redaction strips sensitive data. Your prompts are never stored for training. Built for enterprise AI gateway requirements."
     },
     {
-      q: "How do I start right now?",
-      a: "Just paste your API key and send your first request. It takes less than 30 seconds to test. No complex setup. Start saving from your very first prompt."
+      q: "What happens when a provider goes down?",
+      a: "NeuralRouting provides LLM failover and downtime protection automatically. If OpenAI goes down, requests reroute to backup providers transparently. Your users never notice. No code changes, no manual intervention."
+    },
+    {
+      q: "How fast is the LLM semantic caching?",
+      a: "Cache hits return in under 1ms at zero cost. The 2-level cache matches both identical and semantically similar queries. Typical applications see 30-40% cache hit rates, dramatically reducing LLM latency and API spend."
     }
   ];
 

@@ -63,9 +63,10 @@ const jsonLd = {
     {
       "@type": "FAQPage",
       mainEntity: [
-        { "@type": "Question", name: "How much can I save with NeuralRouting?", acceptedAnswer: { "@type": "Answer", text: "Teams typically save 70-97% on AI API costs by routing prompts to cheaper models when GPT-4 isn't needed." } },
-        { "@type": "Question", name: "Is NeuralRouting compatible with the OpenAI SDK?", acceptedAnswer: { "@type": "Answer", text: "Yes. Change one line of code — point your base URL to neuralrouting.io/v1 and you're done." } },
-        { "@type": "Question", name: "Is there a free tier?", acceptedAnswer: { "@type": "Answer", text: "Yes. The free tier includes 5,000 credits with no credit card required." } },
+        { "@type": "Question", name: "How much can an LLM router save on AI costs?", acceptedAnswer: { "@type": "Answer", text: "Most teams overpay 60-85% on LLM costs by sending every request to GPT-4o. NeuralRouting eliminates this Model Tax by routing simple tasks to economy models automatically, reducing AI costs by 60-85%." } },
+        { "@type": "Question", name: "Is NeuralRouting compatible with the OpenAI SDK?", acceptedAnswer: { "@type": "Answer", text: "Yes. NeuralRouting is a drop-in OpenAI alternative API. Change your base_url and API key — works with any OpenAI SDK, LangChain, or custom integration." } },
+        { "@type": "Question", name: "What happens when a provider goes down?", acceptedAnswer: { "@type": "Answer", text: "NeuralRouting provides automatic LLM failover. If OpenAI goes down, requests reroute to backup providers transparently. Your users never notice." } },
+        { "@type": "Question", name: "How fast is LLM semantic caching?", acceptedAnswer: { "@type": "Answer", text: "Cache hits return in under 1ms at zero cost. The 2-level semantic cache matches both identical and similar queries, with typical 30-40% hit rates." } },
       ],
     },
   ],
@@ -158,12 +159,12 @@ export default async function LandingPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { icon: <GitMerge size={18} className="text-blue-400" />, title: "Smart Routing Modes", desc: "Auto, Cost, Speed, Quality, and Custom modes. One flag switches your entire strategy." },
-              { icon: <Shield size={18} className="text-violet-400" />, title: "Prompt Injection Shield", desc: "Real-time heuristic scanner blocks jailbreaks, DAN attempts, and system-prompt extraction before they reach your model." },
-              { icon: <Activity size={18} className="text-emerald-400" />, title: "Shadow Quality Engine", desc: "Runs silent A/B comparisons to validate economy-model responses before committing to routing decisions." },
-              { icon: <RefreshCw size={18} className="text-orange-400" />, title: "Feedback Loop", desc: "Confidence matrix learns from quality audits and auto-escalates poor-performing model/task pairs." },
-              { icon: <DollarSign size={18} className="text-yellow-400" />, title: "Budget Caps & FinOps", desc: "Set per-user or global spend limits. Get real ROI dashboards showing savings vs benchmark cost." },
-              { icon: <Zap size={18} className="text-yellow-300" />, title: "Semantic Cache", desc: "Every routed prompt is embedded and stored. Similar future requests are served instantly — no model call, zero cost." },
+              { icon: <GitMerge size={18} className="text-blue-400" />, title: "Intelligent Model Selection", desc: "Four routing modes: Auto, Cost, Speed, Quality. The LLM router classifies every prompt and selects the optimal model automatically." },
+              { icon: <Shield size={18} className="text-violet-400" />, title: "Prompt Injection Shield", desc: "Zero-latency heuristic scanner blocks jailbreaks, DAN attempts, and system-prompt extraction before they reach the AI gateway." },
+              { icon: <Activity size={18} className="text-emerald-400" />, title: "Shadow Quality Engine", desc: "Continuous quality auditing validates economy-model responses against premium. No other AI gateway offers this level of LLM cost optimization with quality proof." },
+              { icon: <RefreshCw size={18} className="text-orange-400" />, title: "Self-Improving Router", desc: "The Confidence Matrix learns from every shadow audit. Underperforming model/task pairs auto-escalate. Your LLM router gets smarter over time." },
+              { icon: <DollarSign size={18} className="text-yellow-400" />, title: "FinOps & Budget Caps", desc: "Per-user spend limits, ROI dashboards, and AI token cost optimization. See exactly how much you save vs direct OpenAI pricing." },
+              { icon: <Zap size={18} className="text-yellow-300" />, title: "LLM Semantic Caching", desc: "2-level cache: exact hash + vector similarity matching. Similar prompts return cached responses instantly — reducing LLM latency to sub-millisecond at zero cost." },
             ].map((f) => (
               <div key={f.title} className="bg-zinc-900/20 border border-white/5 rounded-2xl p-6 hover:border-white/10 hover:bg-zinc-900/40 transition-all">
                 <div className="flex items-center gap-3 mb-3">
@@ -233,11 +234,11 @@ export default async function LandingPage() {
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
             <h2 className="text-blue-500 font-black uppercase tracking-[0.4em] text-[10px] mb-4 italic">Change one line</h2>
-            <h3 className="text-4xl font-black italic tracking-tighter uppercase text-white mb-6">Built for SaaS Builders. <br/> Integrated in seconds.</h3>
+            <h3 className="text-4xl font-black italic tracking-tighter uppercase text-white mb-6">OpenAI alternative API. <br/> Integrated in seconds.</h3>
             <ul className="space-y-4 mb-10">
-              <li className="flex gap-3 text-sm text-zinc-400 font-bold uppercase"><CheckCircle2 size={16} className="text-blue-600" /> OpenAI SDK Compatible</li>
-              <li className="flex gap-3 text-sm text-zinc-400 font-bold uppercase"><CheckCircle2 size={16} className="text-blue-600" /> Distributed Node Latency</li>
-              <li className="flex gap-3 text-sm text-zinc-400 font-bold uppercase"><CheckCircle2 size={16} className="text-blue-600" /> Free Tier Available</li>
+              <li className="flex gap-3 text-sm text-zinc-400 font-bold uppercase"><CheckCircle2 size={16} className="text-blue-600" /> OpenAI SDK compatible — drop-in LLM proxy</li>
+              <li className="flex gap-3 text-sm text-zinc-400 font-bold uppercase"><CheckCircle2 size={16} className="text-blue-600" /> Multi-provider LLM API with failover</li>
+              <li className="flex gap-3 text-sm text-zinc-400 font-bold uppercase"><CheckCircle2 size={16} className="text-blue-600" /> Free tier — no credit card required</li>
             </ul>
             <Link href="/docs" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-400 hover:text-blue-300 transition-colors">
               Read the docs <ArrowRight size={12} />
