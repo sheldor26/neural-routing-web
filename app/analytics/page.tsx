@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import {
   Loader2, TrendingUp, DollarSign, Activity, Cpu, BarChart2,
@@ -64,12 +64,12 @@ function shortDate(iso: string) {
 }
 
 // Custom tooltip shared by all charts
-function ChartTooltip({ active, payload, label, valueFormatter }: any) {
+function ChartTooltip({ active, payload, label, valueFormatter }: { active?: boolean; payload?: Array<{ dataKey: string; name: string; value: number; color: string }>; label?: string; valueFormatter?: (v: number, k: string) => string }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs shadow-xl space-y-1">
       <p className="text-zinc-400 font-bold mb-2">{label}</p>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <div key={p.dataKey} className="flex items-center justify-between gap-4">
           <span className="text-zinc-500">{p.name}</span>
           <span className="font-black" style={{ color: p.color }}>

@@ -47,10 +47,11 @@ export async function POST(req: Request) {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({
       role: 'assistant',
-      content: `System Error: ${error.message}. Ensure Railway infrastructure is online.`
+      content: `System Error: ${msg}. Ensure Railway infrastructure is online.`
     }, { status: 500 });
   }
 }
