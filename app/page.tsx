@@ -1,6 +1,5 @@
 // Server Component — static HTML is rendered on the server for full SEO & Core Web Vitals.
-// Interactive client islands (NavAuth, HeroAuth, Playground, AnimatedStats) are lazy-loaded.
-import dynamic from 'next/dynamic';
+// Interactive client islands are imported directly (they have "use client" directives).
 import Link from 'next/link';
 import {
   Zap, Shield, BarChart3, ArrowRight, CheckCircle2, Code, Cpu, TrendingDown,
@@ -11,10 +10,8 @@ import FAQ from '@/components/FAQ';
 import SavingsCalculator from '@/components/SavingsCalculator';
 import { AnimatedStats, LiveBanner } from '@/components/AnimatedStats';
 import { API_BASE } from '@/lib/config';
-
-const NavAuth   = dynamic(() => import('@/components/AuthInterface').then(m => m.NavAuth),  { ssr: false });
-const HeroAuth  = dynamic(() => import('@/components/AuthInterface').then(m => m.HeroAuth), { ssr: false });
-const Playground = dynamic(() => import('@/components/Playground'), { ssr: false });
+import { NavAuth, HeroAuth } from '@/components/AuthInterface';
+import Playground from '@/components/Playground';
 
 const TESTIMONIALS = [
   {
