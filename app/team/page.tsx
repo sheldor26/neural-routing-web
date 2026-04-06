@@ -30,6 +30,8 @@ export default function TeamPage() {
   const [copied, setCopied]     = useState(false);
   const [removing, setRemoving] = useState<string | null>(null);
   const [err, setErr]           = useState<string | null>(null);
+  const [editingName, setEditingName] = useState(false);
+  const [newName, setNewName]   = useState("");
 
   useEffect(() => {
     if (!isLoaded || !user) return;
@@ -117,6 +119,22 @@ export default function TeamPage() {
     }
   };
 
+  const renameTeam = async (name: string) => {
+    if (!team || !user || !name.trim()) return;
+    try {
+      const res = await fetch(`${API_BASE}/v1/teams/${team.id}/name`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requester_id: user.id, name: name.trim() }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      setTeam((prev: typeof team) => ({ ...prev, name: name.trim() }));
+      setEditingName(false);
+    } catch {
+      setErr("Could not rename workspace.");
+    }
+  };
+
   const totalSavings = members.reduce((s, m) => s + (m.total_savings || 0), 0);
   const totalRequests = members.reduce((s, m) => s + (m.requests_count || 0), 0);
 
@@ -137,9 +155,34 @@ export default function TeamPage() {
         {/* Header */}
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400 mb-1">Workspace</p>
-          <h1 className="text-4xl font-black italic uppercase tracking-tighter text-white">
-            {team ? team.name : "Your Team"}
-          </h1>
+          {team && editingName ? (
+            <div className="flex items-center gap-3">
+              <input
+                autoFocus
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") renameTeam(newName); if (e.key === "Escape") setEditingName(false); }}
+                className="text-4xl font-black italic uppercase tracking-tighter text-white bg-zinc-900 border border-blue-500/40 rounded-xl px-4 py-2 outline-none w-full max-w-md"
+              />
+              <button onClick={() => renameTeam(newName)} className="px-4 py-2 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase hover:bg-blue-500 transition-all">Save</button>
+              <button onClick={() => setEditingName(false)} className="px-4 py-2 border border-white/10 text-zinc-500 rounded-xl text-[10px] font-black uppercase hover:text-white transition-all">Cancel</button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 group">
+              <h1 className="text-4xl font-black italic uppercase tracking-tighter text-white">
+                {team ? team.name : "Your Team"}
+              </h1>
+              {team && myRole === "owner" && (
+                <button
+                  onClick={() => { setNewName(team.name); setEditingName(true); }}
+                  className="opacity-0 group-hover:opacity-100 p-2 rounded-lg text-zinc-600 hover:text-white hover:bg-white/5 transition-all"
+                  title="Rename workspace"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                </button>
+              )}
+            </div>
+          )}
           {team && (
             <p className="text-zinc-600 text-xs mt-1 uppercase tracking-widest font-bold">
               {members.length} member{members.length !== 1 ? "s" : ""}
