@@ -119,11 +119,12 @@ useEffect(() => {
 
         const { data: dbRows } = await supabase
           .from('api_keys')
-          .select('id, key, plan, monthly_budget_usd')
-          .eq('user_id', String(user.id))
-          .order('created_at', { ascending: false })
-          .limit(1);
-        const dbData = dbRows?.[0] ?? null;
+          .select('id, key, plan, monthly_budget_usd, created_at')
+          .eq('user_id', String(user.id));
+        // Pick the key with the highest plan tier (Business > Growth > Starter > free)
+        const PLAN_RANK: Record<string, number> = { 'Business': 4, 'business': 4, 'Growth': 3, 'growth': 3, 'Starter': 2, 'starter': 2, 'Free Tier': 1, 'free': 1 };
+        const sorted = (dbRows ?? []).sort((a, b) => (PLAN_RANK[b.plan] ?? 0) - (PLAN_RANK[a.plan] ?? 0));
+        const dbData = sorted[0] ?? null;
 
         if (dbData) {
           setApiData(dbData);

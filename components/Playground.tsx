@@ -52,12 +52,12 @@ export default function Playground() {
         const supabase = createAuthClient(token);
         const { data, error } = await supabase
           .from('api_keys')
-          .select('key')
-          .eq('user_id', String(user.id))
-          .order('created_at', { ascending: false })
-          .limit(1);
+          .select('key, plan')
+          .eq('user_id', String(user.id));
         if (error) console.error('[Playground] Supabase error:', error.message);
-        const firstKey = data?.[0]?.key;
+        const RANK: Record<string, number> = { 'Business': 4, 'business': 4, 'Growth': 3, 'growth': 3, 'Starter': 2, 'starter': 2 };
+        const best = (data ?? []).sort((a, b) => (RANK[b.plan] ?? 0) - (RANK[a.plan] ?? 0));
+        const firstKey = best[0]?.key;
         if (firstKey) setApiKey(firstKey);
         else console.warn('[Playground] No API key found for user:', user.id);
       } catch (e) {
@@ -115,10 +115,10 @@ export default function Playground() {
     const diff        = gpt4Yearly - nrYearly;
 
     return {
-      gpt4Yearly,
-      nrYearly,
-      yearlySavings: Math.max(0, diff),
-      monthlyLoss:   Math.max(0, diff / 12),
+      gpt4Yearly:    Math.round(gpt4Yearly),
+      nrYearly:      Math.round(nrYearly),
+      yearlySavings: Math.round(Math.max(0, diff)),
+      monthlyLoss:   Math.round(Math.max(0, diff / 12)),
       efficiency:    savingsPct < 0.1 ? "0.1" : savingsPct.toFixed(1),
     };
   }, [result, monthlyVolume]);
