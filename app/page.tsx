@@ -368,8 +368,9 @@ const response = await fetch("https://neuralrouting.io/v1/dispatch", {
       <section className="py-24 px-6 relative z-10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">ROI Calculator</p>
-            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">How much will you save?</h2>
+            <p className="text-[9px] font-black text-red-400 uppercase tracking-[0.4em] mb-3">Model Tax Calculator</p>
+            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">How much are you <span className="text-red-400">overpaying?</span></h2>
+            <p className="text-sm text-zinc-500 mt-3 max-w-xl mx-auto">Most AI apps send every request to GPT-4o. But 80% of those requests could use a cheaper model with identical quality. That gap is your Model Tax.</p>
           </div>
           <SavingsCalculator />
         </div>
