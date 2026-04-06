@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ tag: stri
     openGraph: {
       title: `${tag} — NeuralRouting Blog`,
       description: TAG_DESCRIPTIONS[tag],
-      url: `https://neuralrouting.io/blog/category/${params.tag}`,
+      url: `https://neuralrouting.io/blog/category/${tagSlug}`,
     },
   };
 }
