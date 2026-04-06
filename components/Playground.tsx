@@ -54,9 +54,11 @@ export default function Playground() {
           .from('api_keys')
           .select('key')
           .eq('user_id', String(user.id))
-          .maybeSingle();
+          .order('created_at', { ascending: false })
+          .limit(1);
         if (error) console.error('[Playground] Supabase error:', error.message);
-        if (data?.key) setApiKey(data.key);
+        const firstKey = data?.[0]?.key;
+        if (firstKey) setApiKey(firstKey);
         else console.warn('[Playground] No API key found for user:', user.id);
       } catch (e) {
         console.error('[Playground] Failed to fetch API key:', e);
