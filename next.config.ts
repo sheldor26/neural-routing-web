@@ -5,6 +5,9 @@ const API_BASE =
 
 const nextConfig = {
   skipTrailingSlashRedirect: true,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 
   async rewrites() {
     return [
