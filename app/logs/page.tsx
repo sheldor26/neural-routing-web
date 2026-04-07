@@ -140,24 +140,30 @@ export default function LogsPage() {
           ) : (
             <>
               {/* Table header */}
-              <div className="grid grid-cols-6 gap-4 px-6 py-4 border-b border-white/5 text-[9px] font-black uppercase tracking-widest text-zinc-600">
-                <span className="col-span-2">Time</span>
+              <div className="grid grid-cols-7 gap-4 px-6 py-4 border-b border-white/5 text-[9px] font-black uppercase tracking-widest text-zinc-600">
+                <span>Time</span>
                 <span>Model</span>
                 <span>Tier</span>
                 <span>Cost</span>
+                <span>Savings</span>
                 <span>Credits</span>
+                <span>Reduction</span>
               </div>
 
               {/* Rows */}
               {logs.map((log, i) => (
                 <div
                   key={log.id || i}
-                  className="grid grid-cols-6 gap-4 px-6 py-4 border-b border-white/5 hover:bg-white/[0.02] transition-colors items-center"
+                  className="grid grid-cols-7 gap-4 px-6 py-4 border-b border-white/5 hover:bg-white/[0.02] transition-colors items-center"
                 >
-                  <span className="col-span-2 text-[11px] text-zinc-400 font-mono">
+                  <span className="text-[11px] text-zinc-400 font-mono">
                     {fmt(log.created_at)}
                   </span>
-                  <span className="text-[11px] text-zinc-300 font-bold truncate" title={log.model_used}>
+                  <span className={`text-[11px] font-bold truncate ${
+                    (log.model_used || "").includes("gpt-4o") ? "text-purple-400" :
+                    (log.model_used || "").includes("mini") ? "text-blue-400" :
+                    "text-emerald-400"
+                  }`} title={log.model_used}>
                     {log.model_used || "—"}
                   </span>
                   <span>
@@ -165,18 +171,20 @@ export default function LogsPage() {
                       {TIER_LABELS[log.credit_tier] || log.credit_tier || "—"}
                     </span>
                   </span>
-                  <div>
-                    <p className="text-[11px] text-white font-bold">${(log.cost_usd || 0).toFixed(6)}</p>
-                    {log.savings_usd > 0 && (
-                      <p className="text-[9px] text-emerald-500 font-bold">
-                        saved ${log.savings_usd.toFixed(6)}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
+                  <p className="text-[11px] text-white font-bold">${(log.cost_usd || 0).toFixed(6)}</p>
+                  <p className="text-[11px] text-emerald-400 font-bold">
+                    {log.savings_usd > 0 ? `$${log.savings_usd.toFixed(6)}` : "—"}
+                  </p>
+                  <div className="flex items-center gap-1">
                     <span className="text-[11px] text-zinc-300 font-bold">{log.credits_used || 1}</span>
-                    <span className="text-[9px] text-zinc-600 font-bold uppercase">cr</span>
+                    <span className="text-[9px] text-zinc-600">cr</span>
                   </div>
+                  <span className={`text-[11px] font-black ${
+                    (log.savings_percentage || 0) > 50 ? "text-emerald-400" :
+                    (log.savings_percentage || 0) > 0 ? "text-blue-400" : "text-zinc-600"
+                  }`}>
+                    {(log.savings_percentage || 0) > 0 ? `-${Math.round(log.savings_percentage)}%` : "—"}
+                  </span>
                 </div>
               ))}
             </>
