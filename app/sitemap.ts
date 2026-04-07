@@ -30,6 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/reduce-openai-costs`,               lastModified: now, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/llm-cost-optimization`,             lastModified: now, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/model-tax`,                         lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/analyzer`,                          lastModified: now, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/vs/portkey`,                        lastModified: now, changeFrequency: "monthly", priority: 0.80 },
     { url: `${base}/vs/litellm`,                        lastModified: now, changeFrequency: "monthly", priority: 0.80 },
     { url: `${base}/vs/openrouter`,                     lastModified: now, changeFrequency: "monthly", priority: 0.80 },

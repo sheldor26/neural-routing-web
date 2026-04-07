@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import SavingsCalculator from '@/components/LazySavingsCalculator';
+import PromptAnalyzer from '@/components/PromptAnalyzer';
 
 export const metadata: Metadata = {
   title: { absolute: "The Model Tax — Stop Overpaying for AI | NeuralRouting" },
@@ -106,6 +107,17 @@ export default function ModelTaxPage() {
             <p className="text-sm text-zinc-500 mt-3">See exactly how much you're overpaying and what NeuralRouting saves you.</p>
           </div>
           <SavingsCalculator />
+        </div>
+      </section>
+
+      {/* Prompt Analyzer */}
+      <section className="py-20 px-6 border-t border-white/5">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Analyze your actual prompts</h2>
+            <p className="text-sm text-zinc-500 mt-3 max-w-2xl mx-auto">Paste your real prompts below. Our LLM router classifier will show you exactly which ones need GPT-4o and which can use a model that costs 60x less.</p>
+          </div>
+          <PromptAnalyzer />
         </div>
       </section>
 
