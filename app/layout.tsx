@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs';
 import { dark } from '@clerk/themes'; // Mantenemos el tema oscuro para los modales de login
+import { Analytics } from '@vercel/analytics/react';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -81,6 +82,7 @@ export default function RootLayout({
           <main className="flex-grow">
             {children}
           </main>
+          <Analytics />
         </body>
       </html>
     </ClerkProvider>
