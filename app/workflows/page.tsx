@@ -579,6 +579,7 @@ export default function WorkflowsPage() {
         </div>
       )}
     </div>
+    </DashboardShell>
   );
 }
 
@@ -633,6 +634,5 @@ function WorkflowCard({ workflow, onDelete }: { workflow: WorkflowDefinition; on
         <Play size={12} /> Run Workflow <ArrowRight size={12} />
       </Link>
     </div>
-    </DashboardShell>
   );
 }
