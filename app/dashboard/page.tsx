@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { useUser, useAuth } from '@clerk/nextjs';
 import { createAuthClient } from '@/lib/supabase';
-import DashboardNav from '@/components/DashboardNav';
+import DashboardShell from '@/components/DashboardShell';
 import { API_BASE } from '@/lib/config';
 
 export default function Dashboard() {
@@ -297,8 +297,8 @@ useEffect(() => {
   );
 
   return (
+    <DashboardShell>
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans pb-24 selection:bg-blue-500/30">
-      <DashboardNav />
 
       {upgraded && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-4 bg-emerald-950 border border-emerald-500/40 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500">
@@ -718,5 +718,6 @@ useEffect(() => {
         )}
       </main>
     </div>
+    </DashboardShell>
   );
 }

@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { createAuthClient } from "@/lib/supabase";
-import DashboardNav from "@/components/DashboardNav";
+import DashboardShell from '@/components/DashboardShell';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -287,8 +287,8 @@ export default function WorkflowsPage() {
   // Render
   // ---------------------------------------------------------------------------
   return (
+    <DashboardShell>
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans pb-24 selection:bg-blue-500/30">
-      <DashboardNav />
 
       <main className="max-w-5xl mx-auto px-6 py-12 space-y-12">
         {/* HEADER */}
@@ -633,5 +633,6 @@ function WorkflowCard({ workflow, onDelete }: { workflow: WorkflowDefinition; on
         <Play size={12} /> Run Workflow <ArrowRight size={12} />
       </Link>
     </div>
+    </DashboardShell>
   );
 }

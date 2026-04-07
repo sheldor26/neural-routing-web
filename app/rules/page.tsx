@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Loader2, Plus, Trash2, ToggleLeft, ToggleRight, GitMerge, ChevronDown } from "lucide-react";
-import DashboardNav from "@/components/DashboardNav";
+import DashboardShell from '@/components/DashboardShell';
 
 import { API_BASE } from '@/lib/config';
 
@@ -112,9 +112,8 @@ export default function RulesPage() {
   }
 
   return (
+    <DashboardShell>
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans pb-24">
-      <DashboardNav />
-
       <main className="max-w-4xl mx-auto px-6 py-12 space-y-8">
 
         {/* Header */}
@@ -283,5 +282,6 @@ export default function RulesPage() {
         </div>
       </main>
     </div>
+    </DashboardShell>
   );
 }

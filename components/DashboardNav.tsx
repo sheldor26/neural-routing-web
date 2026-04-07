@@ -8,161 +8,153 @@ import {
   Zap, Menu, X,
   LayoutDashboard, BarChart2, ScrollText, Users, ShieldCheck,
   Workflow, MessageSquare, Home, DollarSign, TrendingUp, UsersRound, GitMerge,
+  FileText, Settings,
 } from "lucide-react";
 
-// ---------------------------------------------------------------------------
-// Nav items config
-// ---------------------------------------------------------------------------
 const NAV_GROUPS = [
   {
-    label: "Tools",
-    items: [
-      { href: "/chat",      label: "Chat",      icon: MessageSquare },
-      { href: "/workflows", label: "Workflows", icon: Workflow      },
-    ],
-  },
-  {
-    label: "Insights",
+    label: "Overview",
     items: [
       { href: "/dashboard",   label: "Dashboard",   icon: LayoutDashboard },
-      { href: "/analytics",   label: "Analytics",   icon: BarChart2       },
-      { href: "/logs",        label: "Logs",        icon: ScrollText      },
-      { href: "/attribution", label: "Attribution", icon: Users           },
-      { href: "/quality",     label: "Quality",     icon: ShieldCheck     },
-      { href: "/finops",      label: "FinOps ROI",  icon: TrendingUp      },
-      { href: "/rules",       label: "Rules",       icon: GitMerge        },
+      { href: "/chat",        label: "Chat",         icon: MessageSquare },
     ],
   },
   {
-    label: "Account",
+    label: "Observability",
     items: [
-      { href: "/team",    label: "Team",    icon: UsersRound },
-      { href: "/",        label: "Home",    icon: Home       },
-      { href: "/pricing", label: "Pricing", icon: DollarSign },
+      { href: "/logs",        label: "Request Logs", icon: ScrollText },
+      { href: "/analytics",   label: "Analytics",    icon: BarChart2 },
+      { href: "/quality",     label: "Quality",      icon: ShieldCheck },
+    ],
+  },
+  {
+    label: "Optimize",
+    items: [
+      { href: "/finops",      label: "FinOps ROI",   icon: TrendingUp },
+      { href: "/attribution", label: "Attribution",  icon: Users },
+      { href: "/rules",       label: "Routing Rules",icon: GitMerge },
+    ],
+  },
+  {
+    label: "Manage",
+    items: [
+      { href: "/team",        label: "Team",         icon: UsersRound },
+      { href: "/workflows",   label: "Workflows",    icon: Workflow },
+    ],
+  },
+  {
+    label: "Resources",
+    items: [
+      { href: "/docs",        label: "Docs",         icon: FileText },
+      { href: "/pricing",     label: "Pricing",      icon: DollarSign },
+      { href: "/",            label: "Home",         icon: Home },
     ],
   },
 ];
 
-const NAV_LINK_BASE =
-  "flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all";
-const NAV_LINK_ACTIVE =
-  "text-white bg-white/10 border border-white/15";
-const NAV_LINK_IDLE =
-  "text-zinc-500 hover:text-white border border-transparent hover:border-white/10";
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 export default function DashboardNav() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   function isActive(href: string) {
     if (href === "/") return pathname === "/";
     return pathname.startsWith(href);
   }
 
-  return (
+  const sidebarContent = (
     <>
-      <nav className="border-b border-white/5 bg-black/60 backdrop-blur-xl sticky top-0 z-50 h-16 flex items-center justify-between px-5 md:px-10">
-
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 shrink-0">
+      {/* Logo */}
+      <div className="px-5 py-6 border-b border-white/5">
+        <Link href="/" className="flex items-center gap-2.5">
           <Zap size={18} className="text-blue-500 fill-blue-500" />
-          <span className="text-base font-black italic uppercase tracking-tighter text-white">
-            Neuralrouting.io
+          <span className="text-sm font-black italic uppercase tracking-tighter text-white">
+            NeuralRouting
           </span>
         </Link>
+      </div>
 
-        {/* Desktop nav */}
-        <div className="hidden xl:flex items-center gap-1">
-          {/* Tools group */}
-          <div className="flex items-center gap-1 mr-2">
-            {NAV_GROUPS[0].items.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className={`${NAV_LINK_BASE} ${isActive(href) ? NAV_LINK_ACTIVE : NAV_LINK_IDLE}`}
-              >
-                <Icon size={11} />
-                {label}
-              </Link>
-            ))}
+      {/* Nav groups */}
+      <div className="flex-1 overflow-y-auto py-4 px-3 space-y-6 scrollbar-hide">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.label}>
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 px-2 mb-2">
+              {group.label}
+            </p>
+            <div className="space-y-0.5">
+              {group.items.map(({ href, label, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all ${
+                    isActive(href)
+                      ? "text-white bg-blue-600/15 border border-blue-500/20"
+                      : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5 border border-transparent"
+                  }`}
+                >
+                  <Icon size={14} className={isActive(href) ? "text-blue-400" : ""} />
+                  {label}
+                </Link>
+              ))}
+            </div>
           </div>
+        ))}
+      </div>
 
-          {/* Divider */}
-          <div className="w-px h-5 bg-white/10 mx-1" />
+      {/* User */}
+      <div className="px-5 py-4 border-t border-white/5 flex items-center gap-3">
+        <UserButton afterSignOutUrl="/" />
+        <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Account</span>
+      </div>
+    </>
+  );
 
-          {/* Insights group */}
-          <div className="flex items-center gap-1 mx-2">
-            {NAV_GROUPS[1].items.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className={`${NAV_LINK_BASE} ${isActive(href) ? NAV_LINK_ACTIVE : NAV_LINK_IDLE}`}
-              >
-                <Icon size={11} />
-                {label}
-              </Link>
-            ))}
-          </div>
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-56 bg-[#080809] border-r border-white/5 flex-col z-50">
+        {sidebarContent}
+      </aside>
 
-          {/* Divider */}
-          <div className="w-px h-5 bg-white/10 mx-1" />
-
-          {/* Account group */}
-          <div className="flex items-center gap-1 ml-2">
-            {NAV_GROUPS[2].items.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className={`${NAV_LINK_BASE} ${isActive(href) ? NAV_LINK_ACTIVE : NAV_LINK_IDLE}`}
-              >
-                <Icon size={11} />
-                {label}
-              </Link>
-            ))}
-          </div>
-
-          <div className="w-px h-5 bg-white/10 mx-2" />
-          <UserButton afterSignOutUrl="/" />
-        </div>
-
-        {/* Mobile: avatar + hamburger */}
-        <div className="flex xl:hidden items-center gap-3">
+      {/* Mobile top bar */}
+      <nav className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-black/90 backdrop-blur-xl border-b border-white/5 z-50 flex items-center justify-between px-4">
+        <Link href="/" className="flex items-center gap-2">
+          <Zap size={16} className="text-blue-500 fill-blue-500" />
+          <span className="text-sm font-black italic uppercase tracking-tighter text-white">NR</span>
+        </Link>
+        <div className="flex items-center gap-3">
           <UserButton afterSignOutUrl="/" />
           <button
-            onClick={() => setOpen((v) => !v)}
-            className="p-2 rounded-xl border border-white/10 text-zinc-400 hover:text-white transition-colors"
-            aria-label="Toggle menu"
+            onClick={() => setMobileOpen(v => !v)}
+            className="p-2 rounded-xl border border-white/10 text-zinc-400 hover:text-white"
           >
-            {open ? <X size={16} /> : <Menu size={16} />}
+            {mobileOpen ? <X size={16} /> : <Menu size={16} />}
           </button>
         </div>
       </nav>
 
       {/* Mobile drawer */}
-      {open && (
-        <div className="xl:hidden fixed inset-0 top-16 z-40 bg-black/95 backdrop-blur-xl overflow-y-auto pb-10">
-          <div className="px-5 pt-6 space-y-6">
+      {mobileOpen && (
+        <div className="lg:hidden fixed inset-0 top-14 z-40 bg-[#080809] overflow-y-auto">
+          <div className="py-4 px-3 space-y-6">
             {NAV_GROUPS.map((group) => (
               <div key={group.label}>
-                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-3 px-1">
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 px-2 mb-2">
                   {group.label}
                 </p>
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   {group.items.map(({ href, label, icon: Icon }) => (
                     <Link
                       key={href}
                       href={href}
-                      onClick={() => setOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-black uppercase tracking-widest transition-all ${
+                      onClick={() => setMobileOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all ${
                         isActive(href)
-                          ? "text-white bg-white/10 border border-white/15"
-                          : "text-zinc-500 hover:text-white hover:bg-white/5 border border-transparent"
+                          ? "text-white bg-blue-600/15 border border-blue-500/20"
+                          : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5 border border-transparent"
                       }`}
                     >
-                      <Icon size={15} />
+                      <Icon size={16} className={isActive(href) ? "text-blue-400" : ""} />
                       {label}
                     </Link>
                   ))}

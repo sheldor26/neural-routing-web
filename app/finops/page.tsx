@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { createAuthClient } from "@/lib/supabase";
-import DashboardNav from "@/components/DashboardNav";
+import DashboardShell from '@/components/DashboardShell';
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // ---------------------------------------------------------------------------
@@ -171,9 +171,8 @@ export default function FinOpsPage() {
   const hasBudget = (data?.budget_vs_actual ?? []).some(d => d.budget_usd != null);
 
   return (
+    <DashboardShell>
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans pb-24 selection:bg-blue-500/30">
-
-      <DashboardNav />
 
       <main className="max-w-6xl mx-auto px-6 py-12 space-y-10">
         <ErrorBoundary section="FinOps">
@@ -557,5 +556,6 @@ export default function FinOpsPage() {
         </ErrorBoundary>
       </main>
     </div>
+    </DashboardShell>
   );
 }

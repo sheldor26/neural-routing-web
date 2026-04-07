@@ -7,7 +7,7 @@ import {
   Users, Copy, Check, Loader2, Crown, Shield, User,
   Trash2, Plus, TrendingDown, Zap, ExternalLink
 } from "lucide-react";
-import DashboardNav from "@/components/DashboardNav";
+import DashboardShell from '@/components/DashboardShell';
 
 import { API_BASE } from '@/lib/config';
 
@@ -147,9 +147,8 @@ export default function TeamPage() {
   }
 
   return (
+    <DashboardShell>
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans pb-24 selection:bg-blue-500/30">
-      <DashboardNav />
-
       <main className="max-w-5xl mx-auto px-6 py-12 space-y-10">
 
         {/* Header */}
@@ -361,5 +360,6 @@ export default function TeamPage() {
         )}
       </main>
     </div>
+    </DashboardShell>
   );
 }

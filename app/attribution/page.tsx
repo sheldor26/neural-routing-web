@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useUser } from '@clerk/nextjs';
 import { Loader2, Users, DollarSign, TrendingDown } from 'lucide-react';
-import DashboardNav from '@/components/DashboardNav';
+import DashboardShell from '@/components/DashboardShell';
 
 import { API_BASE } from '@/lib/config';
 
@@ -62,9 +62,8 @@ export default function AttributionPage() {
   const totalSaved = attribution.reduce((s, r) => s + r.savings_usd, 0);
 
   return (
+    <DashboardShell>
     <div className="min-h-screen bg-[#050505] text-zinc-300 pb-24">
-
-      <DashboardNav />
 
       <div className="max-w-6xl mx-auto px-6 pt-12">
 
@@ -224,5 +223,6 @@ export default function AttributionPage() {
         )}
       </div>
     </div>
+    </DashboardShell>
   );
 }

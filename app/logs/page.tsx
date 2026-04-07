@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useUser } from '@clerk/nextjs';
 import { Loader2, ChevronLeft, ChevronRight, Filter, X } from 'lucide-react';
-import DashboardNav from '@/components/DashboardNav';
+import DashboardShell from '@/components/DashboardShell';
 
 import { API_BASE } from '@/lib/config';
 
@@ -84,9 +84,8 @@ export default function LogsPage() {
   const totalPages = Math.ceil(total / LIMIT);
 
   return (
+    <DashboardShell>
     <div className="min-h-screen bg-[#050505] text-zinc-300 pb-24">
-
-      <DashboardNav />
 
       <div className="max-w-6xl mx-auto px-6 pt-12">
 
@@ -210,5 +209,6 @@ export default function LogsPage() {
         )}
       </div>
     </div>
+    </DashboardShell>
   );
 }
