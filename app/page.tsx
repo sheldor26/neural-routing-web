@@ -7,11 +7,11 @@ import {
 } from 'lucide-react';
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import FAQ from '@/components/FAQ';
-import SavingsCalculator from '@/components/SavingsCalculator';
+import SavingsCalculator from '@/components/LazySavingsCalculator';
 import { AnimatedStats, LiveBanner } from '@/components/AnimatedStats';
 import { API_BASE } from '@/lib/config';
-import { NavAuth, HeroAuth } from '@/components/AuthInterface';
-import Playground from '@/components/Playground';
+import { NavAuth, HeroAuth } from '@/components/LazyAuth';
+import Playground from '@/components/LazyPlayground';
 
 const TESTIMONIALS = [
   {

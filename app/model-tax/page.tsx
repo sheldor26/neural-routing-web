@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import SavingsCalculator from '@/components/SavingsCalculator';
+import SavingsCalculator from '@/components/LazySavingsCalculator';
 
 export const metadata: Metadata = {
   title: { absolute: "The Model Tax — Stop Overpaying for AI | NeuralRouting" },
