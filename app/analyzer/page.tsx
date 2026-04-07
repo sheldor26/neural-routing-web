@@ -28,6 +28,16 @@ export const metadata: Metadata = {
 export default function AnalyzerPage() {
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: "LLM Prompt Complexity Analyzer",
+        applicationCategory: "DeveloperApplication",
+        operatingSystem: "Web",
+        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        description: "Free tool that analyzes LLM prompts for task type and complexity, showing which can use a 60x cheaper model vs GPT-4o.",
+        provider: { "@type": "Organization", name: "NeuralRouting.io", url: "https://neuralrouting.io" },
+      }) }} />
       <nav className="flex items-center justify-between px-6 md:px-12 py-6 max-w-7xl mx-auto">
         <Link href="/" className="text-sm font-black italic uppercase tracking-tighter text-white">NeuralRouting<span className="text-blue-500">.</span></Link>
         <div className="flex items-center gap-4">

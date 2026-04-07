@@ -37,7 +37,8 @@ const jsonLd = {
       name: "NeuralRouting.io",
       url: "https://neuralrouting.io",
       logo: "https://neuralrouting.io/icon.png",
-      description: "Intelligent AI routing that automatically selects the cheapest model for every prompt.",
+      description: "Intelligent LLM router and AI gateway that automatically routes each request to the cheapest model that can handle it. Reduces LLM costs 60-85% with Model Cascading, Shadow Engine quality validation, and semantic caching.",
+      foundingDate: "2025",
       sameAs: [],
     },
     {

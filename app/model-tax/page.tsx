@@ -14,9 +14,44 @@ export const metadata: Metadata = {
   ],
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "What is the Model Tax?",
+          acceptedAnswer: { "@type": "Answer", text: "The Model Tax is the difference between what you pay by sending every LLM request to a premium model like GPT-4o and what you would pay by routing simple tasks to cheaper models. Research from UC Berkeley (RouteLLM) shows up to 80% of requests can use cheaper models with no quality loss." },
+        },
+        {
+          "@type": "Question",
+          name: "Will routing to cheaper models affect quality?",
+          acceptedAnswer: { "@type": "Answer", text: "No. NeuralRouting's Shadow Engine validates every economy response against a premium model in the background. If quality drops below threshold, the system automatically escalates to GPT-4o transparently. The Confidence Matrix learns from every audit to improve over time." },
+        },
+        {
+          "@type": "Question",
+          name: "How much can intelligent model routing save?",
+          acceptedAnswer: { "@type": "Answer", text: "Typical savings range from 60-85% depending on your prompt distribution. Applications with many simple requests (support bots, classification, summarization) save the most. Use our Model Tax Calculator to estimate your specific savings." },
+        },
+      ],
+    },
+    {
+      "@type": "SoftwareApplication",
+      name: "NeuralRouting Model Tax Calculator",
+      applicationCategory: "DeveloperApplication",
+      operatingSystem: "Web",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      description: "Free calculator that shows how much you're overpaying on LLM API costs by not routing by prompt complexity.",
+    },
+  ],
+};
+
 export default function ModelTaxPage() {
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 md:px-12 py-6 max-w-7xl mx-auto">
