@@ -31,7 +31,7 @@ export default function ModelTaxPage() {
       <section className="pt-16 pb-24 px-6 text-center max-w-4xl mx-auto">
         <p className="text-[9px] font-black text-red-400 uppercase tracking-[0.4em] mb-6">The Hidden Cost of AI</p>
         <h1 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter text-white leading-[0.9] mb-6">
-          The Model Tax is <span className="text-red-400">eating your budget.</span>
+          The Model Tax is <span className="text-red-400">eating your AI budget.</span>
         </h1>
         <p className="text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed">
           Every time you send a simple question to GPT-4o, you're paying 60x more than you need to.
@@ -48,7 +48,7 @@ export default function ModelTaxPage() {
               The Model Tax is the difference between what you pay by sending every request to a premium model (GPT-4o, Claude Sonnet) and what you'd pay by using the cheapest model that delivers the same quality for each task.
             </p>
             <p className="text-zinc-400 leading-relaxed">
-              Research from UC Berkeley shows that <strong className="text-white">up to 80% of typical LLM requests</strong> can be handled by smaller, cheaper models with no measurable quality loss. The Model Tax is the cost of ignoring this.
+              Research from UC Berkeley (RouteLLM, ICLR 2025) demonstrated that <strong className="text-white">up to 80% of typical LLM requests</strong> can be handled by smaller, cheaper models with no measurable quality loss. The Model Tax is the cost of ignoring this.
             </p>
           </div>
           <div className="space-y-4">
@@ -124,7 +124,8 @@ export default function ModelTaxPage() {
       {/* Real savings examples */}
       <section className="py-20 px-6 max-w-5xl mx-auto border-t border-white/5">
         <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white text-center mb-4">Real LLM cost optimization examples</h2>
-        <p className="text-sm text-zinc-500 text-center mb-12 max-w-2xl mx-auto">These scenarios show how intelligent model routing reduces AI costs across different application types — without sacrificing output quality.</p>
+        <p className="text-sm text-zinc-500 text-center mb-2 max-w-2xl mx-auto">These scenarios show how intelligent model routing reduces AI costs across different application types — without sacrificing output quality.</p>
+        <p className="text-[10px] text-zinc-600 text-center mb-12">Estimated savings based on typical usage patterns. Actual results depend on your prompt distribution.</p>
         <div className="grid md:grid-cols-3 gap-6">
           {[
             {
@@ -175,15 +176,20 @@ export default function ModelTaxPage() {
         <p className="text-zinc-500">
           The Confidence Matrix learns from every validated response, getting smarter over time. It's a self-improving quality guarantee that no other AI gateway offers.
         </p>
-        <Link href="/sign-up" className="inline-flex items-center gap-3 px-10 py-5 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 hover:scale-105 transition-all shadow-xl shadow-blue-600/20">
-          Eliminate Your Model Tax — Start Free
-        </Link>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link href="/sign-up" className="inline-flex items-center gap-3 px-10 py-5 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 hover:scale-105 transition-all shadow-xl shadow-blue-600/20">
+            Eliminate Your Model Tax — Start Free
+          </Link>
+          <Link href="/analyzer" className="inline-flex items-center gap-2 px-8 py-5 border border-purple-500/20 text-purple-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-purple-500/10 transition-all">
+            Analyze Your Prompts Free
+          </Link>
+        </div>
       </section>
 
       {/* Footer */}
       <footer className="py-12 px-6 border-t border-white/5 text-center">
         <p className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest">
-          NeuralRouting.io — Intelligent AI routing infrastructure
+          NeuralRouting.io — Intelligent LLM routing infrastructure
         </p>
       </footer>
     </div>

@@ -10,6 +10,19 @@ export const metadata: Metadata = {
     "AI API cost calculator", "LLM router", "prompt complexity",
     "intelligent model selection", "model tax", "AI token cost optimization",
   ],
+  openGraph: {
+    title: "LLM Prompt Analyzer — Which Prompts Need GPT-4o?",
+    description: "Paste your prompts and see which ones actually need GPT-4o vs a 60x cheaper model. Free tool by NeuralRouting.",
+    url: "https://neuralrouting.io/analyzer",
+    siteName: "NeuralRouting",
+    type: "website",
+    images: [{ url: "https://neuralrouting.io/og/analyzer.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Which of your prompts actually need GPT-4o?",
+    description: "Free tool: paste your prompts, see which ones can use a model that costs 60x less.",
+  },
 };
 
 export default function AnalyzerPage() {
@@ -35,6 +48,9 @@ export default function AnalyzerPage() {
 
       <section className="px-6 pb-20">
         <PromptAnalyzer />
+        <p className="text-center mt-8 text-sm text-zinc-600">
+          Not sure what the Model Tax is? <Link href="/model-tax" className="text-blue-400 hover:text-blue-300 underline underline-offset-2">See how much you&#39;re overpaying →</Link>
+        </p>
       </section>
 
       <section className="py-16 px-6 border-t border-white/5 max-w-4xl mx-auto">
@@ -55,7 +71,7 @@ export default function AnalyzerPage() {
 
       <footer className="py-12 px-6 border-t border-white/5 text-center">
         <p className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest">
-          NeuralRouting.io — Intelligent LLM router and AI gateway
+          NeuralRouting.io — Intelligent LLM routing infrastructure
         </p>
       </footer>
     </div>
