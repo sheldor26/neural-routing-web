@@ -49,7 +49,7 @@ export function AnimatedStats({ stats }: { stats: { savings: number; requests: n
 }
 
 export function LiveBanner({ savings }: { savings: number }) {
-  if (savings > 0) {
+  if (savings >= 500) {
     return (
       <div className="inline-flex items-center gap-3 mb-10 p-1 pr-4 bg-red-500/5 border border-red-500/20 backdrop-blur-md rounded-full">
         <div className="px-3 py-1 rounded-full bg-red-600 text-white text-[9px] font-black tracking-widest uppercase italic animate-pulse">Efficiency Leak</div>
