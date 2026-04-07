@@ -4,8 +4,8 @@ import SavingsCalculator from '@/components/LazySavingsCalculator';
 import PromptAnalyzer from '@/components/PromptAnalyzer';
 
 export const metadata: Metadata = {
-  title: { absolute: "The Model Tax — Stop Overpaying for AI | NeuralRouting" },
-  description: "The Model Tax is the invisible cost of sending every LLM request to a premium model. 80% of AI tasks don't need GPT-4o. Calculate your waste and eliminate it with intelligent model routing.",
+  title: { absolute: "Model Tax Calculator — How Much Are You Overpaying for AI? | NeuralRouting" },
+  description: "Calculate your Model Tax — the hidden cost of sending every LLM request to GPT-4o. 80% of AI tasks can use models that cost 60x less. Free LLM cost calculator by NeuralRouting.",
   keywords: [
     "model tax", "LLM cost optimization", "reduce openai costs", "reduce AI costs",
     "LLM router", "AI gateway", "GPT-4o cost per token", "model cascading",
@@ -20,21 +20,13 @@ const jsonLd = {
     {
       "@type": "FAQPage",
       mainEntity: [
-        {
-          "@type": "Question",
-          name: "What is the Model Tax?",
-          acceptedAnswer: { "@type": "Answer", text: "The Model Tax is the difference between what you pay by sending every LLM request to a premium model like GPT-4o and what you would pay by routing simple tasks to cheaper models. Research from UC Berkeley (RouteLLM) shows up to 80% of requests can use cheaper models with no quality loss." },
-        },
-        {
-          "@type": "Question",
-          name: "Will routing to cheaper models affect quality?",
-          acceptedAnswer: { "@type": "Answer", text: "No. NeuralRouting's Shadow Engine validates every economy response against a premium model in the background. If quality drops below threshold, the system automatically escalates to GPT-4o transparently. The Confidence Matrix learns from every audit to improve over time." },
-        },
-        {
-          "@type": "Question",
-          name: "How much can intelligent model routing save?",
-          acceptedAnswer: { "@type": "Answer", text: "Typical savings range from 60-85% depending on your prompt distribution. Applications with many simple requests (support bots, classification, summarization) save the most. Use our Model Tax Calculator to estimate your specific savings." },
-        },
+        { "@type": "Question", name: "What is the Model Tax?", acceptedAnswer: { "@type": "Answer", text: "The Model Tax is the difference between what you pay sending every LLM request to a premium model like GPT-4o and what you'd pay using intelligent routing. Research from UC Berkeley (RouteLLM, ICLR 2025) shows up to 80% of requests can use economy models with no quality loss." } },
+        { "@type": "Question", name: "How much does GPT-4o cost per token?", acceptedAnswer: { "@type": "Answer", text: "GPT-4o costs $2.50 per million input tokens and $10.00 per million output tokens. Llama 3.1 8B costs $0.05/$0.05 — 60x cheaper for input tokens." } },
+        { "@type": "Question", name: "Can smaller models really match GPT-4o quality?", acceptedAnswer: { "@type": "Answer", text: "For 60-80% of typical production requests, yes. Tasks like classification, summarization, translation, and simple Q&A produce identical results on economy models." } },
+        { "@type": "Question", name: "How does model routing work?", acceptedAnswer: { "@type": "Answer", text: "An LLM router analyzes each prompt for task type and complexity. Simple tasks route to economy models like Llama 3. Complex reasoning routes to GPT-4o. This happens in under 1ms with zero API cost." } },
+        { "@type": "Question", name: "How much can I save with model routing?", acceptedAnswer: { "@type": "Answer", text: "Typical savings range from 60-85% depending on prompt distribution. Applications with many simple queries save the most." } },
+        { "@type": "Question", name: "What is Model Cascading?", acceptedAnswer: { "@type": "Answer", text: "Model Cascading starts every request at the cheapest model. If the classifier detects high complexity, it escalates. The Confidence Matrix auto-adjusts based on quality audits." } },
+        { "@type": "Question", name: "Is NeuralRouting free to try?", acceptedAnswer: { "@type": "Answer", text: "Yes. Free tier includes 5,000 credits with no credit card. Integration takes 2 lines of code. Paid plans start at $29/month." } },
       ],
     },
     {
@@ -116,6 +108,46 @@ export default function ModelTaxPage() {
         </div>
       </section>
 
+      {/* GPT-4o vs Economy Models */}
+      <section className="py-20 px-6 max-w-5xl mx-auto border-t border-white/5">
+        <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white text-center mb-4">GPT-4o vs Economy Models: The Real Cost Difference</h2>
+        <p className="text-sm text-zinc-500 text-center mb-10 max-w-2xl mx-auto">The price gap between premium and economy LLMs is massive. For simple tasks like classification, summarization, and translation, the output quality is functionally identical.</p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="text-[9px] font-black uppercase tracking-widest text-zinc-500 border-b border-white/10">
+                <th className="text-left p-3">Model</th>
+                <th className="p-3 text-center">Input $/1M tokens</th>
+                <th className="p-3 text-center">Output $/1M tokens</th>
+                <th className="p-3 text-center">Tier</th>
+                <th className="p-3 text-center">vs GPT-4o</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {[
+                { model: "GPT-4o", input: "$2.50", output: "$10.00", tier: "Premium", vs: "Baseline", color: "text-purple-400" },
+                { model: "GPT-4o Mini", input: "$0.15", output: "$0.60", tier: "Medium", vs: "17x cheaper", color: "text-blue-400" },
+                { model: "Claude 3.5 Sonnet", input: "$3.00", output: "$15.00", tier: "Premium", vs: "~1x", color: "text-purple-400" },
+                { model: "Claude 3.5 Haiku", input: "$0.25", output: "$1.25", tier: "Medium", vs: "10x cheaper", color: "text-blue-400" },
+                { model: "Llama 3.1 70B", input: "$0.59", output: "$0.79", tier: "Economy+", vs: "13x cheaper", color: "text-emerald-400" },
+                { model: "Llama 3.1 8B", input: "$0.05", output: "$0.05", tier: "Economy", vs: "60x cheaper", color: "text-emerald-400" },
+                { model: "Mistral Small", input: "$0.10", output: "$0.30", tier: "Economy", vs: "33x cheaper", color: "text-emerald-400" },
+                { model: "Gemini Flash", input: "$0.075", output: "$0.30", tier: "Economy", vs: "33x cheaper", color: "text-emerald-400" },
+              ].map(m => (
+                <tr key={m.model} className="hover:bg-white/[0.02]">
+                  <td className={`p-3 font-bold ${m.color}`}>{m.model}</td>
+                  <td className="p-3 text-center text-zinc-400">{m.input}</td>
+                  <td className="p-3 text-center text-zinc-400">{m.output}</td>
+                  <td className="p-3 text-center"><span className={`text-[9px] font-black uppercase px-2 py-1 rounded-lg border ${m.tier === "Premium" ? "text-purple-400 bg-purple-500/10 border-purple-500/20" : m.tier === "Medium" ? "text-blue-400 bg-blue-500/10 border-blue-500/20" : "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"}`}>{m.tier}</span></td>
+                  <td className={`p-3 text-center font-bold ${m.vs === "Baseline" ? "text-zinc-600" : "text-emerald-400"}`}>{m.vs}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-[10px] text-zinc-600 text-center mt-4">Prices as of April 2026. NeuralRouting automatically routes to the cheapest model that handles each prompt.</p>
+      </section>
+
       {/* How it works */}
       <section className="py-20 px-6 max-w-5xl mx-auto border-t border-white/5">
         <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white text-center mb-16">How Model Cascading eliminates the tax</h2>
@@ -132,6 +164,27 @@ export default function ModelTaxPage() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* How to Calculate */}
+      <section className="py-16 px-6 max-w-4xl mx-auto border-t border-white/5">
+        <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white text-center mb-8">How to Calculate Your Model Tax</h2>
+        <div className="grid md:grid-cols-3 gap-6 text-center">
+          <div className="p-6 rounded-2xl bg-red-500/5 border border-red-500/20">
+            <p className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-2">Step 1</p>
+            <p className="text-sm text-zinc-400">Your current monthly LLM spend (all requests to premium model)</p>
+            <p className="text-2xl font-black text-red-400 mt-2">$X/mo</p>
+          </div>
+          <div className="p-6 rounded-2xl bg-zinc-900/30 border border-white/5 flex items-center justify-center">
+            <p className="text-3xl font-black text-zinc-600">minus</p>
+          </div>
+          <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/20">
+            <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-2">Step 2</p>
+            <p className="text-sm text-zinc-400">What you&apos;d spend with intelligent routing (60-85% less)</p>
+            <p className="text-2xl font-black text-emerald-400 mt-2">$Y/mo</p>
+          </div>
+        </div>
+        <p className="text-center mt-6 text-sm text-zinc-500">The difference is your <strong className="text-white">Model Tax</strong> — the money you&apos;re wasting on simple tasks that don&apos;t need GPT-4o. Use the calculator below to see your exact number.</p>
       </section>
 
       {/* Calculator */}
@@ -201,16 +254,30 @@ export default function ModelTaxPage() {
         </div>
       </section>
 
-      {/* Quality guarantee */}
-      <section className="py-20 px-6 max-w-4xl mx-auto border-t border-white/5 text-center space-y-8">
-        <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">"But what about quality?"</h2>
-        <p className="text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-          NeuralRouting never sacrifices quality. The Shadow Engine validates every economy response against a premium model in the background.
-          If quality drops below threshold, the system <strong className="text-white">automatically escalates to GPT-4o</strong> — transparently, in the same request.
-        </p>
-        <p className="text-zinc-500">
-          The Confidence Matrix learns from every validated response, getting smarter over time. It's a self-improving quality guarantee that no other AI gateway offers.
-        </p>
+      {/* FAQ: LLM Cost Optimization */}
+      <section className="py-20 px-6 max-w-4xl mx-auto border-t border-white/5">
+        <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white text-center mb-12">FAQ: LLM Cost Optimization</h2>
+        <div className="space-y-4">
+          {[
+            { q: "What is the Model Tax?", a: "The Model Tax is the difference between what you pay sending every LLM request to a premium model like GPT-4o and what you'd pay using intelligent routing to send simple tasks to cheaper models. Research from UC Berkeley (RouteLLM, ICLR 2025) shows up to 80% of requests can use economy models with no quality loss." },
+            { q: "How much does GPT-4o cost per token?", a: "GPT-4o costs $2.50 per million input tokens and $10.00 per million output tokens. By comparison, Llama 3.1 8B costs $0.05/$0.05 — that's 60x cheaper for input tokens. For most simple tasks, the output quality is identical." },
+            { q: "Can smaller models really match GPT-4o quality?", a: "For 60-80% of typical production requests — yes. Tasks like classification, summarization, translation, simple Q&A, and data extraction produce functionally identical results on economy models. NeuralRouting's Shadow Engine validates this continuously in production." },
+            { q: "How does model routing work?", a: "An LLM router analyzes each incoming prompt for task type (coding, math, analysis, creative, etc.) and complexity (1-10 scale). Simple tasks route to economy models like Llama 3. Complex reasoning routes to GPT-4o. This happens in under 1ms with zero API cost." },
+            { q: "How much can I save with model routing?", a: "Typical savings range from 60-85% depending on your prompt distribution. Applications with many simple, repetitive queries (support bots, data extraction, classification) save the most. Use the calculator above to estimate your specific savings." },
+            { q: "What is Model Cascading?", a: "Model Cascading is NeuralRouting's routing strategy: every request starts at the cheapest model tier. If the local classifier detects high complexity or risk, it escalates to a more capable model. If the Shadow Engine detects quality issues, it auto-escalates on future similar requests via the Confidence Matrix." },
+            { q: "Is NeuralRouting free to try?", a: "Yes. The free tier includes 5,000 credits with no credit card required. Integration takes 2 lines of code — change your base_url and API key. Paid plans start at $29/month." },
+          ].map((faq, i) => (
+            <div key={i} className="p-6 rounded-2xl bg-zinc-900/20 border border-white/5">
+              <h3 className="text-sm font-black text-white uppercase tracking-tight mb-2">{faq.q}</h3>
+              <p className="text-[13px] text-zinc-500 leading-relaxed">{faq.a}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-16 px-6 max-w-3xl mx-auto text-center space-y-6">
+        <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">Stop paying the Model Tax.</h2>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link href="/sign-up" className="inline-flex items-center gap-3 px-10 py-5 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 hover:scale-105 transition-all shadow-xl shadow-blue-600/20">
             Eliminate Your Model Tax — Start Free
