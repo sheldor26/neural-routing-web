@@ -3,11 +3,11 @@ import Link from "next/link";
 import { CheckCircle2, ArrowRight, Zap, TrendingDown, Shield, Database } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: { absolute: "LLM Cost Optimization — Cut AI Costs by 97% | NeuralRouting" },
-  description: "LLM cost optimization through intelligent model routing. Automatically select the cheapest LLM for every task. Works with GPT-4, Claude, Llama, and Mistral. Save 70-97% on inference costs.",
+  title: { absolute: "LLM Cost Optimization — Cut AI Costs by 85% | NeuralRouting" },
+  description: "LLM cost optimization through intelligent model routing. Automatically select the cheapest LLM for every task. Works with GPT-4, Claude, Llama, and Mistral. Save 70-85% on inference costs.",
   keywords: ["llm cost optimization", "reduce AI costs", "how to reduce LLM costs", "AI token cost optimization", "LLM router", "AI gateway", "model tax", "intelligent model selection", "LLM semantic caching", "GPT-4o cost per token"],
   openGraph: {
-    title: "LLM Cost Optimization — Cut AI Costs by 97% | NeuralRouting",
+    title: "LLM Cost Optimization — Cut AI Costs by 85% | NeuralRouting",
     description: "Intelligent LLM routing that selects the cheapest model for every task automatically.",
     url: "https://neuralrouting.io/llm-cost-optimization",
   },
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Article",
-  headline: "LLM Cost Optimization: How to Cut AI Inference Costs by 97%",
+  headline: "LLM Cost Optimization: How to Cut AI Inference Costs by 85%",
   description: "A technical guide to LLM cost optimization using intelligent model routing.",
   author: { "@type": "Organization", name: "NeuralRouting.io" },
 };

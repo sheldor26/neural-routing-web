@@ -3,12 +3,12 @@ import Link from "next/link";
 import { CheckCircle2, ArrowRight, Zap } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: { absolute: "Reduce OpenAI Costs by 97% | NeuralRouting.io" },
-  description: "Stop overpaying for GPT-4 on every request. NeuralRouting automatically routes prompts to the cheapest model that can handle them. Save up to 97% on OpenAI API costs with zero code changes.",
+  title: { absolute: "Reduce OpenAI Costs by 85% | NeuralRouting.io" },
+  description: "Stop overpaying for GPT-4 on every request. NeuralRouting automatically routes prompts to the cheapest model that can handle them. Save up to 85% on OpenAI API costs with zero code changes.",
   keywords: ["reduce openai costs", "OpenAI alternative API", "reduce AI costs", "LLM router", "AI gateway", "model tax", "LLM cost optimization", "GPT-4o cost per token", "cheapest LLM router", "multi-provider LLM API"],
   openGraph: {
-    title: "Reduce OpenAI API Costs by 97% — NeuralRouting",
-    description: "Automatically route prompts to the cheapest model. Save up to 97% on OpenAI costs.",
+    title: "Reduce OpenAI API Costs by 85% — NeuralRouting",
+    description: "Automatically route prompts to the cheapest model. Save up to 85% on OpenAI costs.",
     url: "https://neuralrouting.io/reduce-openai-costs",
   },
 };
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Article",
-  headline: "How to Reduce OpenAI API Costs by up to 97%",
+  headline: "How to Reduce OpenAI API Costs by up to 85%",
   description: "Learn how intelligent LLM routing can cut your OpenAI API bill dramatically without sacrificing quality.",
   author: { "@type": "Organization", name: "NeuralRouting.io" },
   publisher: { "@type": "Organization", name: "NeuralRouting.io" },
@@ -43,7 +43,7 @@ export default function ReduceOpenAICostsPage() {
         </div>
 
         <h1 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter leading-[0.9] mb-6">
-          Reduce OpenAI API Costs<br /><span className="text-blue-500">by up to 97%</span>
+          Reduce OpenAI API Costs<br /><span className="text-blue-500">by up to 85%</span>
         </h1>
 
         <p className="text-zinc-400 text-lg leading-relaxed mb-12 max-w-2xl">

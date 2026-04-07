@@ -185,7 +185,7 @@ export default async function BlogPage() {
             {[
               {
                 heading: "LLM Cost Optimization",
-                body: "We publish detailed benchmarks on how intelligent model routing reduces LLM inference costs by 70–97%. Our research covers model tier selection, prompt complexity scoring, and semantic caching strategies for production AI systems.",
+                body: "We publish detailed benchmarks on how intelligent model routing reduces LLM inference costs by 70–85%. Our research covers model tier selection, prompt complexity scoring, and semantic caching strategies for production AI systems.",
               },
               {
                 heading: "AI Gateway Architecture",

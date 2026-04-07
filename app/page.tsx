@@ -377,7 +377,7 @@ const response = await fetch("https://neuralrouting.io/v1/dispatch", {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Link href="/reduce-openai-costs" className="group p-6 rounded-2xl bg-zinc-900/20 border border-white/5 hover:border-blue-500/30 transition-all">
               <p className="text-[10px] font-black uppercase tracking-widest text-blue-500 mb-2">Guide</p>
-              <h3 className="text-white font-black italic uppercase tracking-tight group-hover:text-blue-400 transition-colors">How to Reduce OpenAI API Costs by 97%</h3>
+              <h3 className="text-white font-black italic uppercase tracking-tight group-hover:text-blue-400 transition-colors">How to Reduce OpenAI API Costs by 85%</h3>
               <p className="text-zinc-600 text-xs mt-2">Step-by-step breakdown of cost reduction strategies for production AI systems.</p>
             </Link>
             <Link href="/llm-cost-optimization" className="group p-6 rounded-2xl bg-zinc-900/20 border border-white/5 hover:border-blue-500/30 transition-all">
