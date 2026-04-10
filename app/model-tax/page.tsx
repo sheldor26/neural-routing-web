@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import SavingsCalculator from '@/components/LazySavingsCalculator';
 import PromptAnalyzer from '@/components/PromptAnalyzer';
+import JsonLd from '@/components/JsonLd';
 
 export const metadata: Metadata = {
   title: { absolute: "Model Tax Calculator — How Much Are You Overpaying for AI? | NeuralRouting" },
@@ -14,36 +15,30 @@ export const metadata: Metadata = {
   ],
 };
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "FAQPage",
-      mainEntity: [
-        { "@type": "Question", name: "What is the Model Tax?", acceptedAnswer: { "@type": "Answer", text: "The Model Tax is the difference between what you pay sending every LLM request to a premium model like GPT-4o and what you'd pay using intelligent routing. Research from UC Berkeley (RouteLLM, ICLR 2025) shows up to 80% of requests can use economy models with no quality loss." } },
-        { "@type": "Question", name: "How much does GPT-4o cost per token?", acceptedAnswer: { "@type": "Answer", text: "GPT-4o costs $2.50 per million input tokens and $10.00 per million output tokens. Llama 3.1 8B costs $0.05/$0.05 — 60x cheaper for input tokens." } },
-        { "@type": "Question", name: "Can smaller models really match GPT-4o quality?", acceptedAnswer: { "@type": "Answer", text: "For 60-80% of typical production requests, yes. Tasks like classification, summarization, translation, and simple Q&A produce identical results on economy models." } },
-        { "@type": "Question", name: "How does model routing work?", acceptedAnswer: { "@type": "Answer", text: "An LLM router analyzes each prompt for task type and complexity. Simple tasks route to economy models like Llama 3. Complex reasoning routes to GPT-4o. This happens in under 1ms with zero API cost." } },
-        { "@type": "Question", name: "How much can I save with model routing?", acceptedAnswer: { "@type": "Answer", text: "Typical savings range from 60-85% depending on prompt distribution. Applications with many simple queries save the most." } },
-        { "@type": "Question", name: "What is Model Cascading?", acceptedAnswer: { "@type": "Answer", text: "Model Cascading starts every request at the cheapest model. If the classifier detects high complexity, it escalates. The Confidence Matrix auto-adjusts based on quality audits." } },
-        { "@type": "Question", name: "Is NeuralRouting free to try?", acceptedAnswer: { "@type": "Answer", text: "Yes. Free tier includes 5,000 credits with no credit card. Integration takes 2 lines of code. Paid plans start at $29/month." } },
-      ],
-    },
-    {
-      "@type": "SoftwareApplication",
-      name: "NeuralRouting Model Tax Calculator",
-      applicationCategory: "DeveloperApplication",
-      operatingSystem: "Web",
-      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-      description: "Free calculator that shows how much you're overpaying on LLM API costs by not routing by prompt complexity.",
-    },
-  ],
-};
-
 export default function ModelTaxPage() {
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: "NeuralRouting Model Tax Calculator",
+        url: "https://neuralrouting.io/model-tax",
+        applicationCategory: "DeveloperApplication",
+        operatingSystem: "Web",
+        description: "Calculate how much you overpay on LLM costs. See your Model Tax and how intelligent routing reduces it by 60-85%.",
+        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      }} />
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: [
+          { "@type": "Question", name: "What is the Model Tax?", acceptedAnswer: { "@type": "Answer", text: "The Model Tax is the invisible cost of sending every LLM request to the same expensive model. Most teams overpay 60-85% because they route simple tasks to GPT-4o when a cheaper model would return the same quality response." } },
+          { "@type": "Question", name: "How does intelligent LLM routing reduce costs?", acceptedAnswer: { "@type": "Answer", text: "A local classifier scores each request by complexity in under 1ms. Simple tasks route to economy models that are 60x cheaper, while complex reasoning stays on premium models. Quality is validated by a Shadow Engine that checks economy responses against premium models in the background." } },
+          { "@type": "Question", name: "How much can I save with NeuralRouting?", acceptedAnswer: { "@type": "Answer", text: "Teams typically save 60-85% on LLM costs. If you spend $1,000/month on OpenAI, intelligent routing brings that to $150-400 without sacrificing response quality." } },
+          { "@type": "Question", name: "Do I need to change my code to use NeuralRouting?", acceptedAnswer: { "@type": "Answer", text: "No. NeuralRouting is a drop-in replacement. Change your base_url to neuralrouting.io/v1 and your API key. It works with any OpenAI SDK, LangChain, or custom integration." } },
+          { "@type": "Question", name: "What is the Shadow Engine?", acceptedAnswer: { "@type": "Answer", text: "The Shadow Engine validates every economy response by running the same request against a premium model in the background. If quality drops below threshold, the system auto-escalates future similar requests to the premium model." } },
+        ],
+      }} />
 
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 md:px-12 py-6 max-w-7xl mx-auto">

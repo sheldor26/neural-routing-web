@@ -5,6 +5,7 @@ import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ArrowLeft, Clock, Zap } from "lucide-react";
+import JsonLd from "@/components/JsonLd";
 
 export const revalidate = 60;
 
@@ -89,35 +90,34 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
     .order("published_at", { ascending: false })
     .limit(3);
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: post.title,
-    description: post.excerpt,
-    datePublished: post.published_at || post.created_at,
-    dateModified: post.updated_at,
-    author: { "@type": "Organization", name: "NeuralRouting.io", url: "https://neuralrouting.io" },
-    publisher: {
-      "@type": "Organization",
-      name: "NeuralRouting.io",
-      logo: { "@type": "ImageObject", url: "https://neuralrouting.io/icon.png" },
-    },
-    mainEntityOfPage: { "@type": "WebPage", "@id": `https://neuralrouting.io/blog/${post.slug}` },
-    keywords: `${post.tag}, AI cost optimization, LLM routing, reduce OpenAI costs`,
-    ...(post.cover_image ? { image: post.cover_image } : {}),
-    breadcrumb: {
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Blog", item: "https://neuralrouting.io/blog" },
-        { "@type": "ListItem", position: 2, name: post.tag, item: `https://neuralrouting.io/blog/category/${TAG_SLUG[post.tag] ?? post.tag.toLowerCase()}` },
-        { "@type": "ListItem", position: 3, name: post.title, item: `https://neuralrouting.io/blog/${post.slug}` },
-      ],
-    },
-  };
+  const pubDate = post.published_at || post.created_at;
 
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-300 font-sans selection:bg-blue-500/30">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: post.title,
+        datePublished: pubDate,
+        dateModified: post.updated_at || pubDate,
+        author: { "@type": "Person", name: "Juan Miranda", url: "https://neuralrouting.io" },
+        publisher: {
+          "@type": "Organization",
+          name: "NeuralRouting",
+          logo: { "@type": "ImageObject", url: "https://neuralrouting.io/logo.png" },
+        },
+        description: post.excerpt,
+        mainEntityOfPage: `https://neuralrouting.io/blog/${post.slug}`,
+      }} />
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: "https://neuralrouting.io" },
+          { "@type": "ListItem", position: 2, name: "Blog", item: "https://neuralrouting.io/blog" },
+          { "@type": "ListItem", position: 3, name: post.title, item: `https://neuralrouting.io/blog/${post.slug}` },
+        ],
+      }} />
 
       {/* Glow */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
