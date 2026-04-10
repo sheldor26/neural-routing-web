@@ -171,13 +171,14 @@ export default function AdminBlog() {
     const sb = await getSB();
     const { data } = await sb.from("posts").select("*").eq("id", post.id).single();
     if (data) setForm({
-      title:       data.title,
-      excerpt:     data.excerpt ?? "",
-      content:     data.content,
-      cover_image: data.cover_image,
-      tag:         data.tag,
-      read_time:   data.read_time,
-      published:   data.published,
+      title:        data.title,
+      excerpt:      data.excerpt ?? "",
+      content:      data.content,
+      cover_image:  data.cover_image,
+      tag:          data.tag,
+      read_time:    data.read_time,
+      published:    data.published,
+      published_at: data.published_at ?? data.created_at,
     });
     setPreview(false);
   };
