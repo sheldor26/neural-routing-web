@@ -61,7 +61,7 @@ function ToastBanner({ toast, onClose }: { toast: Toast; onClose: () => void }) 
 // Blank post
 // ---------------------------------------------------------------------------
 function blankPost(): Omit<Post, "id" | "slug" | "created_at" | "updated_at"> {
-  return { title: "", excerpt: "", content: "", cover_image: null, tag: "Engineering", read_time: "5 min", published: false };
+  return { title: "", excerpt: "", content: "", cover_image: null, tag: "Engineering", read_time: "5 min", published: false, published_at: new Date().toISOString() };
 }
 
 // ---------------------------------------------------------------------------
