@@ -140,8 +140,8 @@ export default function AdminBlog() {
       const sb = await getSB();
       const { data, error } = await sb
         .from("posts")
-        .select("id, slug, title, tag, read_time, published, created_at, updated_at")
-        .order("created_at", { ascending: false });
+        .select("id, slug, title, tag, read_time, published, published_at, created_at, updated_at")
+        .order("published_at", { ascending: false });
       if (error) throw error;
       setPosts((data ?? []) as Post[]);
     } catch (e: any) {
