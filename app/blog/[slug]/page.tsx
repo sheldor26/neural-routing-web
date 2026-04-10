@@ -33,7 +33,7 @@ export async function generateMetadata(
   const { slug } = await params;
   const { data: post } = await supabase
     .from("posts")
-    .select("title, excerpt, slug, cover_image, tag, created_at")
+    .select("title, excerpt, slug, cover_image, tag, published_at, created_at")
     .eq("slug", slug)
     .single();
 
@@ -55,7 +55,7 @@ export async function generateMetadata(
       description: post.excerpt ?? undefined,
       url: `https://neuralrouting.io/blog/${post.slug}`,
       type: "article",
-      publishedTime: post.created_at,
+      publishedTime: post.published_at || post.created_at,
       tags: [post.tag, "AI cost optimization", "LLM routing"],
       images: post.cover_image ? [{ url: post.cover_image }] : [{ url: "/og-image.png" }],
     },
@@ -81,10 +81,12 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
   // Related posts — same tag, exclude current
   const { data: related } = await supabase
     .from("posts")
-    .select("slug, title, tag, read_time")
+    .select("slug, title, tag, read_time, published_at")
     .eq("published", true)
+    .lte("published_at", new Date().toISOString())
     .eq("tag", post.tag)
     .neq("slug", post.slug)
+    .order("published_at", { ascending: false })
     .limit(3);
 
   const jsonLd = {
@@ -92,7 +94,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
     "@type": "Article",
     headline: post.title,
     description: post.excerpt,
-    datePublished: post.created_at,
+    datePublished: post.published_at || post.created_at,
     dateModified: post.updated_at,
     author: { "@type": "Organization", name: "NeuralRouting.io", url: "https://neuralrouting.io" },
     publisher: {
@@ -167,7 +169,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
           <span className="text-[9px] font-black uppercase text-zinc-600 tracking-widest flex items-center gap-1">
             <Clock size={11} /> {post.read_time}
           </span>
-          <span className="text-[9px] text-zinc-700 font-bold">{fmtDate(post.created_at)}</span>
+          <span className="text-[9px] text-zinc-700 font-bold">{fmtDate(post.published_at || post.created_at)}</span>
         </div>
 
         {/* Title */}
@@ -190,7 +192,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             </div>
             <div>
               <p className="text-[10px] font-black text-white uppercase tracking-tight">NeuralRouting Team</p>
-              <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">{fmtDate(post.created_at)}</p>
+              <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">{fmtDate(post.published_at || post.created_at)}</p>
             </div>
           </div>
         </div>

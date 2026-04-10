@@ -51,11 +51,11 @@ export default async function CategoryPage({ params }: { params: Promise<{ tag: 
 
   const { data: posts } = await supabase
     .from("posts")
-    .select("id, slug, title, excerpt, tag, read_time, cover_image, created_at")
+    .select("id, slug, title, excerpt, tag, read_time, cover_image, published_at, created_at")
     .eq("published", true)
-    .lte("created_at", new Date().toISOString())
+    .lte("published_at", new Date().toISOString())
     .eq("tag", tag)
-    .order("created_at", { ascending: false });
+    .order("published_at", { ascending: false });
 
   const list = posts ?? [];
 
@@ -159,7 +159,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ tag: 
                       <span className="text-[9px] text-zinc-600 font-black uppercase tracking-widest flex items-center gap-1">
                         <Clock size={10} /> {post.read_time}
                       </span>
-                      <span className="text-[9px] text-zinc-700 font-bold">{fmtDate(post.created_at)}</span>
+                      <span className="text-[9px] text-zinc-700 font-bold">{fmtDate(post.published_at || post.created_at)}</span>
                     </div>
                     <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white group-hover:text-blue-400 transition-colors mb-3 leading-tight">
                       {post.title}

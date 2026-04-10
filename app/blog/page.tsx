@@ -37,10 +37,10 @@ function fmtDate(iso: string) {
 export default async function BlogPage() {
   const { data: posts } = await supabase
     .from("posts")
-    .select("id, slug, title, excerpt, tag, read_time, cover_image, created_at")
+    .select("id, slug, title, excerpt, tag, read_time, cover_image, published_at, created_at")
     .eq("published", true)
-    .lte("created_at", new Date().toISOString())
-    .order("created_at", { ascending: false });
+    .lte("published_at", new Date().toISOString())
+    .order("published_at", { ascending: false });
 
   const list = posts ?? [];
 
@@ -152,7 +152,7 @@ export default async function BlogPage() {
                         <Clock size={10} /> {post.read_time}
                       </span>
                       <span className="text-[9px] text-zinc-700 font-bold">
-                        {fmtDate(post.created_at)}
+                        {fmtDate(post.published_at || post.created_at)}
                       </span>
                     </div>
 
