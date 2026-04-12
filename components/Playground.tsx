@@ -74,43 +74,21 @@ export default function Playground() {
 
     const gpt4Unit = Number(result.business_metrics.estimated_gpt4_cost || 0);
     const nrUnit   = Number(result.business_metrics.cost_usd || 0);
-    const apiSavingsPct = Number(result.business_metrics.savings_percentage || 0);
+    const savingsPct = Number(result.business_metrics.savings_percentage || 0);
 
-    // Determine reliable savings %. The API sometimes returns near-zero when the
-    // estimated_gpt4_cost field is computed with the routed model's price instead
-    // of GPT-4o pricing. Use heuristics to recover a realistic figure.
-    let savingsPct = apiSavingsPct;
-
-    // If API cost diff is meaningful (>5% cheaper), trust it
-    if (savingsPct < 10 && gpt4Unit > 0 && nrUnit > 0) {
-      const calculated = ((gpt4Unit - nrUnit) / gpt4Unit) * 100;
-      if (calculated >= 10) {
-        savingsPct = calculated;
-      } else {
-        // API cost fields are unreliable — use model-name heuristics
-        const model = (result.model_used || "").toLowerCase();
-        if (model.includes("gpt-4") && !model.includes("mini")) {
-          savingsPct = 0;   // actually used GPT-4, no savings
-        } else if (model.includes("gpt-4o-mini") || model.includes("mini")) {
-          savingsPct = 72;
-        } else if (
-          model.includes("neural-router") ||
-          model.includes("llama") ||
-          model.includes("mistral") ||
-          model.includes("haiku") ||
-          model.includes("flash")
-        ) {
-          savingsPct = 82;  // economy / standard tier
-        } else {
-          savingsPct = 75;  // safe conservative default
-        }
-      }
+    // If backend data is unreliable (no gpt4 reference or near-zero savings), bail out
+    if (gpt4Unit <= 0 || nrUnit <= 0 || savingsPct < 5) {
+      return {
+        gpt4Yearly: 0,
+        nrYearly: 0,
+        yearlySavings: 0,
+        monthlyLoss: 0,
+        efficiency: "—",
+        unreliable: true,
+      };
     }
 
-    // Base yearly cost if everything went through GPT-4o
-    // gpt4Unit is cost-per-request in USD; fall back to ~70 tokens × $5/M if missing
-    const gpt4PerReq = gpt4Unit > 0 ? gpt4Unit : 0.00035;
-    const gpt4Yearly = gpt4PerReq * monthlyVolume * 12;
+    const gpt4Yearly = gpt4Unit * monthlyVolume * 12;
     const nrYearly   = gpt4Yearly * (1 - savingsPct / 100);
     const diff        = gpt4Yearly - nrYearly;
 
@@ -119,7 +97,8 @@ export default function Playground() {
       nrYearly:      Math.round(nrYearly),
       yearlySavings: Math.round(Math.max(0, diff)),
       monthlyLoss:   Math.round(Math.max(0, diff / 12)),
-      efficiency:    savingsPct < 0.1 ? "0.1" : savingsPct.toFixed(1),
+      efficiency:    savingsPct.toFixed(1),
+      unreliable:    false,
     };
   }, [result, monthlyVolume]);
 
@@ -248,8 +227,14 @@ export default function Playground() {
 
         {result && (
           <div className="mt-12 space-y-10 animate-in fade-in zoom-in duration-1000">
-            
-            {/* LOSS FRAMING CARDS */}
+
+            {metrics.unreliable ? (
+              <div className="p-10 rounded-[3rem] bg-zinc-900/30 border border-white/5 text-center">
+                <p className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-3">Routed to {result.model_used}</p>
+                <h4 className="text-2xl font-black text-white italic uppercase tracking-tighter">Savings calculation in progress</h4>
+                <p className="text-sm text-zinc-500 mt-3 max-w-md mx-auto">This request was processed but the routing data needed for accurate savings projection isn&apos;t available yet. Try a longer prompt for a precise estimate.</p>
+              </div>
+            ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="p-10 rounded-[3rem] bg-red-500/5 border border-red-500/10 flex flex-col items-center justify-center text-center opacity-60">
                 <p className="text-[9px] font-black uppercase text-red-500/50 mb-3 tracking-[0.3em]">Without NeuralRouting</p>
@@ -269,6 +254,7 @@ export default function Playground() {
                 <p className="mt-4 text-[10px] font-black text-blue-100 uppercase italic">-{metrics.efficiency}% Cost reduction</p>
               </div>
             </div>
+            )}
 
             {/* ENGINE LOGIC */}
             <div className="bg-black/40 border border-white/5 p-10 rounded-[2.5rem] space-y-6 relative overflow-hidden text-center">
