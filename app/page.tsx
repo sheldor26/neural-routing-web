@@ -10,8 +10,9 @@ import FAQ from '@/components/FAQ';
 import SavingsCalculator from '@/components/LazySavingsCalculator';
 import { AnimatedStats, LiveBanner } from '@/components/AnimatedStats';
 import { API_BASE } from '@/lib/config';
-import { NavAuth, HeroAuth } from '@/components/LazyAuth';
+import { HeroAuth } from '@/components/LazyAuth';
 import Playground from '@/components/LazyPlayground';
+import MobileNav from '@/components/MobileNav';
 
 const TESTIMONIALS = [
   {
@@ -93,17 +94,7 @@ export default async function LandingPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* --- NAV --- */}
-      <nav className="flex justify-between items-center p-8 max-w-7xl mx-auto relative z-50">
-        <div className="text-2xl font-black tracking-tighter italic">
-          NEURAL<span className="text-blue-600">ROUTING</span>
-        </div>
-        <div className="flex items-center gap-6">
-          <Link href="/docs"    className="hidden md:block text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 hover:text-white transition-all">Docs</Link>
-          <Link href="/blog"    className="hidden md:block text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 hover:text-white transition-all">Blog</Link>
-          <Link href="/pricing" className="hidden md:block text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 hover:text-white transition-all">Pricing</Link>
-          <NavAuth />
-        </div>
-      </nav>
+      <MobileNav />
 
       {/* --- HERO --- */}
       <header className="relative pt-16 pb-12 px-6 text-center max-w-6xl mx-auto flex flex-col items-center z-10">
