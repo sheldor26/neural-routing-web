@@ -1,6 +1,9 @@
 "use client";
+import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 
 export default function FAQ() {
+  const [openIndex, setOpenIndex] = useState<number>(0);
   const faqs = [
     {
       q: "How much can an LLM router save on AI costs?",
@@ -45,31 +48,50 @@ export default function FAQ() {
           </p>
         </div>
 
-        <div className="grid gap-6">
-          {faqs.map((faq, i) => (
-            <div 
-              key={i} 
-              className={`group p-8 rounded-[2.5rem] transition-all duration-300 cursor-default border ${
-                faq.featured 
-                ? "bg-blue-500/5 border-blue-500/40 shadow-[0_0_40px_-15px_rgba(59,130,246,0.3)]" 
-                : "bg-zinc-900/20 border-zinc-800 hover:border-zinc-700"
-              }`}
-            >
-              <div className="flex gap-4 items-start">
-                <span className={`font-mono font-black text-lg ${faq.featured ? "text-blue-400" : "text-zinc-600"}`}>
-                  0{i + 1}
-                </span>
-                <div className="space-y-3">
-                  <h4 className={`font-black italic uppercase tracking-tight text-xl ${faq.featured ? "text-blue-400" : "text-white group-hover:text-blue-400"} transition-colors`}>
+        <div className="grid gap-4">
+          {faqs.map((faq, i) => {
+            const isOpen = openIndex === i;
+            return (
+              <div
+                key={i}
+                className={`rounded-[2.5rem] transition-all duration-300 border overflow-hidden ${
+                  isOpen && faq.featured
+                    ? "bg-blue-500/5 border-blue-500/40 shadow-[0_0_40px_-15px_rgba(59,130,246,0.3)]"
+                    : isOpen
+                    ? "bg-zinc-900/30 border-zinc-700"
+                    : "bg-zinc-900/20 border-zinc-800 hover:border-zinc-700"
+                }`}
+              >
+                <button
+                  onClick={() => setOpenIndex(isOpen ? -1 : i)}
+                  aria-expanded={isOpen}
+                  className="w-full p-8 flex gap-4 items-start text-left"
+                >
+                  <span className={`font-mono font-black text-lg shrink-0 ${faq.featured ? "text-blue-400" : "text-zinc-600"}`}>
+                    0{i + 1}
+                  </span>
+                  <h4 className={`flex-1 font-black italic uppercase tracking-tight text-xl ${isOpen && faq.featured ? "text-blue-400" : "text-white"} transition-colors`}>
                     {faq.q}
                   </h4>
-                  <p className={`${faq.featured ? "text-zinc-300" : "text-zinc-400"} text-sm leading-relaxed italic font-medium`}>
-                    {faq.a}
-                  </p>
+                  <ChevronDown
+                    size={20}
+                    className={`shrink-0 mt-1 transition-transform duration-300 ${isOpen ? "rotate-180 text-blue-400" : "text-zinc-600"}`}
+                  />
+                </button>
+                <div
+                  className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+                    isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                  }`}
+                >
+                  <div className="overflow-hidden">
+                    <p className={`px-8 pb-8 pl-[3.75rem] ${faq.featured ? "text-zinc-300" : "text-zinc-400"} text-sm leading-relaxed italic font-medium`}>
+                      {faq.a}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Badges de confianza */}

@@ -1,7 +1,11 @@
 /** @type {import('next').NextConfig} */
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ??
-  "https://web-production-4f439.up.railway.app";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
+
+if (!API_BASE) {
+  throw new Error(
+    "NEXT_PUBLIC_API_BASE environment variable is required. Set it in Vercel or .env.local."
+  );
+}
 
 const nextConfig = {
   skipTrailingSlashRedirect: true,
