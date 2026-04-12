@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { Eye, EyeOff, Copy, Check, Loader2 } from 'lucide-react';
-import { useUser } from '@clerk/nextjs';
+import { useUser, useAuth } from '@clerk/nextjs';
 import { API_BASE } from '@/lib/config';
 
 export default function ApiKeyBox() {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const [apiKey, setApiKey] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [showKey, setShowKey] = useState(false);
@@ -16,12 +17,13 @@ export default function ApiKeyBox() {
     async function fetchKey() {
       if (!user) return;
       try {
-        // Llamamos a tu endpoint de Railway
-        const response = await fetch(`${API_BASE}/v1/account/keys/${user.id}`);
+        const token = await getToken();
+        const response = await fetch(`${API_BASE}/v1/account/keys/${user.id}`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
         const data = await response.json();
-        
+
         if (data && data.length > 0) {
-          // Tomamos la última key activa
           setApiKey(data[0].key);
         }
       } catch (error) {
@@ -32,6 +34,7 @@ export default function ApiKeyBox() {
     }
 
     fetchKey();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const copyToClipboard = () => {

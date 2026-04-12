@@ -33,9 +33,13 @@ export default function Dashboard() {
     if (!user) return;
     setGeneratingKey(true);
     try {
+      const token = await getToken();
       const res = await fetch(`${API_BASE}/v1/account/keys/generate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({ user_id: user.id, label: 'Primary Key' }),
       });
       if (!res.ok) throw new Error('Could not generate key');
@@ -53,10 +57,14 @@ export default function Dashboard() {
     if (!apiData?.id) return;
     setSavingBudget(true);
     try {
+      const token = await getToken();
       const value = remove ? null : (budgetInput ? parseFloat(budgetInput) : null);
       const res = await fetch(`${API_BASE}/v1/account/keys/${apiData.id}/budget`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({ monthly_budget_usd: value }),
       });
       if (!res.ok) throw new Error('Failed to save budget');
