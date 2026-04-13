@@ -21,9 +21,10 @@ export default function PricingGrid({ children }: { children: React.ReactNode })
         return;
       }
 
-      gsap.from(cards, {
-        y: 60,
-        autoAlpha: 0,
+      gsap.set(cards, { autoAlpha: 0, y: 60 });
+      gsap.to(cards, {
+        autoAlpha: 1,
+        y: 0,
         stagger: 0.12,
         duration: 0.7,
         ease: "back.out(1.4)",
@@ -36,21 +37,25 @@ export default function PricingGrid({ children }: { children: React.ReactNode })
     });
   }, { scope: ref });
 
-  const handleMouseEnter = useCallback((e: React.MouseEvent) => {
+  const handleMouseOver = useCallback((e: React.MouseEvent) => {
     const card = (e.target as HTMLElement).closest("[data-pricing-card]");
-    if (card) gsap.to(card, { y: -6, duration: 0.3, ease: "power2.out" });
+    if (!card) return;
+    gsap.to(card, { y: -6, duration: 0.3, ease: "power2.out", overwrite: "auto" });
   }, []);
 
-  const handleMouseLeave = useCallback((e: React.MouseEvent) => {
+  const handleMouseOut = useCallback((e: React.MouseEvent) => {
     const card = (e.target as HTMLElement).closest("[data-pricing-card]");
-    if (card) gsap.to(card, { y: 0, duration: 0.4, ease: "power2.inOut" });
+    if (!card) return;
+    const relatedTarget = e.relatedTarget as HTMLElement;
+    if (relatedTarget && card.contains(relatedTarget)) return;
+    gsap.to(card, { y: 0, duration: 0.4, ease: "power2.inOut", overwrite: "auto" });
   }, []);
 
   return (
     <div
       ref={ref}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseOver={handleMouseOver}
+      onMouseOut={handleMouseOut}
     >
       {children}
     </div>

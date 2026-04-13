@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Loader2, AlertCircle, Zap, Brain, ArrowRight, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useUser, useAuth } from '@clerk/nextjs';
@@ -37,8 +37,10 @@ export default function Playground() {
     { label: "Extract Data", prompt: "Extract all names, dates, and locations from the following paragraph." }
   ];
 
+  const initialized = useRef(false);
   useEffect(() => {
-    if (!prompt && !result) {
+    if (!initialized.current) {
+      initialized.current = true;
       setPrompt(QUICK_PROMPTS[0].prompt);
     }
   }, []);
@@ -59,7 +61,7 @@ export default function Playground() {
         const best = (data ?? []).sort((a, b) => (RANK[b.plan] ?? 0) - (RANK[a.plan] ?? 0));
         const firstKey = best[0]?.key;
         if (firstKey) setApiKey(firstKey);
-        else console.warn('[Playground] No API key found for user:', user.id);
+        // No key found — user needs to generate one
       } catch (e) {
         console.error('[Playground] Failed to fetch API key:', e);
       } finally {

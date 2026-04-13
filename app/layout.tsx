@@ -3,7 +3,6 @@ import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs';
 import { dark } from '@clerk/themes'; // Mantenemos el tema oscuro para los modales de login
 import { Analytics } from '@vercel/analytics/react';
-import JsonLd from '@/components/JsonLd';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,7 +17,7 @@ const displayFont = Plus_Jakarta_Sans({
   subsets: ["latin"],
   display: "swap",
   weight: ["700", "800"],
-  preload: false,
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
@@ -38,6 +37,9 @@ export const metadata: Metadata = {
   authors: [{ name: "NeuralRouting.io" }],
   creator: "NeuralRouting.io",
   metadataBase: new URL("https://neuralrouting.io"),
+  alternates: {
+    canonical: "https://neuralrouting.io",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -89,15 +91,6 @@ export default function RootLayout({
           className="min-h-full flex flex-col bg-[#09090b] text-zinc-200 selection:bg-blue-600/30"
           suppressHydrationWarning 
         >
-          <JsonLd data={{
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            name: "NeuralRouting",
-            url: "https://neuralrouting.io",
-            logo: "https://neuralrouting.io/logo.png",
-            description: "Intelligent LLM Router & AI Gateway. Eliminate the Model Tax — route every request to the right AI model at the right price.",
-            sameAs: ["https://github.com/neuralrouting", "https://twitter.com/neuralrouting"],
-          }} />
           <main className="flex-grow">
             {children}
           </main>

@@ -53,16 +53,6 @@ body {
 /* Display font for headings */
 .font-display { font-family: var(--font-display), var(--font-geist-sans), system-ui, sans-serif; }
 
-/* Hero staggered fade-in animations */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.animate-hero-1 { animation: fadeInUp 0.8s ease-out 0s both; }
-.animate-hero-2 { animation: fadeInUp 0.8s ease-out 0.15s both; }
-.animate-hero-3 { animation: fadeInUp 0.8s ease-out 0.3s both; }
-.animate-hero-4 { animation: fadeInUp 0.8s ease-out 0.45s both; }
-
 
 /* Custom range sliders — dark mode aesthetic */
 input[type="range"] {

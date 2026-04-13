@@ -157,7 +157,6 @@ export default function Pricing() {
             <div
               key={i}
               data-pricing-card
-              style={{ visibility: "hidden" }}
               className={`relative p-8 rounded-[3.5rem] border transition-all duration-700 group flex flex-col ${
                 tier.highlight
                   ? "bg-blue-600/5 border-2 border-blue-500 ring-1 ring-blue-500/50 shadow-[0_0_120px_-20px_rgba(37,99,235,0.4)] z-20 md:py-12 md:px-10 pb-12"

@@ -146,7 +146,6 @@ useEffect(() => {
         
         if (res.ok) {
           const data = await res.json();
-          console.log("📊 DATOS CRUDOS DE RAILWAY:", data);
 
           // Sincronizar Ahorros y Cuadros de Abajo
           const planName = data.plan || "Free Tier";
@@ -176,14 +175,14 @@ useEffect(() => {
             planName,
           });
         }
-        // Cache stats (fire-and-forget, non-blocking)
-        fetch(`${API_BASE}/v1/account/cache/stats`)
-          .then(r => r.json())
-          .then(d => setCacheStats(d))
-          .catch(() => {});
-
-        // Quality intelligence (fire-and-forget)
+        // Cache stats + Quality intelligence (fire-and-forget, non-blocking)
         if (dbData?.key) {
+          fetch(`${API_BASE}/v1/account/cache/stats`, {
+            headers: { 'X-API-KEY': dbData.key }
+          })
+            .then(r => r.json())
+            .then(d => setCacheStats(d))
+            .catch(() => {});
           fetch(`${API_BASE}/v1/account/quality/${user.id}?days=30`, {
             headers: { 'X-API-KEY': dbData.key }
           })
@@ -294,8 +293,6 @@ useEffect(() => {
       setTestLoading(false);
     }
   };
-
-  console.log('[Dashboard] mounted:', mounted, '| isLoaded:', isLoaded, '| loading:', loading, '| user:', user?.id ?? 'null');
 
   if (!mounted || !isLoaded || loading) return (
     <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center gap-4">
