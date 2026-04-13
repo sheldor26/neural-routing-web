@@ -8,13 +8,12 @@ import {
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import FAQ from '@/components/FAQ';
 import SavingsCalculator from '@/components/LazySavingsCalculator';
-import { AnimatedStats, LiveBanner } from '@/components/AnimatedStats';
 import { API_BASE } from '@/lib/config';
-import { HeroAuth } from '@/components/LazyAuth';
 import Playground from '@/components/LazyPlayground';
 import MobileNav from '@/components/MobileNav';
 import CodeShowcase from '@/components/CodeShowcase';
 import ScrollReveal from '@/components/ScrollReveal';
+import HeroSection from '@/components/HeroSection';
 
 const TESTIMONIALS = [
   {
@@ -99,32 +98,7 @@ export default async function LandingPage() {
       <MobileNav />
 
       {/* --- HERO --- */}
-      <header className="relative pt-16 pb-12 px-6 text-center max-w-6xl mx-auto flex flex-col items-center z-10 overflow-hidden">
-        {/* Atmosphere — gradient mesh + grid pattern */}
-        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/15 rounded-full blur-[150px]" />
-          <div className="absolute top-1/4 right-1/4 w-[300px] h-[300px] bg-blue-500/10 rounded-full blur-[120px]" />
-          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(255,255,255,0.1) 60px, rgba(255,255,255,0.1) 61px), repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(255,255,255,0.1) 60px, rgba(255,255,255,0.1) 61px)" }} />
-        </div>
-
-        <div className="animate-hero-1">
-          <LiveBanner savings={globalStats.savings} />
-        </div>
-
-        <h1 className="animate-hero-2 relative z-10 text-5xl md:text-[5.5rem] font-black tracking-tighter mb-6 leading-[0.9] bg-gradient-to-b from-white via-white to-zinc-600 bg-clip-text text-transparent italic uppercase font-display">
-          Stop paying premium prices <br/> for routine AI tasks.
-        </h1>
-
-        <p className="animate-hero-3 relative z-10 text-zinc-400 text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
-          NeuralRouting is an intelligent LLM router that eliminates the Model Tax — routing every request to the right AI model at the right price. Cut LLM costs up to 85% with smart model routing, semantic caching, and zero-downtime failover.
-          <span className="text-white font-bold ml-2 underline decoration-blue-500 underline-offset-4">Free tier available.</span>
-        </p>
-
-        <div className="animate-hero-4 relative z-20 flex flex-col items-center gap-6">
-          <HeroAuth />
-          <AnimatedStats stats={globalStats} />
-        </div>
-      </header>
+      <HeroSection savings={globalStats.savings} stats={globalStats} />
 
       {/* --- HOW IT WORKS --- */}
       <ScrollReveal>
