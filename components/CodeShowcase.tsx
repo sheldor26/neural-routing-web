@@ -108,9 +108,11 @@ export default function CodeShowcase() {
         return;
       }
 
-      gsap.from(lines, {
-        autoAlpha: 0,
-        x: -10,
+      // Set initial state, then animate to visible
+      gsap.set(lines, { autoAlpha: 0, x: -10 });
+      gsap.to(lines, {
+        autoAlpha: 1,
+        x: 0,
         duration: 0.3,
         stagger: 0.08,
         ease: "power2.out",
@@ -132,7 +134,7 @@ export default function CodeShowcase() {
       </div>
       <pre className="text-[11px] leading-[1.6]" style={{ fontFamily: "var(--font-geist-mono), monospace" }}>
         {CODE_LINES.map((line, i) => (
-          <div key={i} data-code-line style={{ visibility: "hidden" }}>
+          <div key={i} data-code-line>
             {highlightLine(line)}
           </div>
         ))}

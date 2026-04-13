@@ -26,6 +26,9 @@ export default function ScrollReveal({
   useGSAP(() => {
     if (!ref.current) return;
 
+    const targets = ref.current.querySelectorAll("[data-reveal]");
+    const elements = targets.length > 0 ? Array.from(targets) : [ref.current];
+
     const mm = gsap.matchMedia();
     mm.add({
       normal: "(prefers-reduced-motion: no-preference)",
@@ -33,17 +36,23 @@ export default function ScrollReveal({
     }, (context) => {
       const { reduced } = context.conditions!;
 
-      const targets = ref.current!.querySelectorAll("[data-reveal]");
-      const elements = targets.length > 0 ? targets : ref.current!;
-
       if (reduced) {
+        // Make everything visible immediately for users who prefer reduced motion
+        gsap.set(ref.current, { visibility: "inherit" });
         gsap.set(elements, { autoAlpha: 1 });
         return;
       }
 
-      gsap.from(elements, {
-        y,
-        autoAlpha: 0,
+      // 1. Make the wrapper visible so children can be seen once animated
+      gsap.set(ref.current, { visibility: "inherit" });
+
+      // 2. Set initial hidden state on the actual elements
+      gsap.set(elements, { autoAlpha: 0, y });
+
+      // 3. Animate them in when scrolled into view
+      gsap.to(elements, {
+        y: 0,
+        autoAlpha: 1,
         duration,
         delay,
         stagger: targets.length > 0 ? stagger : 0,

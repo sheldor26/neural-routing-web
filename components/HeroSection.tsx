@@ -15,25 +15,32 @@ export default function HeroSection({ savings, stats }: HeroSectionProps) {
   useGSAP(() => {
     if (!containerRef.current) return;
 
+    const heroes = containerRef.current.querySelectorAll("[data-hero]");
+
     const mm = gsap.matchMedia();
     mm.add({
       normal: "(prefers-reduced-motion: no-preference)",
       reduced: "(prefers-reduced-motion: reduce)",
     }, (context) => {
       const { reduced } = context.conditions!;
-      const heroes = containerRef.current!.querySelectorAll("[data-hero]");
 
       if (reduced) {
         gsap.set(heroes, { autoAlpha: 1 });
         return;
       }
 
+      // Set initial hidden state explicitly, then animate to visible
+      gsap.set("[data-hero='banner']", { autoAlpha: 0, y: -20 });
+      gsap.set("[data-hero='title']", { autoAlpha: 0, y: 50 });
+      gsap.set("[data-hero='subtitle']", { autoAlpha: 0, y: 30 });
+      gsap.set("[data-hero='cta']", { autoAlpha: 0, y: 30 });
+
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
-      tl.from("[data-hero='banner']", { y: -20, autoAlpha: 0, duration: 0.6 })
-        .from("[data-hero='title']", { y: 50, autoAlpha: 0, duration: 1 }, "-=0.3")
-        .from("[data-hero='subtitle']", { y: 30, autoAlpha: 0, duration: 0.8 }, "-=0.5")
-        .from("[data-hero='cta']", { y: 30, autoAlpha: 0, duration: 0.8 }, "-=0.4");
+      tl.to("[data-hero='banner']", { y: 0, autoAlpha: 1, duration: 0.6 })
+        .to("[data-hero='title']", { y: 0, autoAlpha: 1, duration: 1 }, "-=0.3")
+        .to("[data-hero='subtitle']", { y: 0, autoAlpha: 1, duration: 0.8 }, "-=0.5")
+        .to("[data-hero='cta']", { y: 0, autoAlpha: 1, duration: 0.8 }, "-=0.4");
     });
   }, { scope: containerRef });
 
@@ -46,20 +53,20 @@ export default function HeroSection({ savings, stats }: HeroSectionProps) {
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(255,255,255,0.1) 60px, rgba(255,255,255,0.1) 61px), repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(255,255,255,0.1) 60px, rgba(255,255,255,0.1) 61px)" }} />
       </div>
 
-      <div data-hero="banner" style={{ visibility: "hidden" }}>
+      <div data-hero="banner">
         <LiveBanner savings={savings} />
       </div>
 
-      <h1 data-hero="title" style={{ visibility: "hidden" }} className="relative z-10 text-5xl md:text-[5.5rem] font-black tracking-tighter mb-6 leading-[0.9] bg-gradient-to-b from-white via-white to-zinc-600 bg-clip-text text-transparent italic uppercase font-display">
+      <h1 data-hero="title" className="relative z-10 text-5xl md:text-[5.5rem] font-black tracking-tighter mb-6 leading-[0.9] bg-gradient-to-b from-white via-white to-zinc-600 bg-clip-text text-transparent italic uppercase font-display">
         Stop paying premium prices <br /> for routine AI tasks.
       </h1>
 
-      <p data-hero="subtitle" style={{ visibility: "hidden" }} className="relative z-10 text-zinc-400 text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
+      <p data-hero="subtitle" className="relative z-10 text-zinc-400 text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
         NeuralRouting is an intelligent LLM router that eliminates the Model Tax — routing every request to the right AI model at the right price. Cut LLM costs up to 85% with smart model routing, semantic caching, and zero-downtime failover.
         <span className="text-white font-bold ml-2 underline decoration-blue-500 underline-offset-4">Free tier available.</span>
       </p>
 
-      <div data-hero="cta" style={{ visibility: "hidden" }} className="relative z-20 flex flex-col items-center gap-6">
+      <div data-hero="cta" className="relative z-20 flex flex-col items-center gap-6">
         <HeroAuth />
         <AnimatedStats stats={stats} />
       </div>
