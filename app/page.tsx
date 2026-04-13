@@ -14,6 +14,7 @@ import { HeroAuth } from '@/components/LazyAuth';
 import Playground from '@/components/LazyPlayground';
 import MobileNav from '@/components/MobileNav';
 import CodeShowcase from '@/components/CodeShowcase';
+import ScrollReveal from '@/components/ScrollReveal';
 
 const TESTIMONIALS = [
   {
@@ -98,25 +99,35 @@ export default async function LandingPage() {
       <MobileNav />
 
       {/* --- HERO --- */}
-      <header className="relative pt-16 pb-12 px-6 text-center max-w-6xl mx-auto flex flex-col items-center z-10">
-        <LiveBanner savings={globalStats.savings} />
+      <header className="relative pt-16 pb-12 px-6 text-center max-w-6xl mx-auto flex flex-col items-center z-10 overflow-hidden">
+        {/* Atmosphere — gradient mesh + grid pattern */}
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/15 rounded-full blur-[150px]" />
+          <div className="absolute top-1/4 right-1/4 w-[300px] h-[300px] bg-blue-500/10 rounded-full blur-[120px]" />
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(255,255,255,0.1) 60px, rgba(255,255,255,0.1) 61px), repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(255,255,255,0.1) 60px, rgba(255,255,255,0.1) 61px)" }} />
+        </div>
 
-        <h1 className="relative z-10 text-5xl md:text-[5.5rem] font-black tracking-tighter mb-6 leading-[0.9] bg-gradient-to-b from-white via-white to-zinc-600 bg-clip-text text-transparent italic uppercase">
+        <div className="animate-hero-1">
+          <LiveBanner savings={globalStats.savings} />
+        </div>
+
+        <h1 className="animate-hero-2 relative z-10 text-5xl md:text-[5.5rem] font-black tracking-tighter mb-6 leading-[0.9] bg-gradient-to-b from-white via-white to-zinc-600 bg-clip-text text-transparent italic uppercase">
           Stop paying premium prices <br/> for routine AI tasks.
         </h1>
 
-        <p className="relative z-10 text-zinc-400 text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
+        <p className="animate-hero-3 relative z-10 text-zinc-400 text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
           NeuralRouting is an intelligent LLM router that eliminates the Model Tax — routing every request to the right AI model at the right price. Cut LLM costs up to 85% with smart model routing, semantic caching, and zero-downtime failover.
           <span className="text-white font-bold ml-2 underline decoration-blue-500 underline-offset-4">Free tier available.</span>
         </p>
 
-        <div className="relative z-20 flex flex-col items-center gap-6">
+        <div className="animate-hero-4 relative z-20 flex flex-col items-center gap-6">
           <HeroAuth />
           <AnimatedStats stats={globalStats} />
         </div>
       </header>
 
       {/* --- HOW IT WORKS --- */}
+      <ScrollReveal>
       <section className="py-24 px-6 relative z-10">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
@@ -142,8 +153,10 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
+      </ScrollReveal>
 
       {/* --- FEATURES GRID --- */}
+      <ScrollReveal>
       <section className="py-20 px-6 relative z-10 bg-zinc-950/60 border-y border-white/5">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
@@ -170,7 +183,9 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
+      </ScrollReveal>
 
+      <ScrollReveal>
       {/* --- BEFORE VS AFTER --- */}
       <section className="py-20 max-w-5xl mx-auto px-6 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
@@ -199,7 +214,9 @@ export default async function LandingPage() {
           </SignInButton>
         </div>
       </section>
+      </ScrollReveal>
 
+      <ScrollReveal>
       {/* --- PLAYGROUND (LIVE PROOF) --- */}
       <section id="playground" className="relative z-30 py-16 px-6 bg-zinc-950/40 border-y border-white/5">
         <div className="max-w-4xl mx-auto text-center">
@@ -221,7 +238,9 @@ export default async function LandingPage() {
           </SignedOut>
         </div>
       </section>
+      </ScrollReveal>
 
+      <ScrollReveal>
       {/* --- CODE SHOWCASE --- */}
       <section className="py-24 px-6 relative z-10 bg-zinc-950/50 border-b border-white/5">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -240,7 +259,9 @@ export default async function LandingPage() {
           <CodeShowcase />
         </div>
       </section>
+      </ScrollReveal>
 
+      <ScrollReveal>
       {/* --- SAVINGS CALCULATOR --- */}
       <section className="py-24 px-6 relative z-10">
         <div className="max-w-6xl mx-auto">
@@ -252,7 +273,9 @@ export default async function LandingPage() {
           <SavingsCalculator />
         </div>
       </section>
+      </ScrollReveal>
 
+      <ScrollReveal>
       {/* --- PRICING TEASER --- */}
       <section className="py-24 px-6 relative z-10 bg-zinc-950/60 border-y border-white/5">
         <div className="max-w-5xl mx-auto">
@@ -285,7 +308,9 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
+      </ScrollReveal>
 
+      <ScrollReveal>
       {/* --- TESTIMONIALS --- */}
       <section className="py-24 px-6 relative z-10">
         <div className="max-w-6xl mx-auto">
@@ -318,7 +343,9 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
+      </ScrollReveal>
 
+      <ScrollReveal>
       {/* --- FINAL CTA --- */}
       <section className="py-32 px-6 relative z-10 text-center">
         <div className="max-w-3xl mx-auto p-12 rounded-[3rem] bg-gradient-to-b from-blue-600/10 to-zinc-900/40 border border-blue-500/20 shadow-[0_0_80px_-20px_rgba(37,99,235,0.3)]">
@@ -346,6 +373,7 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
+      </ScrollReveal>
 
       {/* --- SEO INTERNAL LINKS --- */}
       <section className="py-16 px-6 relative z-10 border-t border-white/5">
