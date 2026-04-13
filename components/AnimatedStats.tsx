@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useRef } from 'react';
+import { gsap, useGSAP } from '@/lib/gsap-setup';
 
 interface Stat {
   label: string;
@@ -10,20 +11,31 @@ interface Stat {
 }
 
 function AnimatedNumber({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) {
-  const [display, setDisplay] = useState(0);
-  useEffect(() => {
-    if (value === 0) return;
-    let start = 0;
-    const duration = 1800;
-    const increment = value / (duration / 16);
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= value) { setDisplay(value); clearInterval(timer); }
-      else setDisplay(Math.floor(start));
-    }, 16);
-    return () => clearInterval(timer);
-  }, [value]);
-  return <span>{prefix}{display.toLocaleString()}{suffix}</span>;
+  const spanRef = useRef<HTMLSpanElement>(null);
+  const objRef = useRef({ val: 0 });
+
+  useGSAP(() => {
+    if (value === 0 || !spanRef.current) return;
+    objRef.current.val = 0;
+
+    gsap.to(objRef.current, {
+      val: value,
+      duration: 1.8,
+      ease: "power2.out",
+      scrollTrigger: {
+        trigger: spanRef.current,
+        start: "top 90%",
+        toggleActions: "play none none none",
+      },
+      onUpdate: () => {
+        if (spanRef.current) {
+          spanRef.current.textContent = `${prefix}${Math.floor(objRef.current.val).toLocaleString()}${suffix}`;
+        }
+      },
+    });
+  }, { dependencies: [value] });
+
+  return <span ref={spanRef}>{prefix}0{suffix}</span>;
 }
 
 export function AnimatedStats({ stats }: { stats: { savings: number; requests: number; users: number } }) {

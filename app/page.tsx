@@ -104,7 +104,7 @@ export default async function LandingPage() {
       <ScrollReveal>
       <section className="py-24 px-6 relative z-10">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-16" data-reveal>
             <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">Intelligent model routing pipeline</p>
             <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white font-display">Four stages. Zero friction.</h2>
           </div>
@@ -115,7 +115,7 @@ export default async function LandingPage() {
               { step: "03", icon: <Cpu size={22} className="text-emerald-400" />, title: "Smart route & failover", desc: "Simple tasks route to economy models (60x cheaper). Complex reasoning goes to GPT-4o. If a provider fails, automatic multi-provider failover reroutes transparently — your users never notice LLM downtime." },
               { step: "04", icon: <RefreshCw size={22} className="text-orange-400" />, title: "Validate & learn", desc: "Shadow Engine runs the premium model in parallel to audit every economy response. Confidence Matrix learns which (task, model) pairs underperform and auto-escalates — your AI gateway gets smarter over time." },
             ].map((item) => (
-              <div key={item.step} className="relative bg-zinc-900/30 border border-white/5 rounded-3xl p-8 flex flex-col gap-4">
+              <div key={item.step} data-reveal className="relative bg-zinc-900/30 border border-white/5 rounded-3xl p-8 flex flex-col gap-4">
                 <div className="flex items-center gap-4">
                   <span className="text-[9px] font-black text-zinc-700 tracking-widest">{item.step}</span>
                   <div className="p-2.5 bg-white/5 rounded-xl">{item.icon}</div>
@@ -133,7 +133,7 @@ export default async function LandingPage() {
       <ScrollReveal>
       <section className="py-20 px-6 relative z-10 bg-zinc-950/60 border-y border-white/5">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-16" data-reveal>
             <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">AI gateway features</p>
             <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white font-display">Enterprise-grade LLM infrastructure.</h2>
           </div>
@@ -146,7 +146,7 @@ export default async function LandingPage() {
               { icon: <DollarSign size={18} className="text-yellow-400" />, title: "FinOps & Budget Caps", desc: "Per-user spend limits, ROI dashboards, and AI token cost optimization. See exactly how much you save vs direct OpenAI pricing." },
               { icon: <Zap size={18} className="text-yellow-300" />, title: "LLM Semantic Caching", desc: "2-level cache: exact hash + vector similarity matching. Similar prompts return cached responses instantly — reducing LLM latency to sub-millisecond at zero cost." },
             ].map((f) => (
-              <div key={f.title} className="bg-zinc-900/20 border border-white/5 rounded-2xl p-6 hover:border-white/10 hover:bg-zinc-900/40 transition-all">
+              <div key={f.title} data-reveal className="bg-zinc-900/20 border border-white/5 rounded-2xl p-6 hover:border-white/10 hover:bg-zinc-900/40 transition-all">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="p-2 bg-white/5 rounded-xl">{f.icon}</div>
                   <h3 className="text-[11px] font-black uppercase tracking-widest text-white">{f.title}</h3>
@@ -287,7 +287,7 @@ export default async function LandingPage() {
               { name: "Growth",   price: "$89",  note: "/ mo",    credits: "200K credits", highlight: true,  tag: "Most Popular" },
               { name: "Business", price: "$349", note: "/ mo",    credits: "1M credits",   highlight: false, tag: null },
             ].map((plan) => (
-              <div key={plan.name} className={`relative rounded-2xl p-6 flex flex-col gap-3 border transition-all ${plan.highlight ? "bg-blue-600/10 border-blue-500/40 shadow-[0_0_30px_rgba(37,99,235,0.15)]" : "bg-zinc-900/20 border-white/5"}`}>
+              <div key={plan.name} data-reveal className={`relative rounded-2xl p-6 flex flex-col gap-3 border transition-all ${plan.highlight ? "bg-blue-600/10 border-blue-500/40 shadow-[0_0_30px_rgba(37,99,235,0.15)]" : "bg-zinc-900/20 border-white/5"}`}>
                 {plan.tag && <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-blue-600 text-white text-[8px] font-black uppercase tracking-widest rounded-full">{plan.tag}</span>}
                 <p className={`text-[10px] font-black uppercase tracking-widest ${plan.highlight ? "text-blue-400" : "text-zinc-500"}`}>{plan.name}</p>
                 <div className="flex items-baseline gap-1">
@@ -317,7 +317,7 @@ export default async function LandingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {TESTIMONIALS.map((t) => (
-              <div key={t.name} className="relative p-8 rounded-[2rem] bg-zinc-900/20 border border-white/5 hover:border-white/10 transition-all flex flex-col gap-6">
+              <div key={t.name} data-reveal className="relative p-8 rounded-[2rem] bg-zinc-900/20 border border-white/5 hover:border-white/10 transition-all flex flex-col gap-6">
                 <div className="flex items-start justify-between">
                   <Quote size={20} className="text-blue-600 shrink-0" />
                   <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-widest">-{t.savings} cost</span>

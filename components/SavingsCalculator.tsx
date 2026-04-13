@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { ArrowRight, Zap, Shield, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
+import { useAnimatedValue } from '@/hooks/useAnimatedValue';
 
 const PROVIDERS = [
   { name: "OpenAI (GPT-4o)", costPer1M: 12.50 },
@@ -40,6 +41,11 @@ export default function SavingsCalculator() {
   const annualSavings = monthlySavings * 12;
   const savingsPct = monthlyCostAllPremium > 0 ? (monthlySavings / monthlyCostAllPremium) * 100 : 0;
   const modelTax = monthlyCostAllPremium - (premiumTokens / 1_000_000) * provider.costPer1M;
+
+  const currentCostRef = useAnimatedValue(monthlyCostAllPremium);
+  const modelTaxRef = useAnimatedValue(modelTax);
+  const neuralCostRef = useAnimatedValue(finalNeuralCost);
+  const annualRef = useAnimatedValue(annualSavings);
 
   return (
     <div className="max-w-5xl mx-auto rounded-[3rem] bg-zinc-900/30 border border-zinc-800/50 backdrop-blur-xl shadow-2xl relative overflow-hidden group hover:border-blue-500/20 transition-all duration-700">
@@ -134,7 +140,7 @@ export default function SavingsCalculator() {
           <div className="p-6 rounded-2xl bg-red-500/5 border border-red-500/20 text-center">
             <p className="text-[8px] font-black text-red-400 uppercase tracking-widest mb-2">Current Cost</p>
             <p className="text-3xl font-black italic text-red-400 tracking-tighter">
-              ${monthlyCostAllPremium.toLocaleString(undefined, { maximumFractionDigits: 0 })}<span className="text-sm">/mo</span>
+              <span ref={currentCostRef}>${Math.round(monthlyCostAllPremium).toLocaleString()}</span><span className="text-sm">/mo</span>
             </p>
             <p className="text-[8px] text-zinc-600 mt-1">100% premium model</p>
           </div>
@@ -143,7 +149,7 @@ export default function SavingsCalculator() {
           <div className="p-6 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-center">
             <p className="text-[8px] font-black text-amber-400 uppercase tracking-widest mb-2">Model Tax</p>
             <p className="text-3xl font-black italic text-amber-400 tracking-tighter">
-              ${modelTax.toLocaleString(undefined, { maximumFractionDigits: 0 })}<span className="text-sm">/mo</span>
+              <span ref={modelTaxRef}>${Math.round(modelTax).toLocaleString()}</span><span className="text-sm">/mo</span>
             </p>
             <p className="text-[8px] text-zinc-600 mt-1">Wasted on simple tasks</p>
           </div>
@@ -152,7 +158,7 @@ export default function SavingsCalculator() {
           <div className="p-6 rounded-2xl bg-blue-500/5 border border-blue-500/20 text-center">
             <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-2">With NeuralRouting</p>
             <p className="text-3xl font-black italic text-blue-400 tracking-tighter">
-              ${finalNeuralCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}<span className="text-sm">/mo</span>
+              <span ref={neuralCostRef}>${Math.round(finalNeuralCost).toLocaleString()}</span><span className="text-sm">/mo</span>
             </p>
             <p className="text-[8px] text-zinc-600 mt-1">Routing + caching</p>
           </div>
@@ -161,7 +167,7 @@ export default function SavingsCalculator() {
           <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-center shadow-[0_10px_30px_rgba(16,185,129,0.2)]">
             <p className="text-[8px] font-black text-emerald-200 uppercase tracking-widest mb-2">Annual Savings</p>
             <p className="text-3xl font-black italic text-white tracking-tighter">
-              ${annualSavings.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              <span ref={annualRef}>${Math.round(annualSavings).toLocaleString()}</span>
             </p>
             <p className="text-[8px] text-emerald-200 mt-1 font-bold">{savingsPct.toFixed(0)}% cost reduction</p>
           </div>
