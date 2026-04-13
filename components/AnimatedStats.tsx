@@ -40,10 +40,10 @@ function AnimatedNumber({ value, prefix = "", suffix = "" }: { value: number; pr
 
 export function AnimatedStats({ stats }: { stats: { savings: number; requests: number; users: number } }) {
   const items: Stat[] = [
-    { label: "Saved by users",  value: 1247 + stats.savings,  prefix: "$", suffix: "",   color: "text-emerald-400" },
-    { label: "Requests routed", value: 94000 + stats.requests, prefix: "",  suffix: "+",  color: "text-blue-400" },
-    { label: "Dev teams",       value: 450 + stats.users,      prefix: "",  suffix: "+",  color: "text-purple-400" },
-    { label: "Avg latency",     value: 118,                    prefix: "",  suffix: "ms", color: "text-white" },
+    { label: "Saved by users",  value: stats.savings,  prefix: "$", suffix: "",   color: "text-emerald-400" },
+    { label: "Requests routed", value: stats.requests, prefix: "",  suffix: "+",  color: "text-blue-400" },
+    { label: "Dev teams",       value: stats.users,    prefix: "",  suffix: "+",  color: "text-purple-400" },
+    { label: "Avg latency",     value: 118,            prefix: "",  suffix: "ms", color: "text-white" },
   ];
 
   return (
