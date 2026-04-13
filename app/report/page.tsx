@@ -24,10 +24,15 @@ export default function ReportPage() {
 
     const load = async () => {
       try {
-        // 1. Get API key
-        const keyRes = await fetch(`${API_BASE}/v1/account/keys/${user.id}`);
-        const keyData = await keyRes.json();
-        const key = Array.isArray(keyData) ? keyData[0]?.key : keyData?.key;
+        // 1. Get API key via Supabase auth
+        const { createAuthClient } = await import('@/lib/supabase');
+        const token = await (window as any).Clerk?.session?.getToken({ template: 'supabase' });
+        if (!token) { setLoading(false); return; }
+        const sb = createAuthClient(token);
+        const { data: keysData } = await sb.from('api_keys').select('key, plan').eq('user_id', user.id);
+        const RANK: Record<string, number> = { 'Business': 4, 'business': 4, 'Growth': 3, 'growth': 3, 'Starter': 2, 'starter': 2 };
+        const sorted = (keysData ?? []).sort((a, b) => (RANK[b.plan] ?? 0) - (RANK[a.plan] ?? 0));
+        const key = sorted[0]?.key;
         if (!key) { setLoading(false); return; }
         setApiKey(key);
 

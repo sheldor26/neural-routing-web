@@ -22,16 +22,21 @@ export default function AttributionPage() {
   const [loading, setLoading]         = useState(true);
   const [days, setDays]               = useState(30);
 
-  // Load API key
+  // Load API key via Supabase auth
   useEffect(() => {
     if (!isLoaded || !user) return;
-    fetch(`${API_BASE}/v1/account/keys/${user.id}`)
-      .then(r => r.json())
-      .then(data => {
-        const key = Array.isArray(data) ? data[0]?.key : data?.key;
-        if (key) setApiKey(key);
-      })
-      .catch(() => {});
+    (async () => {
+      try {
+        const { createAuthClient } = await import('@/lib/supabase');
+        const token = await (window as any).Clerk?.session?.getToken({ template: 'supabase' });
+        if (!token) return;
+        const sb = createAuthClient(token);
+        const { data } = await sb.from('api_keys').select('key, plan').eq('user_id', user.id);
+        const RANK: Record<string, number> = { 'Business': 4, 'business': 4, 'Growth': 3, 'growth': 3, 'Starter': 2, 'starter': 2 };
+        const sorted = (data ?? []).sort((a, b) => (RANK[b.plan] ?? 0) - (RANK[a.plan] ?? 0));
+        if (sorted[0]?.key) setApiKey(sorted[0].key);
+      } catch {}
+    })();
   }, [isLoaded, user]);
 
   const load = useCallback(async () => {
