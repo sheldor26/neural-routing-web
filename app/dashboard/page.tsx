@@ -3,13 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
- Cpu, TrendingUp, Loader2, Shield, Key, Copy, Eye, EyeOff,
+ Cpu, Loader2, Shield, Key, Copy, Eye, EyeOff,
  CheckCircle2, History, Terminal, Sparkles, Play, MessageSquare,
- DollarSign, ExternalLink, Clock, AlertCircle, ArrowRight, Code, FileText, Zap, ShieldCheck, Activity
+ DollarSign, ExternalLink, Clock, AlertCircle, Code, Zap, ShieldCheck, Activity
 } from 'lucide-react';
 import { useUser, useAuth } from '@clerk/nextjs';
 import { createAuthClient } from '@/lib/supabase';
 import DashboardShell from '@/components/DashboardShell';
+import ActionFunnel from '@/components/dashboard/ActionFunnel';
+import SavingsCard from '@/components/dashboard/SavingsCard';
+import CreditsPanel from '@/components/dashboard/CreditsPanel';
 import { API_BASE } from '@/lib/config';
 
 export default function Dashboard() {
@@ -317,20 +320,7 @@ useEffect(() => {
 
       <main className="max-w-6xl mx-auto px-6 py-12 space-y-12">
         {/* ACTION FUNNEL */}
-        <div className="bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl shadow-blue-900/10">
-            <div className="space-y-1 text-center md:text-left">
-                <p className="text-[10px] font-black uppercase text-blue-500 tracking-[0.2em]">Step 1: Deployment</p>
-                <h2 className="text-xl font-black italic text-white uppercase">Scale your savings to production</h2>
-            </div>
-            <div className="flex flex-wrap justify-center gap-4">
-                <Link href="/setup" className="px-8 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2 font-bold">
-                    Go to Production Setup <ArrowRight size={14}/>
-                </Link>
-                <Link href="/report" target="_blank" className="px-8 py-3 bg-zinc-800 text-zinc-300 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-700 transition-all flex items-center gap-2">
-                    <FileText size={14} /> Monthly Report
-                </Link>
-            </div>
-        </div>
+        <ActionFunnel />
         
         {/* ── SEMANTIC CACHE STATS ───────────────────────────────────── */}
         {cacheStats.total_hits > 0 && (
@@ -421,78 +411,12 @@ useEffect(() => {
           </div>
 
           {/* TOTAL SAVINGS CARD */}
-          <div className="p-10 rounded-[3rem] bg-blue-600 flex flex-col justify-center items-center text-center space-y-4 shadow-[0_0_80px_-20px_rgba(37,99,235,0.5)] group relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform duration-700">
-              <TrendingUp size={160} />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-100 z-10 italic">Accumulated Savings</span>
-            {!loading && stats.savings === 0 ? (
-              <p className="text-xl font-black italic text-white tracking-tight z-10 px-4">
-                Your first saving is one request away
-              </p>
-            ) : (
-              <h3 className="text-7xl font-black italic text-white tracking-tighter z-10">
-                {loading ? <Loader2 className="animate-spin" size={40} /> : `$${stats.savings.toFixed(2)}`}
-              </h3>
-            )}
-            <p className="text-[9px] font-bold text-blue-200 uppercase tracking-widest z-10 opacity-70 italic">Total value saved by Neuralrouting</p>
-            <Link href="/pricing" className="mt-4 block w-full py-5 bg-white text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 transition-colors z-10 text-center">
-                Maximize My Savings →
-            </Link>
-          </div>
+          <SavingsCard savings={stats.savings} loading={loading} />
         </div>
 
         {/* USAGE & CREDENTIALS */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-6 shadow-inner">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-white font-black italic uppercase text-lg tracking-tighter">Credits <span className="text-blue-600">& Plan</span></h3>
-                    <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
-                      usageData.planName === "Business" ? "border-amber-500/30 bg-amber-500/10 text-amber-400" :
-                      usageData.planName === "Growth"   ? "border-purple-500/30 bg-purple-500/10 text-purple-400" :
-                      usageData.planName === "Starter"  ? "border-blue-500/30 bg-blue-500/10 text-blue-400" :
-                      "border-white/10 bg-white/5 text-zinc-400"
-                    }`}>{usageData.planName}</span>
-                </div>
-                <div className="space-y-4">
-                    {/* Credits balance */}
-                    <div className="flex justify-between items-baseline">
-                        <span className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em]">Credits Remaining</span>
-                        <span className="text-2xl font-black text-white italic tracking-tighter">
-                          {usageData.creditsBalance.toLocaleString()}
-                          <span className="text-[9px] text-zinc-600 not-italic font-bold ml-1">/ {usageData.creditsLimit.toLocaleString()}</span>
-                        </span>
-                    </div>
-                    {/* Progress bar */}
-                    <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
-                        <div
-                          className={`h-full transition-all duration-1000 ease-out rounded-full ${
-                            usageData.creditsBalance / usageData.creditsLimit < 0.2
-                              ? "bg-gradient-to-r from-red-600 to-red-400"
-                              : "bg-gradient-to-r from-blue-600 to-blue-400"
-                          }`}
-                          style={{ width: `${Math.min(100, (usageData.creditsBalance / usageData.creditsLimit) * 100)}%` }}
-                        />
-                    </div>
-                    {/* Credit tier legend */}
-                    <div className="grid grid-cols-3 gap-2 pt-1">
-                      {[
-                        { label: "Budget", cost: "1 cr / 1K", color: "text-emerald-400", note: "Llama 3" },
-                        { label: "Medium", cost: "10 cr / 1K", color: "text-blue-400", note: "GPT-4o mini" },
-                        { label: "Premium", cost: "100 cr / 1K", color: "text-purple-400", note: "GPT-4o" },
-                      ].map(t => (
-                        <div key={t.label} className="bg-black/30 rounded-xl p-3 border border-white/5 text-center">
-                          <span className={`text-[8px] font-black uppercase block ${t.color}`}>{t.label}</span>
-                          <span className="text-[9px] font-bold text-white block mt-0.5">{t.cost}</span>
-                          <span className="text-[7px] text-zinc-600 uppercase">{t.note}</span>
-                        </div>
-                      ))}
-                    </div>
-                </div>
-                <a href="/pricing" className="block w-full py-4 bg-white text-black rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-all text-center">
-                    Upgrade for more credits →
-                </a>
-            </div>
+            <CreditsPanel usageData={usageData} />
 
             <div className="bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-10 space-y-8 shadow-inner">
                 <div className="flex justify-between items-center">

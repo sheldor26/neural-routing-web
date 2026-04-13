@@ -10,7 +10,7 @@ if (!API_BASE) {
 const nextConfig = {
   skipTrailingSlashRedirect: true,
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: true, // TODO: enable once all warnings are resolved
   },
 
   async rewrites() {
