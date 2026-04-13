@@ -111,7 +111,7 @@ export default async function LandingPage() {
           <LiveBanner savings={globalStats.savings} />
         </div>
 
-        <h1 className="animate-hero-2 relative z-10 text-5xl md:text-[5.5rem] font-black tracking-tighter mb-6 leading-[0.9] bg-gradient-to-b from-white via-white to-zinc-600 bg-clip-text text-transparent italic uppercase">
+        <h1 className="animate-hero-2 relative z-10 text-5xl md:text-[5.5rem] font-black tracking-tighter mb-6 leading-[0.9] bg-gradient-to-b from-white via-white to-zinc-600 bg-clip-text text-transparent italic uppercase font-display">
           Stop paying premium prices <br/> for routine AI tasks.
         </h1>
 
@@ -132,7 +132,7 @@ export default async function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">Intelligent model routing pipeline</p>
-            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Four stages. Zero friction.</h2>
+            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white font-display">Four stages. Zero friction.</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
             {[
@@ -161,7 +161,7 @@ export default async function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">AI gateway features</p>
-            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Enterprise-grade LLM infrastructure.</h2>
+            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white font-display">Enterprise-grade LLM infrastructure.</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
@@ -188,28 +188,51 @@ export default async function LandingPage() {
       <ScrollReveal>
       {/* --- BEFORE VS AFTER --- */}
       <section className="py-20 max-w-5xl mx-auto px-6 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          <div className="p-8 rounded-3xl bg-zinc-900/20 border border-red-500/10 grayscale opacity-60">
-            <p className="text-[9px] font-black uppercase text-red-500 mb-4 tracking-widest">Standard API usage</p>
-            <div className="space-y-3">
-              <div className="flex justify-between text-xs font-bold uppercase"><span className="text-zinc-500">Summary</span> <span className="text-white">GPT-4o ($0.0100)</span></div>
-              <div className="flex justify-between text-xs font-bold uppercase"><span className="text-zinc-500">Simple Reply</span> <span className="text-white">GPT-4o ($0.0150)</span></div>
-              <div className="border-t border-white/5 pt-3 flex justify-between text-sm font-black italic uppercase text-red-500"><span>Budget Burn</span> <span>$0.0125 / req</span></div>
+        <div className="text-center mb-12">
+          <p className="text-[9px] font-black text-red-400 uppercase tracking-[0.4em] mb-3">The Model Tax in action</p>
+          <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white font-display">Same prompts. Dramatically different bills.</h2>
+        </div>
+        <div className="relative grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+          {/* Savings badge — floating between cards */}
+          <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+            <div className="bg-emerald-500 text-black font-black text-lg px-6 py-3 rounded-full shadow-2xl shadow-emerald-500/30 -rotate-3">
+              85% SAVED
             </div>
           </div>
-          <div className="p-8 rounded-3xl bg-blue-600/5 border border-blue-500/30 shadow-[0_0_40px_rgba(37,99,235,0.1)]">
-            <p className="text-[9px] font-black uppercase text-blue-500 mb-4 tracking-widest">Neural Routing</p>
+
+          {/* Before — desaturated, tilted */}
+          <div className="p-8 rounded-3xl bg-zinc-900/20 border border-red-500/15 opacity-70 md:-rotate-1 transition-transform hover:rotate-0">
+            <p className="text-[9px] font-black uppercase text-red-500/60 mb-5 tracking-widest">Without routing — all GPT-4o</p>
             <div className="space-y-3">
-              <div className="flex justify-between text-xs font-bold uppercase"><span className="text-zinc-400">Summary</span> <span className="text-emerald-500">Llama 3 ($0.0008)</span></div>
-              <div className="flex justify-between text-xs font-bold uppercase"><span className="text-zinc-400">Simple Reply</span> <span className="text-emerald-500">Mini ($0.0002)</span></div>
-              <div className="border-t border-white/5 pt-3 flex justify-between text-sm font-black italic uppercase text-emerald-500"><span>Target Cost</span> <span>$0.0005 (96% Saved)</span></div>
+              <div className="flex justify-between text-xs font-bold uppercase"><span className="text-zinc-600">Summary</span> <span className="text-zinc-400 line-through">GPT-4o ($0.0100)</span></div>
+              <div className="flex justify-between text-xs font-bold uppercase"><span className="text-zinc-600">Classification</span> <span className="text-zinc-400 line-through">GPT-4o ($0.0080)</span></div>
+              <div className="flex justify-between text-xs font-bold uppercase"><span className="text-zinc-600">Simple Reply</span> <span className="text-zinc-400 line-through">GPT-4o ($0.0150)</span></div>
+              <div className="border-t border-white/5 pt-3 flex justify-between text-sm font-black italic uppercase text-red-500/60"><span>Monthly waste</span> <span>$3,400/mo</span></div>
+            </div>
+          </div>
+
+          {/* After — prominent, glowing */}
+          <div className="p-8 rounded-3xl bg-blue-600/5 border border-blue-500/30 shadow-[0_0_60px_rgba(37,99,235,0.15)] md:rotate-1 transition-transform hover:rotate-0">
+            <p className="text-[9px] font-black uppercase text-blue-400 mb-5 tracking-widest">With NeuralRouting — auto-routed</p>
+            <div className="space-y-3">
+              <div className="flex justify-between text-xs font-bold uppercase"><span className="text-zinc-400">Summary</span> <span className="text-emerald-400">Llama 3 ($0.0003)</span></div>
+              <div className="flex justify-between text-xs font-bold uppercase"><span className="text-zinc-400">Classification</span> <span className="text-emerald-400">Llama 3 ($0.0001)</span></div>
+              <div className="flex justify-between text-xs font-bold uppercase"><span className="text-zinc-400">Complex Analysis</span> <span className="text-blue-400">GPT-4o ($0.0150)</span></div>
+              <div className="border-t border-white/5 pt-3 flex justify-between text-sm font-black italic uppercase text-emerald-400"><span>Monthly cost</span> <span>$510/mo</span></div>
+            </div>
+          </div>
+
+          {/* Mobile savings badge */}
+          <div className="md:hidden flex justify-center -mt-4">
+            <div className="bg-emerald-500 text-black font-black text-sm px-5 py-2 rounded-full shadow-lg">
+              85% SAVED
             </div>
           </div>
         </div>
         <div className="text-center">
           <SignInButton mode="modal">
             <button className="px-12 py-6 bg-blue-600 text-white font-black uppercase italic tracking-tighter rounded-2xl hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20">
-              Get Your API Key Now
+              Eliminate Your Model Tax
             </button>
           </SignInButton>
         </div>
@@ -267,7 +290,7 @@ export default async function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <p className="text-[9px] font-black text-red-400 uppercase tracking-[0.4em] mb-3">Model Tax Calculator</p>
-            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">How much are you <span className="text-red-400">overpaying?</span></h2>
+            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white font-display">How much are you <span className="text-red-400">overpaying?</span></h2>
             <p className="text-sm text-zinc-500 mt-3 max-w-xl mx-auto">Most AI apps send every request to GPT-4o. But 80% of those requests could use a cheaper model with identical quality. That gap is your Model Tax.</p>
           </div>
           <SavingsCalculator />
@@ -281,7 +304,7 @@ export default async function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">Pricing</p>
-            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Start free. Scale when ready.</h2>
+            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white font-display">Start free. Scale when ready.</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
             {[
@@ -316,7 +339,7 @@ export default async function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">Wall of Savings</p>
-            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Teams that stopped overpaying.</h2>
+            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white font-display">Teams that stopped overpaying.</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {TESTIMONIALS.map((t) => (

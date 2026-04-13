@@ -112,7 +112,7 @@ export default async function Image() {
             display: 'flex',
           }}
         >
-          One API key. Every model. Auto-routed.
+          Intelligent LLM Router — Cut AI costs up to 85%
         </div>
 
         {/* Stats pills */}

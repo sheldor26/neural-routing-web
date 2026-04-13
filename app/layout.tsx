@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs';
 import { dark } from '@clerk/themes'; // Mantenemos el tema oscuro para los modales de login
 import { Analytics } from '@vercel/analytics/react';
@@ -11,6 +11,14 @@ const geistSans = Geist({
   subsets: ["latin"],
   display: "swap",
   preload: true,
+});
+
+const displayFont = Plus_Jakarta_Sans({
+  variable: "--font-display",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["700", "800"],
+  preload: false,
 });
 
 const geistMono = Geist_Mono({
@@ -50,7 +58,10 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true, "max-image-preview": "large" },
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico" },
+    ],
     apple: "/icon.png",
   },
 };
@@ -72,7 +83,7 @@ export default function RootLayout({
       <html
         lang="en"
         suppressHydrationWarning 
-        className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${displayFont.variable} h-full antialiased`}
       >
         <body 
           className="min-h-full flex flex-col bg-[#09090b] text-zinc-200 selection:bg-blue-600/30"
