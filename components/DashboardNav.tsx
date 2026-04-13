@@ -133,9 +133,18 @@ export default function DashboardNav() {
         </div>
       </nav>
 
-      {/* Mobile drawer */}
-      {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 top-14 z-40 bg-[#080809] overflow-y-auto">
+      {/* Mobile drawer + backdrop */}
+      <div
+        className={`lg:hidden fixed inset-0 top-14 z-30 bg-black/60 transition-opacity duration-300 ${
+          mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setMobileOpen(false)}
+      />
+      <div
+        className={`lg:hidden fixed inset-y-0 left-0 top-14 z-40 w-64 bg-[#080809] border-r border-white/5 overflow-y-auto transition-transform duration-300 ease-out ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
           <div className="py-4 px-3 space-y-6">
             {NAV_GROUPS.map((group) => (
               <div key={group.label}>
@@ -162,8 +171,7 @@ export default function DashboardNav() {
               </div>
             ))}
           </div>
-        </div>
-      )}
+      </div>
     </>
   );
 }

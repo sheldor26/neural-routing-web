@@ -92,7 +92,7 @@ export default function SavingsCalculator() {
               type="range" min={1_000_000} max={1_000_000_000} step={1_000_000}
               value={tokens}
               onChange={(e) => setTokens(Number(e.target.value))}
-              className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              className="w-full"
             />
             <div className="flex gap-2">
               {USAGE_PRESETS.map(p => (
@@ -118,7 +118,7 @@ export default function SavingsCalculator() {
               type="range" min={5} max={80} step={5}
               value={complexMix}
               onChange={(e) => setComplexMix(Number(e.target.value))}
-              className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              className="w-full"
             />
             <p className="text-[8px] text-zinc-600 font-bold">
               {complexMix <= 20 ? "Most apps: 80% of requests are simple (Q&A, classification, extraction)" :

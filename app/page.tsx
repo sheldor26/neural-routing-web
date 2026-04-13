@@ -13,6 +13,7 @@ import { API_BASE } from '@/lib/config';
 import { HeroAuth } from '@/components/LazyAuth';
 import Playground from '@/components/LazyPlayground';
 import MobileNav from '@/components/MobileNav';
+import CodeShowcase from '@/components/CodeShowcase';
 
 const TESTIMONIALS = [
   {
@@ -236,22 +237,7 @@ export default async function LandingPage() {
               Read the docs <ArrowRight size={12} />
             </Link>
           </div>
-          <div className="bg-black border border-zinc-800 rounded-3xl p-6 font-mono text-[11px] shadow-2xl relative">
-            <div className="flex gap-1.5 mb-4">
-              <div className="w-2 h-2 rounded-full bg-zinc-800" /><div className="w-2 h-2 rounded-full bg-zinc-800" /><div className="w-2 h-2 rounded-full bg-zinc-800" />
-            </div>
-            <pre className="text-blue-400 overflow-x-auto">
-{`// Integration Example
-const response = await fetch("https://neuralrouting.io/v1/dispatch", {
-  method: "POST",
-  headers: { "X-API-KEY": "sk_nr_live_..." },
-  body: JSON.stringify({
-    messages: [{ role: "user", content: "..." }],
-    user_id: "your_app_01"
-  })
-});`}
-            </pre>
-          </div>
+          <CodeShowcase />
         </div>
       </section>
 

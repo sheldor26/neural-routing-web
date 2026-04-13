@@ -132,17 +132,12 @@ export default function Playground() {
   return (
     <section id="playground" className="max-w-5xl mx-auto px-6 py-20 relative z-30 font-sans text-zinc-300">
       
-      {/* SOCIAL PROOF COUNTER */}
-      <div className="flex justify-center mb-10">
-        <div className="bg-zinc-900/60 border border-white/5 px-6 py-2.5 rounded-full flex items-center gap-4 backdrop-blur-md">
-            <div className="flex -space-x-2">
-                {[1,2,3].map(i => <div key={i} className="w-6 h-6 rounded-full bg-zinc-800 border-2 border-black flex items-center justify-center text-[8px] font-bold">U{i}</div>)}
-            </div>
-            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                <span className="text-emerald-500 animate-pulse mr-2">●</span> 
-                Developers saved <span className="text-white">$128,492</span> this week
-            </p>
-        </div>
+      {/* LIVE STATUS BADGE */}
+      <div className="flex items-center justify-center gap-2 mb-8">
+        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+          Live routing engine · Sub-200ms latency
+        </p>
       </div>
 
       <div className="bg-[#080808] border border-white/10 rounded-[3.5rem] p-8 md:p-16 shadow-3xl relative overflow-hidden">
@@ -202,7 +197,7 @@ export default function Playground() {
               <p className="text-[10px] font-black uppercase text-zinc-600 tracking-widest">Monthly Traffic</p>
               <p className="text-sm font-bold text-white uppercase italic">Scale: <span className="text-blue-500">{(monthlyVolume/1000000).toFixed(1)}M requests</span></p>
             </div>
-            <input type="range" min="100000" max="10000000" step="100000" value={monthlyVolume} onChange={(e) => setMonthlyVolume(Number(e.target.value))} className="w-full md:w-64 h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+            <input type="range" min="100000" max="10000000" step="100000" value={monthlyVolume} onChange={(e) => setMonthlyVolume(Number(e.target.value))} className="w-full md:w-64" />
           </div>
         </div>
 
