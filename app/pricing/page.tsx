@@ -3,6 +3,7 @@
 import type { Metadata } from 'next';
 import { Check, X, Zap, Rocket, Crown, Sparkles } from 'lucide-react';
 import { AuthCheckoutButton } from '@/components/AuthCheckoutButton';
+import PricingGrid from '@/components/PricingGrid';
 
 export const metadata: Metadata = {
   title: "AI Gateway & LLM Router Pricing — Plans from $0/mo",
@@ -150,14 +151,17 @@ export default function Pricing() {
         </div>
 
         {/* TIER CARDS */}
+        <PricingGrid>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch mb-24">
           {tiers.map((tier, i) => (
             <div
               key={i}
+              data-pricing-card
+              style={{ visibility: "hidden" }}
               className={`relative p-8 rounded-[3.5rem] border transition-all duration-700 group flex flex-col ${
                 tier.highlight
-                  ? "bg-blue-600/5 border-blue-500 ring-1 ring-blue-500/50 shadow-[0_0_120px_-20px_rgba(37,99,235,0.4)] md:scale-110 z-20 pb-12"
-                  : "bg-zinc-900/20 border-white/5 hover:border-white/10 pb-10"
+                  ? "bg-blue-600/5 border-2 border-blue-500 ring-1 ring-blue-500/50 shadow-[0_0_120px_-20px_rgba(37,99,235,0.4)] z-20 md:py-12 md:px-10 pb-12"
+                  : "bg-zinc-900/20 border border-white/5 hover:border-white/10 pb-10"
               }`}
             >
               {tier.highlight && (
@@ -204,6 +208,7 @@ export default function Pricing() {
             </div>
           ))}
         </div>
+        </PricingGrid>
 
         {/* COMPARISON TABLE */}
         <div className="bg-zinc-900/20 border border-white/5 rounded-[3rem] overflow-hidden mb-24">

@@ -162,7 +162,7 @@ export default async function LandingPage() {
       <ScrollReveal>
       {/* --- BEFORE VS AFTER --- */}
       <section className="py-20 max-w-5xl mx-auto px-6 relative z-10">
-        <div className="text-center mb-12">
+        <div className="text-center mb-12" data-reveal>
           <p className="text-[9px] font-black text-red-400 uppercase tracking-[0.4em] mb-3">The Model Tax in action</p>
           <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white font-display">Same prompts. Dramatically different bills.</h2>
         </div>
@@ -175,7 +175,7 @@ export default async function LandingPage() {
           </div>
 
           {/* Before — desaturated, tilted */}
-          <div className="p-8 rounded-3xl bg-zinc-900/20 border border-red-500/15 opacity-70 md:-rotate-1 transition-transform hover:rotate-0">
+          <div data-reveal className="p-8 rounded-3xl bg-zinc-900/20 border border-red-500/15 opacity-70 md:-rotate-1 transition-transform hover:rotate-0">
             <p className="text-[9px] font-black uppercase text-red-500/60 mb-5 tracking-widest">Without routing — all GPT-4o</p>
             <div className="space-y-3">
               <div className="flex justify-between text-xs font-bold uppercase"><span className="text-zinc-600">Summary</span> <span className="text-zinc-400 line-through">GPT-4o ($0.0100)</span></div>
@@ -186,7 +186,7 @@ export default async function LandingPage() {
           </div>
 
           {/* After — prominent, glowing */}
-          <div className="p-8 rounded-3xl bg-blue-600/5 border border-blue-500/30 shadow-[0_0_60px_rgba(37,99,235,0.15)] md:rotate-1 transition-transform hover:rotate-0">
+          <div data-reveal className="p-8 rounded-3xl bg-blue-600/5 border border-blue-500/30 shadow-[0_0_60px_rgba(37,99,235,0.15)] md:rotate-1 transition-transform hover:rotate-0">
             <p className="text-[9px] font-black uppercase text-blue-400 mb-5 tracking-widest">With NeuralRouting — auto-routed</p>
             <div className="space-y-3">
               <div className="flex justify-between text-xs font-bold uppercase"><span className="text-zinc-400">Summary</span> <span className="text-emerald-400">Llama 3 ($0.0003)</span></div>
