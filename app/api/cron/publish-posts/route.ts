@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { revalidatePath } from "next/cache";
 
 // Vercel Cron calls this endpoint daily at 10:00 UTC.
 // It publishes any post where published_at <= now() and published = false.
@@ -31,6 +32,13 @@ export async function GET(req: NextRequest) {
 
   const count = data?.length ?? 0;
   console.log(`[cron/publish-posts] Published ${count} post(s):`, data?.map(p => p.slug));
+
+  // Invalidate blog cache so new posts appear immediately
+  if (count > 0) {
+    revalidatePath("/blog");
+    revalidatePath("/blog/[slug]", "page");
+    data?.forEach(p => revalidatePath(`/blog/${p.slug}`));
+  }
 
   return NextResponse.json({
     ok: true,

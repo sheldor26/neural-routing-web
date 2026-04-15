@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ChevronRight, Clock, Zap } from "lucide-react";
 
-export const revalidate = 60;
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: { absolute: "AI Cost Engineering Blog | NeuralRouting" },
