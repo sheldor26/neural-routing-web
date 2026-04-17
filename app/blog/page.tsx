@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: { absolute: "AI Cost Engineering Blog | NeuralRouting" },
   description: "Engineering insights, LLM cost benchmarks, and AI infrastructure research from NeuralRouting. Learn how to reduce OpenAI and Anthropic API costs with intelligent model routing.",
   keywords: ["llm cost optimization", "ai cost engineering", "reduce openai costs", "llm routing blog", "ai infrastructure"],
+  alternates: { canonical: "https://neuralrouting.io/blog" },
   openGraph: {
     title: "AI Cost Engineering Blog | NeuralRouting",
     description: "LLM cost benchmarks, model routing architecture, and AI infrastructure research from the NeuralRouting team.",

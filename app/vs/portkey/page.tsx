@@ -9,6 +9,7 @@ export const metadata: Metadata = {
     "portkey alternative", "neuralrouting vs portkey", "portkey.ai alternative",
     "ai gateway comparison", "llm router comparison", "portkey pricing",
   ],
+  alternates: { canonical: "https://neuralrouting.io/vs/portkey" },
 };
 
 const Y = () => <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />;

@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: { absolute: "LLM Cost Optimization — Cut AI Costs by 85% | NeuralRouting" },
   description: "LLM cost optimization through intelligent model routing. Automatically select the cheapest LLM for every task. Works with GPT-4, Claude, Llama, and Mistral. Save 70-85% on inference costs.",
   keywords: ["llm cost optimization", "reduce AI costs", "how to reduce LLM costs", "AI token cost optimization", "LLM router", "AI gateway", "model tax", "intelligent model selection", "LLM semantic caching", "GPT-4o cost per token"],
+  alternates: { canonical: "https://neuralrouting.io/llm-cost-optimization" },
   openGraph: {
     title: "LLM Cost Optimization — Cut AI Costs by 85% | NeuralRouting",
     description: "Intelligent LLM routing that selects the cheapest model for every task automatically.",

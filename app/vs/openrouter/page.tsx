@@ -9,6 +9,7 @@ export const metadata: Metadata = {
     "openrouter alternative", "neuralrouting vs openrouter", "openrouter pricing",
     "openrouter markup", "cheapest llm router", "llm router pricing",
   ],
+  alternates: { canonical: "https://neuralrouting.io/vs/openrouter" },
 };
 
 const Y = () => <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />;

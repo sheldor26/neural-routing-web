@@ -13,6 +13,7 @@ export const metadata: Metadata = {
     "intelligent model selection", "AI token cost optimization", "cheapest LLM router",
     "how to reduce LLM costs", "LLM semantic caching", "multi-provider LLM API",
   ],
+  alternates: { canonical: "https://neuralrouting.io/model-tax" },
 };
 
 export default function ModelTaxPage() {

@@ -51,6 +51,7 @@ export async function generateMetadata(
   return {
     title: seoTitle,
     description: post.excerpt ?? undefined,
+    alternates: { canonical: `https://neuralrouting.io/blog/${post.slug}` },
     openGraph: {
       title: typeof seoTitle === "string" ? seoTitle : post.title.slice(0, MAX_TITLE - 1) + "…",
       description: post.excerpt ?? undefined,
@@ -58,13 +59,13 @@ export async function generateMetadata(
       type: "article",
       publishedTime: post.published_at || post.created_at,
       tags: [post.tag, "AI cost optimization", "LLM routing"],
-      images: post.cover_image ? [{ url: post.cover_image }] : [{ url: "/og-image.png" }],
+      images: post.cover_image ? [{ url: post.cover_image }] : [{ url: "https://neuralrouting.io/opengraph-image" }],
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description: post.excerpt ?? undefined,
-      images: [post.cover_image ?? "/og-image.png"],
+      images: [post.cover_image ?? "https://neuralrouting.io/opengraph-image"],
     },
   };
 }

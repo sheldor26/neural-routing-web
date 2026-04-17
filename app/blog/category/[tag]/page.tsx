@@ -36,6 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ tag: stri
   return {
     title: `${tag} — NeuralRouting Blog`,
     description: TAG_DESCRIPTIONS[tag],
+    alternates: { canonical: `https://neuralrouting.io/blog/category/${tagSlug}` },
     openGraph: {
       title: `${tag} — NeuralRouting Blog`,
       description: TAG_DESCRIPTIONS[tag],

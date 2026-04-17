@@ -23,6 +23,7 @@ export const metadata: Metadata = {
     title: "Which of your prompts actually need GPT-4o?",
     description: "Free tool: paste your prompts, see which ones can use a model that costs 60x less.",
   },
+  alternates: { canonical: "https://neuralrouting.io/analyzer" },
 };
 
 export default function AnalyzerPage() {

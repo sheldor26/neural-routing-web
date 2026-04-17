@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: { absolute: "Reduce OpenAI Costs by 85% | NeuralRouting.io" },
   description: "Stop overpaying for GPT-4 on every request. NeuralRouting automatically routes prompts to the cheapest model that can handle them. Save up to 85% on OpenAI API costs with zero code changes.",
   keywords: ["reduce openai costs", "OpenAI alternative API", "reduce AI costs", "LLM router", "AI gateway", "model tax", "LLM cost optimization", "GPT-4o cost per token", "cheapest LLM router", "multi-provider LLM API"],
+  alternates: { canonical: "https://neuralrouting.io/reduce-openai-costs" },
   openGraph: {
     title: "Reduce OpenAI API Costs by 85% — NeuralRouting",
     description: "Automatically route prompts to the cheapest model. Save up to 85% on OpenAI costs.",

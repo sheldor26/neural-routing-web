@@ -9,6 +9,7 @@ export const metadata: Metadata = {
     "litellm alternative", "neuralrouting vs litellm", "litellm alternative 2026",
     "litellm security", "litellm supply chain attack", "managed ai gateway",
   ],
+  alternates: { canonical: "https://neuralrouting.io/vs/litellm" },
 };
 
 const Y = () => <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />;

@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Docs — LLM Router API Reference & Integration Guide",
   description: "Integrate the NeuralRouting intelligent LLM router in under 2 minutes. OpenAI SDK compatible AI gateway with semantic caching, multi-provider failover, and automatic model routing.",
   keywords: ["llm router api", "ai gateway documentation", "openai alternative api", "llm routing api", "semantic caching api", "multi-provider llm api"],
+  alternates: { canonical: "https://neuralrouting.io/docs" },
   openGraph: {
     title: "NeuralRouting Docs — API Reference",
     description: "OpenAI SDK compatible. Integrate in 2 minutes. Full API reference.",
