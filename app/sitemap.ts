@@ -27,6 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/docs`,                lastModified: now, changeFrequency: "weekly",  priority: 0.9 },
     { url: `${base}/blog`,                lastModified: now, changeFrequency: "daily",   priority: 0.85 },
     { url: `${base}/how-it-works`,        lastModified: now, changeFrequency: "monthly", priority: 0.75 },
+    { url: `${base}/about`,                             lastModified: now, changeFrequency: "monthly", priority: 0.70 },
     { url: `${base}/sign-up`,                    lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/reduce-openai-costs`,               lastModified: now, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/llm-cost-optimization`,             lastModified: now, changeFrequency: "monthly", priority: 0.85 },

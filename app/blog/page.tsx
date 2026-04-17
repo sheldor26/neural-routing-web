@@ -10,7 +10,10 @@ export const metadata: Metadata = {
   title: { absolute: "AI Cost Engineering Blog | NeuralRouting" },
   description: "Engineering insights, LLM cost benchmarks, and AI infrastructure research from NeuralRouting. Learn how to reduce OpenAI and Anthropic API costs with intelligent model routing.",
   keywords: ["llm cost optimization", "ai cost engineering", "reduce openai costs", "llm routing blog", "ai infrastructure"],
-  alternates: { canonical: "https://neuralrouting.io/blog" },
+  alternates: {
+    canonical: "https://neuralrouting.io/blog",
+    types: { "application/rss+xml": "https://neuralrouting.io/blog/feed.xml" },
+  },
   openGraph: {
     title: "AI Cost Engineering Blog | NeuralRouting",
     description: "LLM cost benchmarks, model routing architecture, and AI infrastructure research from the NeuralRouting team.",
@@ -45,8 +48,44 @@ export default async function BlogPage() {
 
   const list = posts ?? [];
 
+  const blogLd = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "@id": "https://neuralrouting.io/blog",
+    name: "AI Cost Engineering Blog",
+    description:
+      "LLM cost benchmarks, routing architecture, and AI infrastructure research from the NeuralRouting team.",
+    url: "https://neuralrouting.io/blog",
+    publisher: {
+      "@type": "Organization",
+      name: "NeuralRouting.io",
+      url: "https://neuralrouting.io",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://neuralrouting.io/logo.png",
+      },
+    },
+    blogPost: list.slice(0, 10).map((p) => ({
+      "@type": "BlogPosting",
+      headline: p.title,
+      description: p.excerpt ?? undefined,
+      url: `https://neuralrouting.io/blog/${p.slug}`,
+      datePublished: p.published_at || p.created_at,
+      image: p.cover_image || undefined,
+      author: {
+        "@type": "Person",
+        name: "Juan Miranda",
+        url: "https://neuralrouting.io/about",
+      },
+    })),
+  };
+
   return (
     <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-blue-500/30">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogLd) }}
+      />
 
       {/* Decorative glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">

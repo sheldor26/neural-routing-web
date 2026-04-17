@@ -395,18 +395,51 @@ export default async function LandingPage() {
 
       {/* --- FOOTER --- */}
       <footer className="py-20 border-t border-zinc-900">
-        <div className="max-w-5xl mx-auto px-6 flex flex-col items-center gap-8">
-          <div className="text-xl font-black tracking-tighter italic">NEURAL<span className="text-blue-600">ROUTING</span></div>
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-[9px] font-black uppercase tracking-widest">
-            <Link href="/docs"    className="text-zinc-600 hover:text-zinc-400 transition-colors">Docs</Link>
-            <Link href="/blog"    className="text-zinc-600 hover:text-zinc-400 transition-colors">Blog</Link>
-            <Link href="/pricing" className="text-zinc-600 hover:text-zinc-400 transition-colors">Pricing</Link>
-            <Link href="/terms"   className="text-zinc-600 hover:text-zinc-400 transition-colors">Terms</Link>
-            <Link href="/privacy" className="text-zinc-600 hover:text-zinc-400 transition-colors">Privacy</Link>
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-14">
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-blue-400 mb-4">Product</p>
+              <ul className="space-y-3 text-[10px] font-black uppercase tracking-widest">
+                <li><Link href="/how-it-works" className="text-zinc-600 hover:text-white transition-colors">How it works</Link></li>
+                <li><Link href="/pricing"      className="text-zinc-600 hover:text-white transition-colors">Pricing</Link></li>
+                <li><Link href="/docs"         className="text-zinc-600 hover:text-white transition-colors">Docs</Link></li>
+                <li><Link href="/model-tax"    className="text-zinc-600 hover:text-white transition-colors">Model Tax calculator</Link></li>
+                <li><Link href="/analyzer"     className="text-zinc-600 hover:text-white transition-colors">Prompt analyzer</Link></li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-blue-400 mb-4">Guides</p>
+              <ul className="space-y-3 text-[10px] font-black uppercase tracking-widest">
+                <li><Link href="/reduce-openai-costs"    className="text-zinc-600 hover:text-white transition-colors">Reduce OpenAI costs</Link></li>
+                <li><Link href="/llm-cost-optimization" className="text-zinc-600 hover:text-white transition-colors">LLM cost optimization</Link></li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-blue-400 mb-4">Compare</p>
+              <ul className="space-y-3 text-[10px] font-black uppercase tracking-widest">
+                <li><Link href="/vs/portkey"            className="text-zinc-600 hover:text-white transition-colors">vs Portkey</Link></li>
+                <li><Link href="/vs/litellm"            className="text-zinc-600 hover:text-white transition-colors">vs LiteLLM</Link></li>
+                <li><Link href="/vs/openrouter"         className="text-zinc-600 hover:text-white transition-colors">vs OpenRouter</Link></li>
+                <li><Link href="/vs/helicone"           className="text-zinc-600 hover:text-white transition-colors">vs Helicone</Link></li>
+                <li><Link href="/vs/vercel-ai-gateway"  className="text-zinc-600 hover:text-white transition-colors">vs Vercel AI Gateway</Link></li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-blue-400 mb-4">Company</p>
+              <ul className="space-y-3 text-[10px] font-black uppercase tracking-widest">
+                <li><Link href="/about"   className="text-zinc-600 hover:text-white transition-colors">About</Link></li>
+                <li><Link href="/blog"    className="text-zinc-600 hover:text-white transition-colors">Blog</Link></li>
+                <li><Link href="/terms"   className="text-zinc-600 hover:text-white transition-colors">Terms</Link></li>
+                <li><Link href="/privacy" className="text-zinc-600 hover:text-white transition-colors">Privacy</Link></li>
+              </ul>
+            </div>
           </div>
-          <p className="text-zinc-700 text-[10px] font-black uppercase tracking-[0.5em] italic text-center">
-            © 2026 NeuralRouting.io — Built for the Intelligent Enterprise.
-          </p>
+          <div className="flex flex-col items-center gap-4 pt-10 border-t border-zinc-900">
+            <div className="text-xl font-black tracking-tighter italic">NEURAL<span className="text-blue-600">ROUTING</span></div>
+            <p className="text-zinc-700 text-[10px] font-black uppercase tracking-[0.5em] italic text-center">
+              © 2026 NeuralRouting.io — Built for the Intelligent Enterprise.
+            </p>
+          </div>
         </div>
       </footer>
     </div>

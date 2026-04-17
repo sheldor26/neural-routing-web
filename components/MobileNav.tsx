@@ -9,6 +9,7 @@ const LINKS = [
   { href: "/blog", label: "Blog" },
   { href: "/pricing", label: "Pricing" },
   { href: "/model-tax", label: "Model Tax" },
+  { href: "/about", label: "About" },
 ];
 
 export default function MobileNav() {

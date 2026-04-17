@@ -1,0 +1,31 @@
+# NeuralRouting.io
+
+> Intelligent LLM router and AI gateway. Automatically routes every API request to the cheapest model capable of handling it. Reduces LLM costs 60–85% with semantic caching, Shadow Engine quality validation, and zero-downtime failover. OpenAI SDK compatible.
+
+## Core pages
+
+- [How NeuralRouting works](https://neuralrouting.io/how-it-works): The 8-step routing pipeline — semantic cache, security shield, complexity classification, dynamic model selection, shadow validation.
+- [Pricing](https://neuralrouting.io/pricing): Free tier (5,000 credits), Starter $29/mo, Growth $89/mo, Business $349/mo.
+- [Docs — API reference](https://neuralrouting.io/docs): OpenAI-compatible endpoint at `neuralrouting.io/v1`. Drop-in replacement for `api.openai.com/v1`.
+- [The Model Tax](https://neuralrouting.io/model-tax): The hidden cost of sending every LLM request to GPT-4o when a 60x cheaper model could handle it.
+
+## Guides
+
+- [Reduce OpenAI costs by 85%](https://neuralrouting.io/reduce-openai-costs): Step-by-step playbook to cut OpenAI API spend without sacrificing quality.
+- [LLM cost optimization — complete guide](https://neuralrouting.io/llm-cost-optimization): Model tiering, semantic caching, smart fallback — all techniques explained.
+
+## Comparisons
+
+- [NeuralRouting vs Portkey](https://neuralrouting.io/vs/portkey): Cost optimization vs observability — which AI gateway fits.
+- [NeuralRouting vs LiteLLM](https://neuralrouting.io/vs/litellm): Managed router vs self-hosted proxy.
+- [NeuralRouting vs OpenRouter](https://neuralrouting.io/vs/openrouter): Router vs marketplace.
+- [NeuralRouting vs Helicone](https://neuralrouting.io/vs/helicone): Cost-first routing vs pure observability.
+- [NeuralRouting vs Vercel AI Gateway](https://neuralrouting.io/vs/vercel-ai-gateway): Provider-agnostic routing vs Vercel-bundled gateway.
+
+## Blog
+
+- [AI cost engineering blog](https://neuralrouting.io/blog): LLM cost benchmarks, routing architecture, AI infra research.
+
+## About
+
+NeuralRouting was founded in 2025 by Juan Miranda. The product is an OpenAI-compatible AI gateway focused on automatic cost optimization — not observability, not provider access. Best fit: teams spending $500+/month on LLM APIs.

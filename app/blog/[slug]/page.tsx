@@ -51,7 +51,10 @@ export async function generateMetadata(
   return {
     title: seoTitle,
     description: post.excerpt ?? undefined,
-    alternates: { canonical: `https://neuralrouting.io/blog/${post.slug}` },
+    alternates: {
+      canonical: `https://neuralrouting.io/blog/${post.slug}`,
+      types: { "application/rss+xml": "https://neuralrouting.io/blog/feed.xml" },
+    },
     openGraph: {
       title: typeof seoTitle === "string" ? seoTitle : post.title.slice(0, MAX_TITLE - 1) + "…",
       description: post.excerpt ?? undefined,
@@ -101,7 +104,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
         headline: post.title,
         datePublished: pubDate,
         dateModified: post.updated_at || pubDate,
-        author: { "@type": "Person", name: "Juan Miranda", url: "https://neuralrouting.io" },
+        author: { "@type": "Person", name: "Juan Miranda", url: "https://neuralrouting.io/about" },
         publisher: {
           "@type": "Organization",
           name: "NeuralRouting",
