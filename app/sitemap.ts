@@ -36,6 +36,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/vs/portkey`,                        lastModified: now, changeFrequency: "monthly", priority: 0.80 },
     { url: `${base}/vs/litellm`,                        lastModified: now, changeFrequency: "monthly", priority: 0.80 },
     { url: `${base}/vs/openrouter`,                     lastModified: now, changeFrequency: "monthly", priority: 0.80 },
+    { url: `${base}/vs/helicone`,                       lastModified: now, changeFrequency: "monthly", priority: 0.80 },
+    { url: `${base}/vs/vercel-ai-gateway`,              lastModified: now, changeFrequency: "monthly", priority: 0.80 },
     { url: `${base}/blog/category/engineering`,         lastModified: now, changeFrequency: "weekly",  priority: 0.75 },
     { url: `${base}/blog/category/architecture`,        lastModified: now, changeFrequency: "weekly",  priority: 0.75 },
     { url: `${base}/blog/category/neural-research`,     lastModified: now, changeFrequency: "weekly",  priority: 0.75 },
